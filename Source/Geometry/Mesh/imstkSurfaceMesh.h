@@ -43,7 +43,8 @@ struct NormalGroup
 // This method is defined to allow for the map to be properly indexed by Texture objects
 namespace std
 {
-template<> struct less<imstk::NormalGroup>
+template<>
+struct less<imstk::NormalGroup>
 {
     bool operator()(const imstk::NormalGroup& group1,
                     const imstk::NormalGroup& group2) const
@@ -70,7 +71,7 @@ namespace imstk
 ///
 /// \brief Surface triangular mesh
 ///
-class SurfaceMesh : public PointSet
+class IMSTKGEOMETRY_EXPORT SurfaceMesh : public PointSet
 {
 public:
 

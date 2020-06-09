@@ -21,6 +21,7 @@ limitations under the License.
 
 #pragma once
 
+#include "imstkcommon_export.h"
 #include "imstkTaskNode.h"
 #include <list>
 #include <memory>
@@ -41,7 +42,7 @@ using TaskNodeAdjList = std::unordered_map<std::shared_ptr<TaskNode>, TaskNodeSe
 /// \brief Base class for TaskGraph, a collection of TaskNode's. Maintains nodes,
 /// adjacencyList, and invAdjacencyList.
 ///
-class TaskGraph
+class IMSTKCOMMON_EXPORT TaskGraph
 {
 public:
     TaskGraph(std::string sourceName = "Source", std::string sinkName = "Sink");

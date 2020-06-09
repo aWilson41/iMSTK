@@ -2,9 +2,10 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
-imstk_add_library( Materials
+imstk_add_library( imstkMaterials
+  TYPE STATIC
   DEPENDS
-    Common
+    imstkCommon
     ${VTK_LIBRARIES}
   )
 

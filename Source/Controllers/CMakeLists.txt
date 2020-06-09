@@ -2,10 +2,11 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
-imstk_add_library( Controllers
+imstk_add_library( imstkControllers
+  TYPE STATIC
   DEPENDS
-	Devices
-    SceneEntities
+	  imstkDevices
+    imstkSceneEntities
   )
 
 #-----------------------------------------------------------------------------

@@ -30,7 +30,7 @@ namespace imstk
 ///
 /// \brief Base class for any analytical geometrical representation
 ///
-class AnalyticalGeometry : public Geometry
+class IMSTKGEOMETRY_EXPORT AnalyticalGeometry : public Geometry
 {
 public:
 

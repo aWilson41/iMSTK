@@ -2,9 +2,10 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
-imstk_add_library( Solvers
+imstk_add_library( imstkSolvers
+  TYPE STATIC
   DEPENDS
-    Constraints
+    imstkConstraints
   )
 
 #-----------------------------------------------------------------------------

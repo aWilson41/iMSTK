@@ -21,6 +21,7 @@ limitations under the License.
 
 #pragma once
 
+#include "imstkcommon_export.h"
 #include <memory>
 
 namespace imstk
@@ -32,7 +33,7 @@ class TaskGraph;
 ///
 /// \brief Base class for TaskGraph controllers which are responsible for executing the TaskGraph
 ///
-class TaskGraphController
+class IMSTKCOMMON_EXPORT TaskGraphController
 {
 public:
     TaskGraphController() = default;

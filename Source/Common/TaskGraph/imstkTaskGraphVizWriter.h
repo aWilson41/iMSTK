@@ -21,6 +21,7 @@ limitations under the License.
 
 #pragma once
 
+#include "imstkcommon_export.h"
 #include <memory>
 #include <string>
 
@@ -34,7 +35,7 @@ class TaskGraph;
 /// \brief Writes a TaskGraph to an svg file. Produces unique node names from duplicates with postfix.
 /// Can also color by node compute time and highlight the critical path
 ///
-class TaskGraphVizWriter
+class IMSTKCOMMON_EXPORT TaskGraphVizWriter
 {
 public:
     TaskGraphVizWriter() = default;

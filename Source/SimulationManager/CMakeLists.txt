@@ -43,7 +43,8 @@ else()
 endif()
 
 include(imstkAddLibrary)
-imstk_add_library( SimulationManager
+imstk_add_library( imstkSimulationManager
+  TYPE STATIC
   H_FILES
     imstkSceneManager.h
     imstkSimulationManager.h
@@ -61,8 +62,8 @@ imstk_add_library( SimulationManager
   SUBDIR_LIST
     ${SIMULATIONMANAGER_SUBDIR}
   DEPENDS
-    Scene
-    Rendering
+    imstkScene
+    imstkRendering
     ${Vulkan}
   )
 

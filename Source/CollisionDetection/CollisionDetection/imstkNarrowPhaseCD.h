@@ -21,9 +21,8 @@
 
 #pragma once
 
-#include <memory>
-
 #include "imstkMath.h"
+#include <memory>
 
 namespace imstk
 {

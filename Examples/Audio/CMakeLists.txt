@@ -32,10 +32,7 @@ SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples)
 # Link libraries to executable
 #-----------------------------------------------------------------------------
 if(UNIX)
-  target_link_libraries(${PROJECT_NAME}
-  SimulationManager)
+  target_link_libraries(${PROJECT_NAME} imstkSimulationManager)
 else()
-  target_link_libraries(${PROJECT_NAME}
-  SimulationManager
-  ${SFML_LIBRARIES})
+  target_link_libraries(${PROJECT_NAME} imstkSimulationManager ${SFML_LIBRARIES})
 endif()

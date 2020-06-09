@@ -21,6 +21,7 @@ limitations under the License.
 
 #pragma once
 
+#include "imstkcommon_export.h"
 #include "imstkTaskGraphController.h"
 
 namespace imstk
@@ -30,7 +31,7 @@ namespace imstk
 ///
 /// \brief This class runs an input TaskGraph in parallel using tbb tasks
 ///
-class TbbTaskGraphController : public TaskGraphController
+class IMSTKCOMMON_EXPORT TbbTaskGraphController : public TaskGraphController
 {
 public:
     void execute() override;

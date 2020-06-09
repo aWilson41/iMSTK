@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "imstkcommon_export.h"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -40,7 +41,7 @@ namespace imstk
 ///        internal buffering to maintain good performance. If the program crashes,
 ///        then unflushed content will NOT be preserved.
 ///
-class DataLogger
+class IMSTKCOMMON_EXPORT DataLogger
 {
 public:
     ///

@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "imstkcommon_export.h"
 #include "imstkLogger.h"
 
 #include <chrono>
@@ -33,7 +34,7 @@ namespace imstk
 ///
 /// \brief Stop Watch utility class
 ///
-class StopWatch
+class IMSTKCOMMON_EXPORT StopWatch
 {
 public:
     static const double wcTimerConstants[4];
@@ -117,7 +118,7 @@ private:
 ///
 /// \brief CPU timer
 ///
-class CpuTimer : public StopWatch
+class IMSTKCOMMON_EXPORT CpuTimer : public StopWatch
 {
 public:
     static const double cpuTimerConstants[4];
@@ -153,7 +154,7 @@ private:
 ///
 /// \brief Utility class to count updates per second
 ///
-class UPSCounter
+class IMSTKCOMMON_EXPORT UPSCounter
 {
 public:
     ///

@@ -21,13 +21,11 @@
 
 #pragma once
 
-// STL includes
-#include <iostream>
-#include <fstream>
-
-// imstk
-#include "imstkMath.h"
+#include "imstkapiutilities_export.h"
 #include "imstkLogger.h"
+#include "imstkMath.h"
+#include <fstream>
+#include <iostream>
 
 #pragma warning( push )
 #pragma warning( disable : 4505 ) // Warning C4505 will vanish upon calls to the following functions
@@ -38,7 +36,7 @@ namespace plotterutils
 ///
 /// \brief Write a Matlab script to plot a given vector
 ///
-static void
+void
 writePlotterVectorMatlab(Vectord& x, const char* fileName)
 {
     std::ofstream scriptFile(fileName);
@@ -61,7 +59,7 @@ writePlotterVectorMatlab(Vectord& x, const char* fileName)
 ///
 /// \brief Write a Matlab script to plot X vs Y where X, Y are input vectors of same size
 ///
-static void
+void
 writePlotterVecVsVecMatlab(Vectord& x, Vectord& y, const char* fileName)
 {
     // check if the vectors are of the same size
@@ -99,7 +97,7 @@ writePlotterVecVsVecMatlab(Vectord& x, Vectord& y, const char* fileName)
 ///
 /// \brief Write a MatPlotlib script to plot a given vector
 ///
-static void
+void
 writePlotterVectorMatPlotlib(Vectord& x, const char* fileName)
 {
     std::ofstream scriptFile(fileName);
@@ -129,7 +127,7 @@ writePlotterVectorMatPlotlib(Vectord& x, const char* fileName)
 /// \brief Write a MatPlotlib script to plot X vs Y where X, Y are input vectors of same
 /// size
 ///
-static void
+void
 writePlotterVecVsVecMatPlotlib(Vectord& x, Vectord& y, const char* fileName)
 {
     // check if the vectors are of the same size

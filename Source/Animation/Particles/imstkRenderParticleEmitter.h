@@ -21,11 +21,12 @@
 
 #pragma once
 
-#include "imstkMath.h"
+#include "imstkanimation_export.h"
 #include "imstkAnimationModel.h"
+#include "imstkColor.h"
+#include "imstkMath.h"
 #include "imstkRenderParticles.h"
 #include "imstkTimer.h"
-#include "imstkColor.h"
 
 namespace imstk
 {
@@ -51,7 +52,7 @@ struct RenderParticleKeyFrame
 /// \brief Animation method for rendering particles
 /// Common use cases include smoke and fire.
 ///
-class RenderParticleEmitter : public AnimationModel
+class IMSTKANIMATION_EXPORT RenderParticleEmitter : public AnimationModel
 {
 public:
     ///

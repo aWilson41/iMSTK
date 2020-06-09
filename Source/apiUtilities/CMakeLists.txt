@@ -2,11 +2,12 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)      
-imstk_add_library(apiUtilities
+imstk_add_library( imstkApiUtilities
+  TYPE STATIC
   DEPENDS
-    Common
-    SimulationManager
-    Scene
+    imstkCommon
+    imstkSimulationManager
+    imstkScene
   )
   
 #-----------------------------------------------------------------------------

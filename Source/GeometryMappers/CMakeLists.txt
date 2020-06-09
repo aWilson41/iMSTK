@@ -2,9 +2,10 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
-imstk_add_library( GeometryMappers
+imstk_add_library( imstkGeometryMappers
+  TYPE STATIC
   DEPENDS
-	Geometry
+	  imstkGeometry
   )
 
 #-----------------------------------------------------------------------------

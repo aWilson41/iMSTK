@@ -33,7 +33,7 @@ class SurfaceMesh;
 ///
 /// \brief Base class for all volume mesh types
 ///
-class VolumetricMesh : public PointSet
+class IMSTKGEOMETRY_EXPORT VolumetricMesh : public PointSet
 {
 public:
 

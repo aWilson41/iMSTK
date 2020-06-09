@@ -21,8 +21,8 @@
 
 #pragma once
 
+#include "imstkgeometry_export.h"
 #include "imstkMath.h"
-
 #include <tbb/concurrent_unordered_set.h>
 
 namespace imstk
@@ -36,7 +36,7 @@ class SpinLock;
 /// \class Geometry
 /// \brief Base class for any geometrical representation
 ///
-class Geometry
+class IMSTKGEOMETRY_EXPORT Geometry
 {
 public:
     ///
@@ -179,7 +179,7 @@ public:
     ///
     /// \brief Get a pointer to geometry that has been registered globally
     ///
-    static uint32_t getTotalNumberGeometries() { return s_NumGeneratedGegometries; }
+    static uint32_t getTotalNumberGeometries() { return s_NumGeneratedGeometries; }
 
 protected:
     ///
@@ -191,10 +191,10 @@ protected:
     static ParallelUtils::SpinLock s_GeomGlobalLock;
 
     /// Total number of geometries that have been created in this program
-    static uint32_t s_NumGeneratedGegometries;
+    static uint32_t s_NumGeneratedGeometries;
 
     /// Set of string names of all generated geometries, used to check for name duplication
-    static tbb::concurrent_unordered_set<std::string> s_sGegometryNames;
+    static tbb::concurrent_unordered_set<std::string> s_sGeometryNames;
 
     friend class VTKRenderer;
     friend class VTKRenderDelegate;

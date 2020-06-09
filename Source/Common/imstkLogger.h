@@ -20,11 +20,10 @@ limitations under the License.
 =========================================================================*/
 #pragma once
 
+#include "imstkcommon_export.h"
 #include "g3log/logmessage.hpp"
 #include "g3log/logworker.hpp"
-
 #include "imstkDataLogger.h"
-
 #include <memory>
 
 namespace imstk
@@ -34,7 +33,7 @@ namespace imstk
 ///
 /// \brief A standard sink that prints the message to a standard output
 ///
-struct stdSink
+struct IMSTKCOMMON_EXPORT stdSink
 {
     // Linux xterm color
     // http://stackoverflow.com/questions/2616906/how-do-i-output-coloured-text-to-a-linux-terminal
@@ -73,7 +72,7 @@ using StdoutSinkHandle = g3::SinkHandle<stdSink>;
 ///
 /// \brief lazy initialized singleton
 ///
-class Logger
+class IMSTKCOMMON_EXPORT Logger
 {
 public:
     static Logger& getInstance()

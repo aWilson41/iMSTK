@@ -2,10 +2,11 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
-imstk_add_library( MeshIO
+imstk_add_library( imstkMeshIO
+  TYPE STATIC
   DEPENDS
-    Common
-	Geometry
+    imstkCommon
+	  imstkGeometry
     glm
     Assimp    
     VegaFEM::volumetricMesh

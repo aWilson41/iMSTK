@@ -3,18 +3,19 @@
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
 
-imstk_add_library( DynamicalModels
+imstk_add_library( imstkDynamicalModels
+  TYPE STATIC
   SUBDIR_LIST
     ObjectStates
     TimeIntegrators
     ObjectModels
     InternalForceModel
   DEPENDS    
-    DataStructures
-    Constraints
-    Geometry
-    Solvers
-    MeshIO
+    imstkDataStructures
+    imstkConstraints
+    imstkGeometry
+    imstkSolvers
+    imstkMeshIO
     VegaFEM::massSpringSystem
     VegaFEM::corotationalLinearFEM
     VegaFEM::isotropicHyperelasticFEM

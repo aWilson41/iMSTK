@@ -2,13 +2,14 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
-imstk_add_library( Scene
+imstk_add_library( imstkScene
+  TYPE STATIC
   DEPENDS
-    Common
-    CollisionDetection
-    CollisionHandling
-    SceneEntities
-    Controllers
+    imstkCommon
+    imstkCollisionDetection
+    imstkCollisionHandling
+    imstkSceneEntities
+    imstkControllers
   )
 
 #-----------------------------------------------------------------------------

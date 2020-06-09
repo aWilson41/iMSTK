@@ -31,7 +31,7 @@ namespace imstk
 ///
 /// \brief Plane geometry
 ///
-class Plane : public AnalyticalGeometry
+class IMSTKGEOMETRY_EXPORT Plane : public AnalyticalGeometry
 {
 public:
     ///

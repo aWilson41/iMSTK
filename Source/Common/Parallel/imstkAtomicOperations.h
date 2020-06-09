@@ -21,8 +21,9 @@
 
 #pragma once
 
-#include <atomic>
+#include "imstkcommon_export.h"
 #include "imstkMath.h"
+#include <atomic>
 
 namespace imstk
 {

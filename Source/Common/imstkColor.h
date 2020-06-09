@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "imstkcommon_export.h"
 #include <iostream>
 
 /// \todo remove nameless union/struct in the future
@@ -32,7 +33,7 @@ namespace imstk
 ///
 /// \brief Color in RGB space
 ///
-struct Color
+struct IMSTKCOMMON_EXPORT Color
 {
     union
     {
@@ -126,24 +127,24 @@ struct Color
 ///
 /// \brief Multiplication operators
 ///
-Color operator*(const Color& color_lhs, const Color& color_rhs);
-Color operator*(const Color& color_lhs, const double intensity_rhs);
-Color operator*=(const Color& color_lhs, const Color& color_rhs);
-Color operator*=(const Color& color_lhs, const double intensity_rhs);
+IMSTKCOMMON_EXPORT Color operator*(const Color& color_lhs, const Color& color_rhs);
+IMSTKCOMMON_EXPORT Color operator*(const Color& color_lhs, const double intensity_rhs);
+IMSTKCOMMON_EXPORT Color operator*=(const Color& color_lhs, const Color& color_rhs);
+IMSTKCOMMON_EXPORT Color operator*=(const Color& color_lhs, const double intensity_rhs);
 
 ///
 /// \brief Addition operators
 ///
-Color operator+(const Color& color_lhs, const Color& color_rhs);
-Color operator+(const Color& intensity_lhs, const double intensity_rhs);
-Color operator+=(const Color& color_lhs, const Color& color_rhs);
-Color operator+=(const Color& intensity_lhs, const double intensity_rhs);
+IMSTKCOMMON_EXPORT Color operator+(const Color& color_lhs, const Color& color_rhs);
+IMSTKCOMMON_EXPORT Color operator+(const Color& intensity_lhs, const double intensity_rhs);
+IMSTKCOMMON_EXPORT Color operator+=(const Color& color_lhs, const Color& color_rhs);
+IMSTKCOMMON_EXPORT Color operator+=(const Color& intensity_lhs, const double intensity_rhs);
 
 ///
 /// \brief Subtraction operators
 ///
-Color operator-(const Color& color_lhs, const Color& color_rhs);
-Color operator-(const Color& color_rhs, const double intensity_lhs);
-Color operator-=(const Color& color_lhs, const Color& color_rhs);
-Color operator-=(const Color& color_rhs, const double intensity_lhs);
+IMSTKCOMMON_EXPORT Color operator-(const Color& color_lhs, const Color& color_rhs);
+IMSTKCOMMON_EXPORT Color operator-(const Color& color_rhs, const double intensity_lhs);
+IMSTKCOMMON_EXPORT Color operator-=(const Color& color_lhs, const Color& color_rhs);
+IMSTKCOMMON_EXPORT Color operator-=(const Color& color_rhs, const double intensity_lhs);
 }

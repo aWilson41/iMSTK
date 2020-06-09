@@ -2,16 +2,17 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
-imstk_add_library( SceneEntities
-  DEPENDS    
-    Common
-    Geometry
-    GeometryMappers
-    Materials
-    MeshIO
-    Constraints
-    Devices
-    DynamicalModels
+imstk_add_library( imstkSceneEntities
+  TYPE STATIC
+  DEPENDS
+    imstkCommon
+    imstkGeometry
+    imstkGeometryMappers
+    imstkMaterials
+    imstkMeshIO
+    imstkConstraints
+    imstkDevices
+    imstkDynamicalModels
   )
 
 #-----------------------------------------------------------------------------

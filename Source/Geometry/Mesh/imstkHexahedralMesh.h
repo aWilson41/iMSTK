@@ -30,7 +30,7 @@ namespace imstk
 ///
 /// \brief Hexahedral mesh class
 ///
-class HexahedralMesh : public VolumetricMesh
+class IMSTKGEOMETRY_EXPORT HexahedralMesh : public VolumetricMesh
 {
 public:
 

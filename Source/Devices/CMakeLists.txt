@@ -6,9 +6,10 @@ set(HAPTIC_DEVICE_LIBS)
 if(${PROJECT_NAME}_USE_OpenHaptics)
   set(HAPTIC_DEVICE_LIBS OpenHapticsSDK)
 endif()
-imstk_add_library( Devices
+imstk_add_library( imstkDevices
+  TYPE STATIC  
   DEPENDS
-    Common
+    imstkCommon
     VRPN
     ${HAPTIC_DEVICE_LIBS}
   )

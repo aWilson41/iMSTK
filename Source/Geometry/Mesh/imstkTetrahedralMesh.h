@@ -33,7 +33,7 @@ class SurfaceMesh;
 ///
 /// \brief Tetrahedral mesh
 ///
-class TetrahedralMesh : public VolumetricMesh
+class IMSTKGEOMETRY_EXPORT TetrahedralMesh : public VolumetricMesh
 {
 public:
 

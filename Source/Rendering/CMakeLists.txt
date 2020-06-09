@@ -96,7 +96,7 @@ if( NOT iMSTK_USE_Vulkan )
     VTKRenderer/RenderDelegate)
   set(RENDERING_DEPENDENCIES
     #GUIOverlay
-    Materials)
+    imstkMaterials)
 else()
   set(RENDERING_H_FILES ${VULKAN_H_FILES})
   set(RENDERING_CPP_FILES ${VULKAN_CPP_FILES})
@@ -105,8 +105,8 @@ else()
     VulkanRenderer/RenderDelegate
     VulkanRenderer/PostProcessing)
   set(RENDERING_DEPENDENCIES
-    GUIOverlay
-    Materials)
+    imstkGUIOverlay
+    imstkMaterials)
   set(RENDERING_LIBRARIES
     ${Vulkan}
     glfw
@@ -117,7 +117,8 @@ else()
 endif()
 
 include(imstkAddLibrary)
-imstk_add_library( Rendering
+imstk_add_library( imstkRendering
+  TYPE STATIC
   H_FILES
     imstkRenderer.h
     ${RENDERING_H_FILES}
@@ -130,8 +131,8 @@ imstk_add_library( Rendering
     ${RENDERING_SUBDIR}
   DEPENDS
     ${RENDERING_DEPENDENCIES}
-    Scene
-    Animation
+    imstkScene
+    imstkAnimation
     glm
     ${VTK_LIBRARIES}
     ${RENDERING_LIBRARIES}

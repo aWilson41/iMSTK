@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "imstkcommon_export.h"
 #include "imstkThreadManager.h"
 #include "imstkParallelFor.h"
 #include "imstkParallelReduce.h"

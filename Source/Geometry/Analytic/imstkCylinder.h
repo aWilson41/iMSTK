@@ -31,7 +31,7 @@ namespace imstk
 ///
 /// \brief Cylinder geometry
 ///
-class Cylinder : public AnalyticalGeometry
+class IMSTKGEOMETRY_EXPORT Cylinder : public AnalyticalGeometry
 {
 public:
     ///

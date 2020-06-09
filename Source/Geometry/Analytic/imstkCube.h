@@ -30,7 +30,7 @@ namespace imstk
 ///
 /// \brief Cube geometry
 ///
-class Cube : public AnalyticalGeometry
+class IMSTKGEOMETRY_EXPORT Cube : public AnalyticalGeometry
 {
 public:
 

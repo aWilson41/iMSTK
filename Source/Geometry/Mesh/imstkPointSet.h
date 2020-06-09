@@ -32,7 +32,7 @@ class Graph;
 ///
 /// \brief Base class for all geometries represented by discrete points and elements
 ///
-class PointSet : public Geometry
+class IMSTKGEOMETRY_EXPORT PointSet : public Geometry
 {
 public:
     ///

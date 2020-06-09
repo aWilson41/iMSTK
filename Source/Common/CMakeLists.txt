@@ -2,7 +2,8 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
-imstk_add_library( Common
+imstk_add_library( imstkCommon
+  TYPE ${iMSTK_LIB_TYPE}
   DEPENDS
     Eigen3::Eigen
     g3log
@@ -14,6 +15,6 @@ imstk_add_library( Common
 #-----------------------------------------------------------------------------
 if( ${PROJECT_NAME}_BUILD_TESTING )
   include(imstkAddTest)
-  imstk_add_test( Common )
+  imstk_add_test( imstkCommon )
 endif()
 

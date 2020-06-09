@@ -2,12 +2,13 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
-imstk_add_library( Animation
+imstk_add_library( imstkAnimation
+  TYPE STATIC
   DEPENDS
-    Common
-    Geometry
-    Materials
-    SceneEntities
+    imstkCommon
+    imstkGeometry
+    imstkMaterials
+    imstkSceneEntities
   )
 
 #-----------------------------------------------------------------------------

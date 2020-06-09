@@ -21,9 +21,10 @@
 
 #pragma once
 
+#include "imstkapiutilities_export.h"
 #include "imstkGeometry.h"
-#include "imstkSceneObject.h"
 #include "imstkMath.h"
+#include "imstkSceneObject.h"
 
 namespace imstk
 {
@@ -43,7 +44,7 @@ namespace apiutils
 ///
 /// \brief Create a analytical visual scene object that and add it to the scene
 ///
-std::shared_ptr<VisualObject> createVisualAnalyticalSceneObject(Geometry::Type type,
+IMSTKAPIUTILITIES_EXPORT std::shared_ptr<VisualObject> createVisualAnalyticalSceneObject(Geometry::Type type,
                                                                 std::shared_ptr<Scene> scene,
                                                                 const std::string& objName,
                                                                 const double scale = 1.,
@@ -52,7 +53,7 @@ std::shared_ptr<VisualObject> createVisualAnalyticalSceneObject(Geometry::Type t
 ///
 /// \brief Create a analytical colliding scene object that and add it to the scene
 ///
-std::shared_ptr<CollidingObject> createCollidingAnalyticalSceneObject(Geometry::Type type,
+IMSTKAPIUTILITIES_EXPORT std::shared_ptr<CollidingObject> createCollidingAnalyticalSceneObject(Geometry::Type type,
                                                                       std::shared_ptr<Scene> scene,
                                                                       const std::string& objName,
                                                                       const double scale = 1.,
@@ -61,24 +62,24 @@ std::shared_ptr<CollidingObject> createCollidingAnalyticalSceneObject(Geometry::
 ///
 /// \brief Read a mesh, create a visual scene object and add to the scene
 ///
-std::shared_ptr<SceneObject> createAndAddVisualSceneObject(std::shared_ptr<Scene> scene,
+IMSTKAPIUTILITIES_EXPORT std::shared_ptr<SceneObject> createAndAddVisualSceneObject(std::shared_ptr<Scene> scene,
                                                            const std::string&     fileName,
                                                            const std::string&     objectName);
 
 ///
 /// \brief Create a non-linear system using FEM dynamic model
 ///
-std::shared_ptr<NonLinearSystem<SparseMatrixd>> createNonLinearSystem(std::shared_ptr<FEMDeformableBodyModel> dynaModel);
+IMSTKAPIUTILITIES_EXPORT std::shared_ptr<NonLinearSystem<SparseMatrixd>> createNonLinearSystem(std::shared_ptr<FEMDeformableBodyModel> dynaModel);
 
 ///
 /// \brief Print number of updates for second for a given scene
 ///
-void printUPS(std::shared_ptr<SceneManager> sceneManager);
+IMSTKAPIUTILITIES_EXPORT void printUPS(std::shared_ptr<SceneManager> sceneManager);
 
-std::shared_ptr<Graph> getMeshGraph(std::shared_ptr<PointSet> m);
+IMSTKAPIUTILITIES_EXPORT std::shared_ptr<Graph> getMeshGraph(std::shared_ptr<PointSet> m);
 
-std::shared_ptr<Graph> getMeshGraph(std::shared_ptr<SurfaceMesh> m);
+IMSTKAPIUTILITIES_EXPORT std::shared_ptr<Graph> getMeshGraph(std::shared_ptr<SurfaceMesh> m);
 
-std::shared_ptr<Graph> getMeshGraph(std::shared_ptr<TetrahedralMesh> m);
+IMSTKAPIUTILITIES_EXPORT std::shared_ptr<Graph> getMeshGraph(std::shared_ptr<TetrahedralMesh> m);
 } //apiutils
 } // imstk

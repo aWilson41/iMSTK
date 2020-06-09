@@ -33,13 +33,13 @@ Geometry::Geometry(const Geometry::Type type, const std::string& name) :
     {
         m_name = getTypeName() + std::string("-") + std::to_string(m_geometryIndex);
     }
-    else if (s_sGegometryNames.find(m_name) != s_sGegometryNames.end())
+    else if (s_sGeometryNames.find(m_name) != s_sGeometryNames.end())
     {
         LOG(FATAL) << "The provided geometry name '" + m_name + "' is duplicated";
     }
 
     // Store geometry name to keep track and avoid duplication
-    s_sGegometryNames.insert(m_name);
+    s_sGeometryNames.insert(m_name);
 }
 
 Geometry::~Geometry()
@@ -47,7 +47,7 @@ Geometry::~Geometry()
     // Remove the string name of this geometry from the global name set so it can be re-used by new geometry
     // Since erasing element from tbb::concurrrent_unordered_set is not thread-safe, spin lock need to be used
     s_GeomGlobalLock.lock();
-    s_sGegometryNames.unsafe_erase(m_name);
+    s_sGeometryNames.unsafe_erase(m_name);
     s_GeomGlobalLock.unlock();
 }
 
@@ -281,18 +281,18 @@ Geometry::s_GeomGlobalLock;
 
 // Static counter
 uint32_t
-Geometry::s_NumGeneratedGegometries = 0;
+Geometry::s_NumGeneratedGeometries = 0;
 
 // Static name set
 tbb::concurrent_unordered_set<std::string>
-Geometry::s_sGegometryNames;
+Geometry::s_sGeometryNames;
 
 uint32_t
 Geometry::getUniqueID()
 {
     s_GeomGlobalLock.lock();
-    const auto idx = s_NumGeneratedGegometries;
-    ++s_NumGeneratedGegometries;
+    const auto idx = s_NumGeneratedGeometries;
+    ++s_NumGeneratedGeometries;
     s_GeomGlobalLock.unlock();
     return idx;
 }

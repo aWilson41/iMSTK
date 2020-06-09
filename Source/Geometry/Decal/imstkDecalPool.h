@@ -30,7 +30,7 @@
 
 namespace imstk
 {
-class DecalPool : public Geometry
+class IMSTKGEOMETRY_EXPORT DecalPool : public Geometry
 {
 public:
     DecalPool(unsigned int maxNumDecals = 128, const std::string& name = std::string(""));

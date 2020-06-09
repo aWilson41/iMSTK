@@ -21,6 +21,7 @@ limitations under the License.
 
 #pragma once
 
+#include "imstkcommon_export.h"
 #include "imstkTaskGraphController.h"
 #include <list>
 
@@ -34,7 +35,7 @@ class TaskNode;
 /// \brief This class executes a TaskGraph by first topologically sorting them (Kahn's algorithm)
 /// then sequentially running them
 ///
-class SequentialTaskGraphController : public TaskGraphController
+class IMSTKCOMMON_EXPORT SequentialTaskGraphController : public TaskGraphController
 {
 public:
     ///

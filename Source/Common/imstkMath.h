@@ -22,6 +22,7 @@
 #pragma once
 
 #define NOMINMAX
+#include "imstkcommon_export.h"
 
 #include <Eigen/Geometry>
 

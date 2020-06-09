@@ -2,10 +2,11 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
-imstk_add_library( DataStructures
+imstk_add_library( imstkDataStructures
+  TYPE STATIC
   DEPENDS
-    Common
-    Geometry #TODO remove this dependency
+    imstkCommon
+    imstkGeometry #TODO remove this dependency
   )
 
 #-----------------------------------------------------------------------------
@@ -13,5 +14,5 @@ imstk_add_library( DataStructures
 #-----------------------------------------------------------------------------
 if( ${PROJECT_NAME}_BUILD_TESTING )
   include(imstkAddTest)
-  imstk_add_test( DataStructures )
+  imstk_add_test( imstkDataStructures )
 endif()

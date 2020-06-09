@@ -34,7 +34,7 @@ struct Color;
 ///
 /// \brief Base class for all volume mesh types
 ///
-class LineMesh : public PointSet
+class IMSTKGEOMETRY_EXPORT LineMesh : public PointSet
 {
 public:
 

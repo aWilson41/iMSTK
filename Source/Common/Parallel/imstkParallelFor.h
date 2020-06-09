@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "imstkcommon_export.h"
 #include <tbb/tbb.h>
 
 namespace imstk

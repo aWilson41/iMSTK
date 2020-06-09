@@ -31,7 +31,7 @@ namespace imstk
 ///
 /// \brief Sphere geometry
 ///
-class Sphere : public AnalyticalGeometry
+class IMSTKGEOMETRY_EXPORT Sphere : public AnalyticalGeometry
 {
 public:
     ///

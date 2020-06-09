@@ -56,7 +56,7 @@ struct RenderParticle
 ///
 /// \brief Particles for rendering
 ///
-class RenderParticles : public Geometry
+class IMSTKGEOMETRY_EXPORT RenderParticles : public Geometry
 {
 public:
 

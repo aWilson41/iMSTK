@@ -39,7 +39,7 @@ namespace imstk
 ///
 /// \brief Class to represent 2D and 3D image data (i.e. structured points)
 ///
-class ImageData : public PointSet
+class IMSTKGEOMETRY_EXPORT ImageData : public PointSet
 {
 public:
     ///

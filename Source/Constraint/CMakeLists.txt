@@ -2,13 +2,14 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
-imstk_add_library( Constraints
+imstk_add_library( imstkConstraints
+  TYPE STATIC
   SUBDIR_LIST
     PbdConstraints
   DEPENDS
-    Common
-    DataStructures
-    Geometry
+    imstkCommon
+    imstkDataStructures
+    imstkGeometry
   )
 
 #-----------------------------------------------------------------------------

@@ -31,7 +31,7 @@ namespace imstk
 ///
 /// \brief Capsule geometry
 ///
-class Capsule : public AnalyticalGeometry
+class IMSTKGEOMETRY_EXPORT Capsule : public AnalyticalGeometry
 {
 public:
     ///

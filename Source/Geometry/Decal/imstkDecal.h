@@ -31,7 +31,7 @@
 
 namespace imstk
 {
-class Decal : public AnalyticalGeometry
+class IMSTKGEOMETRY_EXPORT Decal : public AnalyticalGeometry
 {
 public:
     Decal(const std::string& name = std::string(""));

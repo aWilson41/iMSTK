@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "imstkgeometry_export.h"
 #include "imstkLogger.h"
 #include "imstkMath.h"
 #include "imstkParallelUtils.h"
@@ -54,74 +55,74 @@ namespace GeometryUtils
 ///
 /// \brief Converts vtk polydata into a imstk point set
 ///
-std::unique_ptr<PointSet> convertVtkPointSetToPointSet(const vtkSmartPointer<vtkPointSet> vtkMesh);
+IMSTKGEOMETRY_EXPORT std::unique_ptr<PointSet> convertVtkPointSetToPointSet(const vtkSmartPointer<vtkPointSet> vtkMesh);
 
 ///
 /// \brief Converts vtk polydata into a imstk surface mesh
 ///
-std::unique_ptr<SurfaceMesh> convertVtkPolyDataToSurfaceMesh(const vtkSmartPointer<vtkPolyData> vtkMesh);
+IMSTKGEOMETRY_EXPORT std::unique_ptr<SurfaceMesh> convertVtkPolyDataToSurfaceMesh(const vtkSmartPointer<vtkPolyData> vtkMesh);
 
 ///
 /// \brief Converts vtk polydata into a imstk surface mesh
 ///
-std::unique_ptr<LineMesh> convertVtkPolyDataToLineMesh(const vtkSmartPointer<vtkPolyData> vtkMesh);
+IMSTKGEOMETRY_EXPORT std::unique_ptr<LineMesh> convertVtkPolyDataToLineMesh(const vtkSmartPointer<vtkPolyData> vtkMesh);
 
 ///
 /// \brief Get imstk volumetric mesh given vtkUnstructuredGrid as input
 ///
-std::unique_ptr<VolumetricMesh> convertVtkUnstructuredGridToVolumetricMesh(const vtkSmartPointer<vtkUnstructuredGrid> vtkMesh);
+IMSTKGEOMETRY_EXPORT std::unique_ptr<VolumetricMesh> convertVtkUnstructuredGridToVolumetricMesh(const vtkSmartPointer<vtkUnstructuredGrid> vtkMesh);
 
 ///
 /// \brief Converts imstk point set into a vtk polydata
 ///
-vtkSmartPointer<vtkPointSet> convertPointSetToVtkPointSet(const std::shared_ptr<PointSet> imstkMesh);
+IMSTKGEOMETRY_EXPORT vtkSmartPointer<vtkPointSet> convertPointSetToVtkPointSet(const std::shared_ptr<PointSet> imstkMesh);
 
 ///
 /// \brief Converts imstk line mesh into a vtk polydata
 ///
-vtkSmartPointer<vtkPolyData> convertLineMeshToVtkPolyData(const std::shared_ptr<LineMesh> imstkMesh);
+IMSTKGEOMETRY_EXPORT vtkSmartPointer<vtkPolyData> convertLineMeshToVtkPolyData(const std::shared_ptr<LineMesh> imstkMesh);
 
 ///
 /// \brief Converts imstk surface mesh into a vtk polydata
 ///
-vtkSmartPointer<vtkPolyData> convertSurfaceMeshToVtkPolyData(const std::shared_ptr<SurfaceMesh> imstkMesh);
+IMSTKGEOMETRY_EXPORT vtkSmartPointer<vtkPolyData> convertSurfaceMeshToVtkPolyData(const std::shared_ptr<SurfaceMesh> imstkMesh);
 
 ///
 /// \brief Converts imstk tetrahedral mesh into a vtk unstructured grid
 ///
-vtkSmartPointer<vtkUnstructuredGrid> convertTetrahedralMeshToVtkUnstructuredGrid(const std::shared_ptr<TetrahedralMesh> imstkMesh);
+IMSTKGEOMETRY_EXPORT vtkSmartPointer<vtkUnstructuredGrid> convertTetrahedralMeshToVtkUnstructuredGrid(const std::shared_ptr<TetrahedralMesh> imstkMesh);
 
 ///
 /// \brief Converts imstk hexahedral mesh into a vtk unstructured grid
 ///
-vtkSmartPointer<vtkUnstructuredGrid> convertHexahedralMeshToVtkUnstructuredGrid(const std::shared_ptr<HexahedralMesh> imstkMesh);
+IMSTKGEOMETRY_EXPORT vtkSmartPointer<vtkUnstructuredGrid> convertHexahedralMeshToVtkUnstructuredGrid(const std::shared_ptr<HexahedralMesh> imstkMesh);
 
 ///
 /// \brief Copy from vtk points to a imstk vertices array (StdVectorOfVec3d)
 ///
-void copyVerticesFromVtk(vtkPoints* const points, StdVectorOfVec3d& vertices);
+IMSTKGEOMETRY_EXPORT void copyVerticesFromVtk(vtkPoints* const points, StdVectorOfVec3d& vertices);
 
 ///
 /// \brief Copies vertices from imstk structure to VTK one
 ///
-void copyVerticesToVtk(const StdVectorOfVec3d& vertices, vtkPoints* points);
+IMSTKGEOMETRY_EXPORT void copyVerticesToVtk(const StdVectorOfVec3d& vertices, vtkPoints* points);
 
 ///
 /// \brief Copies cells of the given dimension from imstk structure to VTK one
 ///
 template<size_t dim>
-void copyCellsToVtk(const std::vector<std::array<size_t, dim>>& cells, vtkCellArray* vtkCells);
+IMSTKGEOMETRY_EXPORT void copyCellsToVtk(const std::vector<std::array<size_t, dim>>& cells, vtkCellArray* vtkCells);
 
 ///
 /// \brief
 ///
 template<size_t dim>
-void copyCellsFromVtk(vtkCellArray* vtkCells, std::vector<std::array<size_t, dim>>& cells);
+IMSTKGEOMETRY_EXPORT void copyCellsFromVtk(vtkCellArray* vtkCells, std::vector<std::array<size_t, dim>>& cells);
 
 ///
 /// \brief
 ///
-void copyPointDataFromVtk(vtkPointData* const pointData, std::map<std::string, StdVectorOfVectorf>& dataMap);
+IMSTKGEOMETRY_EXPORT void copyPointDataFromVtk(vtkPointData* const pointData, std::map<std::string, StdVectorOfVectorf>& dataMap);
 
 ///
 /// \brief Combines two input surface meshes
@@ -129,33 +130,33 @@ void copyPointDataFromVtk(vtkPointData* const pointData, std::map<std::string, S
 /// for more details
 ///
 ///
-std::unique_ptr<SurfaceMesh> combineSurfaceMesh(std::shared_ptr<SurfaceMesh> surfaceMesh1, std::shared_ptr<SurfaceMesh> surfaceMesh2);
+IMSTKGEOMETRY_EXPORT std::unique_ptr<SurfaceMesh> combineSurfaceMesh(std::shared_ptr<SurfaceMesh> surfaceMesh1, std::shared_ptr<SurfaceMesh> surfaceMesh2);
 
 ///
 /// \brief Converts an imstk SurfaceMesh to a LineMesh, removing duplicate edges. Cell indices not preserved
 ///
-std::unique_ptr<LineMesh> surfaceMeshToLineMesh(std::shared_ptr<SurfaceMesh> surfaceMesh);
+IMSTKGEOMETRY_EXPORT std::unique_ptr<LineMesh> surfaceMeshToLineMesh(std::shared_ptr<SurfaceMesh> surfaceMesh);
 
 ///
 /// \brief Removes duplicate edges & points in poly data
 /// Refer <a href="https://vtk.org/doc/nightly/html/classvtkCleanPolyData.html#details">vtkCleanPolyData</a> class
 /// for more details
 ///
-std::unique_ptr<SurfaceMesh> cleanSurfaceMesh(std::shared_ptr<SurfaceMesh> surfaceMesh);
+IMSTKGEOMETRY_EXPORT std::unique_ptr<SurfaceMesh> cleanSurfaceMesh(std::shared_ptr<SurfaceMesh> surfaceMesh);
 
 ///
 /// \brief Returns points in pointSet within the provided surfaceMesh
 /// Refer <a href="https://vtk.org/doc/nightly/html/classvtkSelectEnclosedPoints.html#details">vtkSelectEnclosedPoints</a> class
 /// for more details
 ///
-std::unique_ptr<PointSet> getEnclosedPoints(std::shared_ptr<SurfaceMesh> surfaceMesh, std::shared_ptr<PointSet> pointSet, const bool insideOut = false);
+IMSTKGEOMETRY_EXPORT std::unique_ptr<PointSet> getEnclosedPoints(std::shared_ptr<SurfaceMesh> surfaceMesh, std::shared_ptr<PointSet> pointSet, const bool insideOut = false);
 
 ///
 /// \brief Returns array indicating if point is enclosed or not
 /// Refer <a href="https://vtk.org/doc/nightly/html/classvtkSelectEnclosedPoints.html#details">vtkSelectEnclosedPoints</a> class
 /// for more details
 ///
-void testEnclosedPoints(std::vector<bool>& results, std::shared_ptr<SurfaceMesh> surfaceMesh, std::shared_ptr<PointSet> pointSet, const bool insideOut = false);
+IMSTKGEOMETRY_EXPORT void testEnclosedPoints(std::vector<bool>& results, std::shared_ptr<SurfaceMesh> surfaceMesh, std::shared_ptr<PointSet> pointSet, const bool insideOut = false);
 
 ///
 /// \brief Reverse the winding of a SurfaceMesh
@@ -181,7 +182,7 @@ struct smoothPolydataConfig
 /// Refer <a href="https://vtk.org/doc/nightly/html/classvtkSmoothPolyDataFilter.html#details">vtkSmoothPolyDataFilter</a>
 /// for more details
 ///
-std::unique_ptr<SurfaceMesh> smoothSurfaceMesh(std::shared_ptr<SurfaceMesh> surfaceMesh,
+IMSTKGEOMETRY_EXPORT std::unique_ptr<SurfaceMesh> smoothSurfaceMesh(std::shared_ptr<SurfaceMesh> surfaceMesh,
                                                const smoothPolydataConfig&  c);
 
 ///
@@ -189,14 +190,14 @@ std::unique_ptr<SurfaceMesh> smoothSurfaceMesh(std::shared_ptr<SurfaceMesh> surf
 /// Refer <a href="https://vtk.org/doc/nightly/html/classvtkLinearSubdivisionFilter.html#details">vtk linear subdivision</a>
 /// for more details
 ///
-std::unique_ptr<SurfaceMesh> linearSubdivideSurfaceMesh(std::shared_ptr<SurfaceMesh> surfaceMesh, const int numSubdivisions = 1);
+IMSTKGEOMETRY_EXPORT std::unique_ptr<SurfaceMesh> linearSubdivideSurfaceMesh(std::shared_ptr<SurfaceMesh> surfaceMesh, const int numSubdivisions = 1);
 
 ///
 /// \brief Sub-divides an input imstk SurfaceMesh using loop subdivision algorithm
 /// Refer <a href="https://vtk.org/doc/nightly/html/classvtkLoopSubdivisionFilter.html#details">vtk loop subdivision</a>
 /// for more details
 ///
-std::unique_ptr<SurfaceMesh> loopSubdivideSurfaceMesh(std::shared_ptr<SurfaceMesh> surfaceMesh, const int numSubdivisions = 1);
+IMSTKGEOMETRY_EXPORT std::unique_ptr<SurfaceMesh> loopSubdivideSurfaceMesh(std::shared_ptr<SurfaceMesh> surfaceMesh, const int numSubdivisions = 1);
 
 ///
 /// \brief Create a tetrahedral mesh based on a uniform Cartesian mesh
@@ -208,12 +209,12 @@ std::unique_ptr<SurfaceMesh> loopSubdivideSurfaceMesh(std::shared_ptr<SurfaceMes
 ///
 /// \note Refer: Dompierre, Julien & Labbé, Paul & Vallet, Marie-Gabrielle & Camarero, Ricardo. (1999).
 /// How to Subdivide Pyramids, Prisms, and Hexahedra into Tetrahedra.. 195-204.
-std::shared_ptr<TetrahedralMesh> createUniformMesh(const Vec3d& aabbMin, const Vec3d& aabbMax, const size_t nx, const size_t ny, const size_t nz);
+IMSTKGEOMETRY_EXPORT std::shared_ptr<TetrahedralMesh> createUniformMesh(const Vec3d& aabbMin, const Vec3d& aabbMax, const size_t nx, const size_t ny, const size_t nz);
 
 ///
 /// \brief Create a tetrahedral mesh cover
 ///
-std::shared_ptr<TetrahedralMesh> createTetrahedralMeshCover(std::shared_ptr<SurfaceMesh> surfMesh, const size_t nx, const size_t ny, size_t nz);
+IMSTKGEOMETRY_EXPORT std::shared_ptr<TetrahedralMesh> createTetrahedralMeshCover(std::shared_ptr<SurfaceMesh> surfMesh, const size_t nx, const size_t ny, size_t nz);
 
 ///
 /// \brief Enumeration for reordering method
@@ -232,7 +233,7 @@ enum class MeshNodeRenumberingStrategy
 /// \return the permutation vector that map from new indices to old indices
 ///
 template<typename NeighborContainer>
-std::vector<size_t> reorderConnectivity(const std::vector<NeighborContainer>& neighbors, const MeshNodeRenumberingStrategy& method = MeshNodeRenumberingStrategy::ReverseCuthillMckee);
+IMSTKGEOMETRY_EXPORT std::vector<size_t> reorderConnectivity(const std::vector<NeighborContainer>& neighbors, const MeshNodeRenumberingStrategy& method = MeshNodeRenumberingStrategy::ReverseCuthillMckee);
 
 ///
 /// \brief Reorder using Reverse Cuthill-Mckee
@@ -244,6 +245,6 @@ std::vector<size_t> reorderConnectivity(const std::vector<NeighborContainer>& ne
 /// \return the permutation vector that maps from new indices to old indices
 ///
 template<typename ElemConn>
-std::vector<size_t> reorderConnectivity(const std::vector<ElemConn>& conn, const size_t numVerts, const MeshNodeRenumberingStrategy& method = MeshNodeRenumberingStrategy::ReverseCuthillMckee);
+IMSTKGEOMETRY_EXPORT std::vector<size_t> reorderConnectivity(const std::vector<ElemConn>& conn, const size_t numVerts, const MeshNodeRenumberingStrategy& method = MeshNodeRenumberingStrategy::ReverseCuthillMckee);
 } // namespace GeometryUtils
 } // namespace imstk

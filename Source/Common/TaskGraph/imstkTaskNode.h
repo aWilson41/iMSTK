@@ -21,6 +21,7 @@ limitations under the License.
 
 #pragma once
 
+#include "imstkcommon_export.h"
 #include <functional>
 #include <string>
 
@@ -31,7 +32,7 @@ namespace imstk
 ///
 /// \brief Base class for TaskGraph nodes
 ///
-class TaskNode
+class IMSTKCOMMON_EXPORT TaskNode
 {
 public:
     TaskNode() = default;

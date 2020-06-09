@@ -88,6 +88,7 @@ set(BUILD_TESTING OFF)
 if (${PROJECT_NAME}_BUILD_TESTING)
   set(BUILD_TESTING ON)
 endif ()
+option(${PROJECT_NAME}_BUILD_SHARED_LIBS "Build iMSTK shared libraries" ON)
 
 #-----------------------------------------------------------------------------
 # CTest/Dashboards
@@ -358,6 +359,12 @@ if(${PROJECT_NAME}_BUILD_TESTING OR ${PROJECT_NAME}_BUILD_EXAMPLES)
   #-----------------------------------------------------------------------------
   include(imstkCopyAndCompileShaders)
   CopyAndCompileShaders()
+endif()
+
+if (BUILD_SHARED_LIBS)
+  set(iMSTK_LIB_TYPE SHARED)
+else()
+  set(iMSTK_LIB_TYPE STATIC)
 endif()
 
 # Folder name to put our headers/cmake config files under

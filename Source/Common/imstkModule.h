@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "imstkcommon_export.h"
 #include <iostream>
 #include <atomic>
 #include <functional>
@@ -48,7 +49,7 @@ enum class ModuleStatus
 ///
 /// \brief iMSTK module
 ///
-class Module
+class IMSTKCOMMON_EXPORT Module
 {
 using CallbackFunction = std::function<void (Module* module)>;
 

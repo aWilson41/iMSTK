@@ -2,9 +2,10 @@
 # Create target
 #-----------------------------------------------------------------------------
 include(imstkAddLibrary)
-imstk_add_library( Geometry
+imstk_add_library( imstkGeometry
+  TYPE STATIC
   DEPENDS
-    Common    
+    imstkCommon
     ${VTK_LIBRARIES}
   )
 
@@ -13,5 +14,5 @@ imstk_add_library( Geometry
 #-----------------------------------------------------------------------------
 if( ${PROJECT_NAME}_BUILD_TESTING )
   include(imstkAddTest)
-  imstk_add_test( Geometry )
+  imstk_add_test( imstkGeometry )
 endif()
