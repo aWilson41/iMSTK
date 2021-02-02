@@ -41,6 +41,7 @@ public:
     /// \brief Constructor
     ///
     LineMesh(const std::string& name = std::string(""));
+    ~LineMesh() override = default;
 
 public:
     ///
@@ -74,6 +75,8 @@ public:
     /// \brief Get the connectivity of the segments
     ///
     std::shared_ptr<VecDataArray<int, 2>> getLinesIndices() const { return m_segmentIndices; }
+
+    std::string getTypeName() const override { return "LineMesh"; }
 
     ///
     /// \brief Get the connectivity of a segment

@@ -42,7 +42,7 @@ struct PBDModelConfig
     double m_uniformMassValue    = 1.0;  ///> Mass properties
     double m_viscousDampingCoeff = 0.01; ///> Viscous damping coefficient [0, 1]
 
-    std::shared_ptr<PbdCollisionConstraintConfig> collisionParams =
+    std::shared_ptr<PbdCollisionConstraintConfig> m_collisionParams =
         std::make_shared<PbdCollisionConstraintConfig>(PbdCollisionConstraintConfig
         {
             0.1,                             // Proximity
@@ -106,6 +106,7 @@ public:
     ///
     virtual ~PbdModel() override = default;
 
+public:
     ///
     /// \brief Set simulation parameters
     ///
@@ -114,7 +115,7 @@ public:
     ///
     /// \brief Get the simulation parameters
     ///
-    const std::shared_ptr<PBDModelConfig>& getParameters() const { assert(m_parameters); return m_parameters; }
+    std::shared_ptr<PBDModelConfig> getConfig() const { return m_config; }
 
     ///
     /// \brief Compute elastic constants: Young Modulus, Poisson Ratio, first and second Lame
@@ -166,8 +167,8 @@ public:
     ///
     /// \brief Set the time step size
     ///
-    virtual void setTimeStep(const Real timeStep) override { m_parameters->m_dt = timeStep; }
-    void setDefaultTimeStep(const Real timeStep) { m_parameters->m_defaultDt = static_cast<Real>(timeStep); }
+    virtual void setTimeStep(const Real timeStep) override { m_config->m_dt = timeStep; }
+    void setDefaultTimeStep(const Real timeStep) { m_config->m_defaultDt = static_cast<Real>(timeStep); }
 
     ///
     /// \brief Set the time step size to fixed size
@@ -177,8 +178,8 @@ public:
     ///
     /// \brief Returns the time step size
     ///
-    virtual double getTimeStep() const override { return m_parameters->m_dt; }
-    double getDefaultTimeStep() const { return m_parameters->m_defaultDt; }
+    virtual double getTimeStep() const override { return m_config->m_dt; }
+    double getDefaultTimeStep() const { return m_config->m_defaultDt; }
 
     ///
     /// \brief Return all constraints that are solved sequentially
@@ -281,7 +282,7 @@ protected:
 
     std::shared_ptr<PBDConstraintVector> m_constraints = nullptr;                         ///> List of pbd constraints
     std::shared_ptr<std::vector<PBDConstraintVector>> m_partitionedConstraints = nullptr; ///> List of pbd constraints
-    std::shared_ptr<PBDModelConfig> m_parameters = nullptr;                               ///> Model parameters, must be set before simulation
+    std::shared_ptr<PBDModelConfig> m_config = nullptr;                                   ///> Model parameters, must be set before simulation
 
 protected:
     // Computational Nodes

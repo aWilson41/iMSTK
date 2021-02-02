@@ -60,9 +60,9 @@ struct ImplicitFunctionCentralGradient : public ImplicitFunctionGradient
         {
             const ImplicitGeometry& funcRef = *m_func;
             return Vec3d(
-            funcRef.getFunctionValue(Vec3d(pos[0] + m_dx[0], pos[1], pos[2])) - funcRef.getFunctionValue(Vec3d(pos[0] - m_dx[0], pos[1], pos[2])),
-            funcRef.getFunctionValue(Vec3d(pos[0], pos[1] + m_dx[1], pos[2])) - funcRef.getFunctionValue(Vec3d(pos[0], pos[1] - m_dx[1], pos[2])),
-            funcRef.getFunctionValue(Vec3d(pos[0], pos[1], pos[2] + m_dx[2])) - funcRef.getFunctionValue(Vec3d(pos[0], pos[1], pos[2] - m_dx[2]))).cwiseProduct(m_invDx) * 0.5;
+                funcRef.getFunctionValue(Vec3d(pos[0] + m_dx[0], pos[1], pos[2])) - funcRef.getFunctionValue(Vec3d(pos[0] - m_dx[0], pos[1], pos[2])),
+                funcRef.getFunctionValue(Vec3d(pos[0], pos[1] + m_dx[1], pos[2])) - funcRef.getFunctionValue(Vec3d(pos[0], pos[1] - m_dx[1], pos[2])),
+                funcRef.getFunctionValue(Vec3d(pos[0], pos[1], pos[2] + m_dx[2])) - funcRef.getFunctionValue(Vec3d(pos[0], pos[1], pos[2] - m_dx[2]))).cwiseProduct(m_invDx) * 0.5;
         }
 };
 

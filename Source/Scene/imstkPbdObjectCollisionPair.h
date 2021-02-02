@@ -27,21 +27,42 @@ limitations under the License.
 namespace imstk
 {
 class PbdObject;
-class PbdSolver;
 
 ///
 /// \class PbdObjectCollisionPair
 ///
-/// \brief This class defines a collision interaction between two PbdObjects
+/// \brief This class defines a collision interaction between two PbdObjects.
+/// or a PbdObject and CollidingObject.
+/// The Pbd Interaction interjects two steps to the model,
+/// 1.) The collision detection step, which happens after the "Integrate Position" and
+/// "Update Collision Geometry" steps. But before the internal constraints "Solve" step.
+/// 2.) The collision constraint solve step, which happens after the internal constraint
+/// "Solve" step.
 ///
 class PbdObjectCollisionPair : public CollisionPair
 {
 public:
+    ///
+    /// \brief Constructor for two way PbdObject interaction
+    ///
     PbdObjectCollisionPair(std::shared_ptr<PbdObject> obj1, std::shared_ptr<PbdObject> obj2,
                            CollisionDetection::Type cdType = CollisionDetection::Type::MeshToMeshBruteForce);
 
+    ///
+    /// \brief Constructor for one way PbdObject interaction
+    ///
+    PbdObjectCollisionPair(std::shared_ptr<PbdObject> obj1, std::shared_ptr<CollidingObject> obj2,
+                           CollisionDetection::Type cdType = CollisionDetection::Type::MeshToMeshBruteForce);
+
+    ///
+    /// \brief Destructor
+    ///
     virtual ~PbdObjectCollisionPair() override = default;
 
+public:
+    ///
+    /// \brief Applies modifications to TaskGraph
+    ///
     void apply() override;
 
 private:

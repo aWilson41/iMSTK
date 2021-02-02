@@ -24,6 +24,7 @@
 #include "imstkDataArray.h"
 #include "imstkMath.h"
 //#include "imstkParallelReduce.h"
+#include <exception>
 
 namespace imstk
 {
@@ -274,8 +275,27 @@ public:
 
     inline VecType* getPointer() { return m_dataCast; }
 
-    inline VecType& operator[](const size_t pos) { return m_dataCast[pos]; }
-    inline const VecType& operator[](const size_t pos) const { return m_dataCast[pos]; }
+    inline VecType& operator[](const size_t pos)
+    {
+#ifdef DATA_ARRAY_DEBUG_ITERS
+        if (pos < 0 || pos >= m_vecSize)
+        {
+            std::exception("VecDataArray: Out of bounds");
+        }
+#endif
+        return m_dataCast[pos];
+    }
+
+    inline const VecType& operator[](const size_t pos) const
+    {
+#ifdef DATA_ARRAY_DEBUG_ITERS
+        if (pos < 0 || pos >= m_vecSize)
+        {
+            std::exception("VecDataArray: Out of bounds");
+        }
+#endif
+        return m_dataCast[pos];
+    }
 
     inline void erase(const int vecPos)
     {

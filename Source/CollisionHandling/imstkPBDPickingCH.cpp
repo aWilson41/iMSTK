@@ -21,13 +21,15 @@ limitations under the License.
 
 #include "imstkAnalyticalGeometry.h"
 #include "imstkCollisionData.h"
-#include "imstkPbdPointNormalCollisionConstraint.h"
+#include "imstkPbdPointPointConstraint.h"
+#include "imstkPbdPointTriangleConstraint.h"
 #include "imstkPbdModel.h"
 #include "imstkPbdObject.h"
 #include "imstkPBDPickingCH.h"
 #include "imstkPbdSolver.h"
 #include "imstkPointSet.h"
 #include "imstkSurfaceMesh.h"
+#include "imstkGeometryMap.h"
 
 namespace imstk
 {
@@ -46,7 +48,7 @@ PBDPickingCH::PBDPickingCH(const CollisionHandling::Side&       side,
 
 PBDPickingCH::~PBDPickingCH()
 {
-    for (const auto ptr : m_ACConstraintPool)
+    for (const auto ptr : m_PPConstraintPool)
     {
         delete ptr;
     }
@@ -71,11 +73,7 @@ PBDPickingCH::processCollisionData()
             return;
         }
 
-        m_pbdCollisionSolver->addCollisionConstraints(&m_PBDConstraints,
-            m_pbdObj->getPbdModel()->getCurrentState()->getPositions(),
-            m_pbdObj->getPbdModel()->getInvMasses(),
-            nullptr,
-            nullptr);
+        m_pbdCollisionSolver->addCollisionConstraints(&m_PBDConstraints);
     }
 }
 
@@ -162,38 +160,147 @@ PBDPickingCH::activatePickConstraints()
 void
 PBDPickingCH::generatePBDConstraints()
 {
-    std::shared_ptr<PbdCollisionConstraintConfig> config = m_pbdObj->getPbdModel()->getParameters()->collisionParams;
+    const size_t totalPPConstraints = m_colData->PDColData.getSize() + m_colData->PColData.getSize();
+    const size_t totalVTConstraints = m_colData->TFVColData.getSize();
+    m_PPConstraintPoolSize = 0;
+    m_VTConstraintPoolSize = 0;
 
+    if (m_PPConstraintPool.size() < totalPPConstraints)
     {
-        // \todo: Pool not implemented correctly (see PbdCollisionHandling for proper trick), for now, just delete
-        for (size_t i = 0; i < m_ACConstraintPool.size(); ++i)
+        for (size_t i = m_PPConstraintPool.size(); i < totalPPConstraints; i++)
         {
-            delete m_ACConstraintPool[i];
+            m_PPConstraintPool.push_back(new PbdPointPointConstraint);
         }
     }
-    m_ACConstraintPool.resize(0);
-    m_ACConstraintPool.reserve(m_colData->PColData.getSize());
-    for (size_t i = 0; i < m_colData->PColData.getSize(); ++i)
+    if (m_VTConstraintPool.size() < totalVTConstraints)
     {
-        m_ACConstraintPool.push_back(new PbdPointNormalCollisionConstraint);
+        for (size_t i = m_VTConstraintPool.size(); i < totalVTConstraints; i++)
+        {
+            m_VTConstraintPool.push_back(new PbdPointTriangleConstraint);
+        }
     }
 
-    std::shared_ptr<PointSet>      pointSet = std::dynamic_pointer_cast<PointSet>(m_pbdObj->getPhysicsGeometry());
-    const VecDataArray<double, 3>& vertices = *pointSet->getVertexPositions();
-    ParallelUtils::parallelFor(m_colData->PColData.getSize(),
-        [&](const size_t idx)
+    // Fixed vertex constraints
+    // The constraints use pointer values
+    m_fixedVertexPairs.resize(
+        m_colData->PDColData.getSize() +
+        m_colData->PColData.getSize() +
+        m_colData->TFVColData.getSize());
+    int fixedPairIter = 0;
+
+    // Currently handles both PColData and PDColData
+    std::shared_ptr<PbdCollisionConstraintConfig> config   = m_pbdObj->getPbdModel()->getConfig()->m_collisionParams;
+    std::shared_ptr<PointSet>                     pointSet = std::dynamic_pointer_cast<PointSet>(m_pbdObj->getPhysicsGeometry());
+
+    std::shared_ptr<VecDataArray<double, 3>> verticesPtr = pointSet->getVertexPositions();
+    VecDataArray<double, 3>&                 vertices    = *verticesPtr;
+
+    std::shared_ptr<DataArray<double>> invMassesPtr = m_pbdObj->getPbdModel()->getInvMasses();
+    DataArray<double>&                 invMasses    = *invMassesPtr;
+
+    std::shared_ptr<GeometryMap> map = m_pbdObj->getPhysicsToCollidingMap();
+
+    // Process Position-Direction Data
+    if (m_colData->PDColData.getSize() > 0)
+    {
+        for (int i = 0; i < m_colData->PDColData.getSize(); i++)
         {
-            const Vec3d& initPos = vertices[m_colData->PColData[idx].nodeIdx];
-            const Vec3d& penetrationVector = -m_colData->PColData[idx].penetrationVector; // Vector to resolve
-            m_ACConstraintPool[idx]->initConstraint(config, initPos + penetrationVector, penetrationVector, m_colData->PColData[idx].nodeIdx);
-        });
+            const PositionDirectionCollisionDataElement& colData = m_colData->PDColData[i];
+
+            const Vec3d penVec = colData.dirAtoB * colData.penetrationDepth;
+            m_fixedVertexPairs[fixedPairIter++] = std::pair<Vec3d, double>(colData.posB - penVec, 0.0);
+
+            int v1 = colData.nodeIdx;
+            if (map && map->getType() == GeometryMap::Type::OneToOne)
+            {
+                // Get the ids of the simulated mesh
+                v1 = map->getMapIdx(v1);
+            }
+
+            m_PPConstraintPool[i]->initConstraint(
+                PbdCollisionConstraint::Side::B,
+                &m_fixedVertexPairs[fixedPairIter - 1].first, &m_fixedVertexPairs[fixedPairIter - 1].second,
+                &vertices[v1], &invMasses[v1],
+                nullptr, config);
+            m_PPConstraintPoolSize++;
+        }
+    }
+
+    // Process Penetration Data
+    if (m_colData->PColData.getSize() > 0)
+    {
+        const size_t shift = m_PPConstraintPoolSize;
+        for (int i = 0; i < m_colData->PColData.getSize(); i++)
+        {
+            const PenetrationCollisionDataElement& colData = m_colData->PColData[i];
+
+            int v1 = colData.nodeIdx;
+            if (map && map->getType() == GeometryMap::Type::OneToOne)
+            {
+                // Get the ids of the simulated mesh
+                v1 = map->getMapIdx(v1);
+            }
+
+            m_fixedVertexPairs[fixedPairIter++] = std::pair<Vec3d, double>(vertices[v1] - colData.penetrationVector, 0.0);
+
+            m_PPConstraintPool[i]->initConstraint(
+                PbdCollisionConstraint::Side::B,
+                &m_fixedVertexPairs[fixedPairIter - 1].first, &m_fixedVertexPairs[fixedPairIter - 1].second,
+                &vertices[v1], &invMasses[v1],
+                nullptr, config);
+            m_PPConstraintPoolSize++;
+        }
+    }
+
+    // Process Triangle-FixedVertex Data
+    if (m_colData->TFVColData.getSize() > 0)
+    {
+        // With VT constraints assume obj1 has SurfaceMesh
+        std::shared_ptr<VecDataArray<int, 3>> indicesPtr = std::dynamic_pointer_cast<SurfaceMesh>(m_pbdObj->getCollidingGeometry())->getTriangleIndices();
+        const VecDataArray<int, 3>& indices = *indicesPtr;
+
+        const size_t shift = m_VTConstraintPoolSize;
+        for (int i = 0; i < m_colData->TFVColData.getSize(); i++)
+        {
+            const TriangleFixedVertexCollisionDataElement& colData = m_colData->TFVColData[i];
+            const Vec3i& triVerts = indices[colData.triIdx];
+
+            size_t v1, v2, v3;
+            if (map && map->getType() == GeometryMap::Type::OneToOne)
+            {
+                v1 = map->getMapIdx(triVerts[0]);
+                v2 = map->getMapIdx(triVerts[1]);
+                v3 = map->getMapIdx(triVerts[2]);
+            }
+            else
+            {
+                v1 = triVerts[0];
+                v2 = triVerts[1];
+                v3 = triVerts[2];
+            }
+
+            m_fixedVertexPairs[fixedPairIter++] = std::pair<Vec3d, double>(colData.vertexPt, 0.0);
+
+           m_VTConstraintPool[i + shift]->initConstraint(
+                PbdCollisionConstraint::Side::B,
+                &m_fixedVertexPairs[fixedPairIter - 1].first, &m_fixedVertexPairs[fixedPairIter - 1].second,
+                &vertices[v1], &invMasses[v1], &vertices[v2], &invMasses[v2], &vertices[v3], &invMasses[v3],
+                nullptr, config, colData.dir, colData.closestDistance);
+            m_VTConstraintPoolSize++;
+        }
+    }
 
     // Copy constraints
     m_PBDConstraints.resize(0);
-    m_PBDConstraints.reserve(m_colData->PColData.getSize());
-    for (size_t i = 0; i < m_colData->PColData.getSize(); ++i)
+    m_PBDConstraints.reserve(totalPPConstraints + totalVTConstraints);
+
+    for (size_t i = 0; i < totalPPConstraints; i++)
     {
-        m_PBDConstraints.push_back(static_cast<PbdCollisionConstraint*>(m_ACConstraintPool[i]));
+        m_PBDConstraints.push_back(static_cast<PbdCollisionConstraint*>(m_PPConstraintPool[i]));
+    }
+    for (size_t i = 0; i < totalVTConstraints; i++)
+    {
+        m_PBDConstraints.push_back(static_cast<PbdCollisionConstraint*>(m_VTConstraintPool[i]));
     }
 }
 }

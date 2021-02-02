@@ -26,56 +26,51 @@
 namespace imstk
 {
 ////
-/// \class PbdPointNormalCollisionConstraint
+/// \class PbdPointPointConstraint
 ///
-/// \brief This constraint allows us only to move only along a normal (penetrationVector) direction to try to converge on a contact/target point
+/// \brief Pushes points apart from each other (outside direction defined by p2-p1)
 ///
-class PbdPointNormalCollisionConstraint : public PbdCollisionConstraint
+class PbdPointPointConstraint : public PbdCollisionConstraint
 {
 public:
     ///
     /// \brief Constructor
     ///
-    PbdPointNormalCollisionConstraint() : PbdCollisionConstraint(1, 0) { }
+    PbdPointPointConstraint() : PbdCollisionConstraint(1, 1) { }
 
     ///
     /// \brief Destructor
     ///
-    ~PbdPointNormalCollisionConstraint() override = default;
+    virtual ~PbdPointPointConstraint() override = default;
 
 public:
     ///
     /// \brief Returns the type of the pbd collision constraint
     ///
-    Type getType() const { return Type::Analytical; }
+    Type getType() const { return Type::PointPoint; }
 
     ///
     /// \brief initialize constraint
-    /// \param contactPt, the point to resolve too (target point)
-    /// \param penetrationVector, the vector that gets us from current position x to contactPt
-    /// \param nodeId index of the point from object1 that we want to move
     /// \return
     ///
-    void initConstraint(std::shared_ptr<PbdCollisionConstraintConfig> configA, const Vec3d& contactPt, const Vec3d& penetrationVector, const int nodeId);
+    void initConstraint(const Side side,
+        Vec3d* pt1, double* invMassA1,
+        Vec3d* pt2, double* invMassB1,
+        std::shared_ptr<PbdCollisionConstraintConfig> configA, std::shared_ptr<PbdCollisionConstraintConfig> configB);
 
     ///
     /// \brief compute value and gradient of constraint function
     ///
-    /// \param[in] currVertexPositionsA current positions from object A
-    /// \param[in] currVertexPositionsA current positions from object B
     /// \param[inout] c constraint value
     /// \param[inout] dcdx constraint gradient
     ///
-    bool computeValueAndGradient(const VecDataArray<double, 3>& currVertexPositionsA,
-                                 const VecDataArray<double, 3>& currVertexPositionsB,
-                                 double& c,
+    bool computeValueAndGradient(double& c,
                                  VecDataArray<double, 3>& dcdxA,
                                  VecDataArray<double, 3>& dcdxB) const override;
 
 public:
     //double m_penetrationDepth = 0.0;
     Vec3d  m_normal    = Vec3d::Zero();
-    Vec3d  m_contactPt = Vec3d::Zero();
     double m_penetrationDepth = 0.0;
 };
 } // imstk

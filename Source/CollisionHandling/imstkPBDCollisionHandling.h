@@ -22,15 +22,18 @@
 #pragma once
 
 #include "imstkCollisionHandling.h"
+#include "imstkMath.h"
 
 #include <vector>
 
 namespace imstk
 {
+class CollidingObject;
 class PbdObject;
 class PbdCollisionConstraint;
 class PbdEdgeEdgeConstraint;
 class PbdPointTriangleConstraint;
+class PbdPointPointConstraint;
 class PbdCollisionSolver;
 struct CollisionData;
 
@@ -42,42 +45,52 @@ struct CollisionData;
 class PBDCollisionHandling : public CollisionHandling
 {
 public:
+    ///
+    /// \brief Constructor
+    ///
+    PBDCollisionHandling(const std::shared_ptr<CollisionData> colData,
+                         std::shared_ptr<PbdObject>           pbdObject1,
+                         std::shared_ptr<PbdObject>           pbdObject2);
 
     ///
     /// \brief Constructor
     ///
-    PBDCollisionHandling(const Side&                          side,
-                         const std::shared_ptr<CollisionData> colData,
+    PBDCollisionHandling(const std::shared_ptr<CollisionData> colData,
                          std::shared_ptr<PbdObject>           pbdObject1,
-                         std::shared_ptr<PbdObject>           pbdObject2);
-
-    PBDCollisionHandling() = delete;
+                         std::shared_ptr<CollidingObject>     collidingObject2);
 
     ///
     /// \brief Destructor, clear memory pool
     ///
     virtual ~PBDCollisionHandling() override;
 
+public:
     ///
     /// \brief Compute forces based on collision data
     ///
     void processCollisionData() override;
 
-    ///
-    /// \brief Generate appropriate PBD constraints based on the collision data
-    ///
-    void generatePBDConstraints();
-
     std::shared_ptr<PbdCollisionSolver> getCollisionSolver() const { return m_pbdCollisionSolver; }
 
+protected:
+    void generateConstraints();
+
 private:
-    std::shared_ptr<PbdObject> m_PbdObject1 = nullptr; ///> PBD object
-    std::shared_ptr<PbdObject> m_PbdObject2 = nullptr; ///> PBD object
+    std::shared_ptr<PbdObject>       m_obj1 = nullptr; ///> PBD object
+    std::shared_ptr<CollidingObject> m_obj2 = nullptr;
+
     std::shared_ptr<PbdCollisionSolver> m_pbdCollisionSolver = nullptr;
 
     std::vector<PbdCollisionConstraint*> m_PBDConstraints; ///> List of PBD constraints
 
-    std::vector<PbdEdgeEdgeConstraint*>      m_EEConstraintPool;
+    // Types locked in because we won't reallocate pools
+    std::vector<PbdEdgeEdgeConstraint*> m_EEConstraintPool;
+    size_t m_EEConstraintPoolSize = 0;
     std::vector<PbdPointTriangleConstraint*> m_VTConstraintPool;
+    size_t m_VTConstraintPoolSize = 0;
+    std::vector<PbdPointPointConstraint*> m_PPConstraintPool;
+    size_t m_PPConstraintPoolSize = 0;
+
+    std::vector<std::pair<Vec3d, double>> m_fixedVertexPairs;
 };
 }

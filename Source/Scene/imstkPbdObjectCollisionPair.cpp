@@ -30,7 +30,6 @@ limitations under the License.
 
 namespace imstk
 {
-// Pbd Collision will be tested before any step of pbd, then resolved after the solve steps of the two objects
 PbdObjectCollisionPair::PbdObjectCollisionPair(std::shared_ptr<PbdObject> obj1, std::shared_ptr<PbdObject> obj2,
                                                CollisionDetection::Type cdType) : CollisionPair(obj1, obj2)
 {
@@ -56,12 +55,42 @@ PbdObjectCollisionPair::PbdObjectCollisionPair(std::shared_ptr<PbdObject> obj1, 
     setCollisionDetection(makeCollisionDetectionObject(cdType, obj1->getCollidingGeometry(), obj2->getCollidingGeometry(), m_colData));
 
     // Setup the handler
-    std::shared_ptr<PBDCollisionHandling> ch = std::make_shared<PBDCollisionHandling>(CollisionHandling::Side::AB, m_colData, obj1, obj2);
+    std::shared_ptr<PBDCollisionHandling> ch = std::make_shared<PBDCollisionHandling>(m_colData, obj1, obj2);
     setCollisionHandlingAB(ch);
 
     // Setup compute node for collision solver (true/critical node)
     m_collisionSolveNode = std::make_shared<TaskNode>([ch]() { ch->getCollisionSolver()->solve(); },
                 obj1->getName() + "_vs_" + obj2->getName() + "_CollisionSolver", true);
+}
+
+PbdObjectCollisionPair::PbdObjectCollisionPair(std::shared_ptr<PbdObject> obj1, std::shared_ptr<CollidingObject> obj2,
+                                               CollisionDetection::Type cdType) : CollisionPair(obj1, obj2)
+{
+    std::shared_ptr<PbdModel> pbdModel1 = obj1->getPbdModel();
+
+    // Setup the CD
+    m_colData = std::make_shared<CollisionData>();
+    setCollisionDetection(makeCollisionDetectionObject(cdType, obj1->getCollidingGeometry(), obj2->getCollidingGeometry(), m_colData));
+
+    // Setup the handler
+    std::shared_ptr<PBDCollisionHandling> ch = std::make_shared<PBDCollisionHandling>(m_colData, obj1, obj2);
+    setCollisionHandlingAB(ch);
+
+    // Setup compute node for collision solver (true/critical node)
+    m_collisionSolveNode = std::make_shared<TaskNode>([ch]() { ch->getCollisionSolver()->solve(); },
+        obj1->getName() + "_vs_" + obj2->getName() + "_CollisionSolver", true);
+
+    // Define where collision interaction happens
+    m_taskNodeInputs.first.push_back(pbdModel1->getUpdateCollisionGeometryNode());
+    m_taskNodeInputs.second.push_back(obj2->getUpdateGeometryNode());
+
+    m_taskNodeOutputs.first.push_back(pbdModel1->getSolveNode());
+    m_taskNodeOutputs.second.push_back(obj2->getTaskGraph()->getSink());
+
+    // Define where solver interaction happens
+    m_solveNodeInputs.first.push_back(pbdModel1->getSolveNode());
+
+    m_solveNodeOutputs.first.push_back(pbdModel1->getUpdateVelocityNode());
 }
 
 void
@@ -79,18 +108,26 @@ PbdObjectCollisionPair::apply()
     {
         m_objects.first->getTaskGraph()->addEdge(m_solveNodeInputs.first[i], m_collisionSolveNode);
     }
-    for (size_t i = 0; i < m_solveNodeInputs.second.size(); i++)
+    // Second object may be a static CollidingObject
+    if (std::dynamic_pointer_cast<PbdObject>(m_objects.second) != nullptr)
     {
-        m_objects.second->getTaskGraph()->addEdge(m_solveNodeInputs.second[i], m_collisionSolveNode);
+        for (size_t i = 0; i < m_solveNodeInputs.second.size(); i++)
+        {
+            m_objects.second->getTaskGraph()->addEdge(m_solveNodeInputs.second[i], m_collisionSolveNode);
+        }
     }
 
     for (size_t i = 0; i < m_solveNodeOutputs.first.size(); i++)
     {
         m_objects.first->getTaskGraph()->addEdge(m_collisionSolveNode, m_solveNodeOutputs.first[i]);
     }
-    for (size_t i = 0; i < m_solveNodeOutputs.second.size(); i++)
+    // Second object may be a static CollidingObject
+    if (std::dynamic_pointer_cast<PbdObject>(m_objects.second) != nullptr)
     {
-        m_objects.second->getTaskGraph()->addEdge(m_collisionSolveNode, m_solveNodeOutputs.second[i]);
+        for (size_t i = 0; i < m_solveNodeOutputs.second.size(); i++)
+        {
+            m_objects.second->getTaskGraph()->addEdge(m_collisionSolveNode, m_solveNodeOutputs.second[i]);
+        }
     }
 }
 }

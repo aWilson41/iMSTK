@@ -48,9 +48,10 @@ public:
     {
         Plane,
         Sphere,
-        Cylinder,
-        Cube,
         Capsule,
+        Cone,
+        Cube,
+        Cylinder,
         PointSet,
         SurfaceMesh,
         TetrahedralMesh,
@@ -96,6 +97,7 @@ public:
     ///
     virtual ~Geometry() override = default;
 
+public:
     ///
     /// \brief Print
     ///
@@ -179,7 +181,7 @@ public:
     ///
     /// \brief Returns the string representing the type name of the geometry
     ///
-    const std::string getTypeName() const;
+    virtual std::string getTypeName() const = 0;
 
     ///
     /// \brief Returns true if the geometry is a mesh, else returns false

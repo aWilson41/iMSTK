@@ -58,7 +58,6 @@ struct RenderParticle
 class RenderParticles : public Geometry
 {
 public:
-
     ///
     /// \brief Constructor
     /// \param maxNumParticles Number of particles this emitter can produce
@@ -66,7 +65,9 @@ public:
     /// \param mode Mode for emitter
     ///
     RenderParticles(const unsigned int maxNumParticles = 128, const std::string& name = std::string(""));
+    ~RenderParticles() override = default;
 
+public:
     ///
     /// \brief Set size of particle
     /// \param size Particle size, this determines how much each keyframe
@@ -99,6 +100,8 @@ public:
     /// \brief Get maximum number of particles
     ///
     unsigned int getMaxNumParticles();
+
+    std::string getTypeName() const override { return "RenderParticles"; }
 
 protected:
     friend class VulkanParticleRenderDelegate;

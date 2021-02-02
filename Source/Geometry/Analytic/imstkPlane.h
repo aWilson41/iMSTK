@@ -44,7 +44,9 @@ public:
         setNormal(normal.normalized());
         updatePostTransformData();
     }
+    ~Plane() override = default;
 
+public:
     ///
     /// \brief Print the plane info
     ///
@@ -66,8 +68,10 @@ public:
     ///
     double getWidth(DataType type = DataType::PostTransform);
 
+    std::string getTypeName() const override { return "Plane"; }
+
     ///
-    /// \brief Sets the width of the plane
+    /// \brief Sets the *visual* width of the plane
     ///
     void setWidth(const double w);
 
@@ -75,11 +79,6 @@ public:
     /// \brief Returns signed distance to surface at pos
     ///
     double getFunctionValue(const Vec3d& pos) const override { return m_orientationAxis.dot(pos - m_position); }
-
-///
-/// \brief Returns gradient of signed distance field at pos
-///
-//virtual Vec3d getFunctionGrad(const Vec3d& imstkNotUsed(pos), const Vec3d& dx) const override { return dx.cwiseProduct(m_orientationAxis); }
 
 protected:
     friend class VTKPlaneRenderDelegate;

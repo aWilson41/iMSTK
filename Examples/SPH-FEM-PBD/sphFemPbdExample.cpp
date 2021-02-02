@@ -211,8 +211,8 @@ makePBDDragonObject(const std::string& name, const Vec3d& position)
     pbdParams->m_gravity    = Vec3d(0, -9.8, 0);
     pbdParams->m_defaultDt  = 0.01;
     pbdParams->m_iterations = 10;
-    pbdParams->collisionParams->m_proximity = 0.3;
-    pbdParams->collisionParams->m_stiffness = 0.1;
+    pbdParams->m_collisionParams->m_proximity = 0.3;
+    pbdParams->m_collisionParams->m_stiffness = 0.1;
 
     // Setup the Model
     imstkNew<PbdModel> model;

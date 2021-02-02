@@ -45,6 +45,7 @@ public:
     ///
     virtual ~VTKCylinderRenderDelegate() override = default;
 
+public:
     ///
     /// \brief Process the event queue
     ///

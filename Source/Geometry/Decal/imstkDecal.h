@@ -29,7 +29,9 @@ class Decal : public AnalyticalGeometry
 {
 public:
     Decal(const std::string& name = std::string(""));
+    ~Decal() override = default;
 
+public:
     ///
     /// \brief Print the cube info
     ///
@@ -39,6 +41,8 @@ public:
     /// \brief Returns the volume of the cube
     ///
     double getVolume() override { return m_dimensions[0] * m_dimensions[1] * m_dimensions[2]; }
+
+    std::string getTypeName() const override { return "Decal"; }
 
     ///
     /// \brief Update decal transforms

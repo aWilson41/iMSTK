@@ -162,6 +162,25 @@ class TriangleVertexCollisionData : public CollisionDataBase<TriangleVertexColli
 };
 
 ///
+/// \struct TriangleFixedVertexCollisionData
+///
+/// \brief Triangle-fixed vertex collision data
+/// unlike TriangleVertexCollisionData, carries point instead of id
+/// the point is not a reference, thus it cannot move the the geometry it
+/// stemmed from
+///
+struct TriangleFixedVertexCollisionDataElement
+{
+    uint32_t triIdx;
+    Vec3d vertexPt;
+    double closestDistance;
+    Vec3d dir;
+};
+class TriangleFixedVertexCollisionData : public CollisionDataBase<TriangleFixedVertexCollisionDataElement>
+{
+};
+
+///
 /// \struct EdgeEdgeCollisionData
 ///
 /// \brief Edge-Edge collision data
@@ -173,6 +192,40 @@ struct EdgeEdgeCollisionDataElement
     float time;
 };
 class EdgeEdgeCollisionData : public CollisionDataBase<EdgeEdgeCollisionDataElement>
+{
+};
+
+///
+/// \struct EdgeFixedEdgeCollisionData
+///
+/// \brief Edge-Fixed Edge collision data
+/// unlike EdgeEdgeCollisionData, carries point instead of id
+/// the point is not a reference, thus it cannot move the the
+/// geometry it stemmed from
+///
+struct EdgeFixedEdgeCollisionDataElement
+{
+    std::pair<uint32_t, uint32_t> edgeIdA;
+    std::pair<Vec3d, Vec3d> edgePtsB;
+    float time;
+};
+class EdgeFixedEdgeCollisionData : public CollisionDataBase<EdgeFixedEdgeCollisionDataElement>
+{
+};
+
+///
+/// \struct EdgeFixedVertexCollisionData
+///
+/// \brief Edge-Fixed vertex collision data. Carries one edge pair of point ids and
+/// one vertex
+///
+struct EdgeFixedVertexCollisionDataElement
+{
+    std::pair<uint32_t, uint32_t> edgeIdA;
+    Vec3d vertexPt;
+    float time;
+};
+class EdgeFixedVertexCollisionData : public CollisionDataBase<EdgeFixedVertexCollisionDataElement>
 {
 };
 
@@ -230,14 +283,22 @@ struct CollisionData
         PColData.clear();
         PTColData.clear();
         NodePickData.clear();
+
+        TFVColData.clear();
+        EFEColData.clear();
     }
 
-    PositionDirectionCollisionData PDColData; ///< Position Direction collision data
-    PenetrationCollisionData PColData;        ///< Penetration vector collision data
-    VertexTriangleCollisionData VTColData;    ///< Vertex Triangle collision data
-    TriangleVertexCollisionData TVColData;    ///< Triangle Vertex collision data
-    EdgeEdgeCollisionData EEColData;          ///< Edge Edge collision data
-    PointTetrahedronCollisionData PTColData;  ///< Point Tetrahedron collision data
-    PickingCollisionData NodePickData;        ///< List of points that are picked
+    //std::unordered_map<std::string, std::shared_ptr<AbstractCollisionData>> colData;
+
+    PositionDirectionCollisionData PDColData;    ///< Position Direction collision data
+    PenetrationCollisionData PColData;           ///< Penetration vector collision data
+    VertexTriangleCollisionData VTColData;       ///< Vertex Triangle collision data
+    TriangleVertexCollisionData TVColData;       ///< Triangle Vertex collision data
+    EdgeEdgeCollisionData EEColData;             ///< Edge Edge collision data
+    PointTetrahedronCollisionData PTColData;     ///< Point Tetrahedron collision data
+    PickingCollisionData NodePickData;           ///< List of points that are picked
+
+    TriangleFixedVertexCollisionData TFVColData; ///< Fixed vertex, triangle collision data
+    EdgeFixedEdgeCollisionData EFEColData;       ///< Edge Edge collision data
 };
 }

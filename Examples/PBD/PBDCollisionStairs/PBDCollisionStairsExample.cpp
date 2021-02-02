@@ -124,10 +124,10 @@ makeArmadilloPbdObject(const std::string& name)
         PbdFEMConstraint::MaterialType::StVK);
     pbdParams->m_uniformMassValue = 1.0;
     pbdParams->m_gravity    = Vec3d(0, -10.0, 0);
-    pbdParams->m_defaultDt  = 0.01;
+    pbdParams->m_defaultDt  = 0.015;
     pbdParams->m_iterations = 5;
-    pbdParams->collisionParams->m_proximity = 0.3;
-    pbdParams->collisionParams->m_stiffness = 0.1;
+    pbdParams->m_collisionParams->m_proximity = 0.0;
+    pbdParams->m_collisionParams->m_stiffness = 0.95;
 
     // Setup the Model
     imstkNew<PbdModel> pbdModel;
@@ -150,23 +150,21 @@ makeArmadilloPbdObject(const std::string& name)
     return pbdObj;
 }
 
-static std::shared_ptr<PbdObject>
-makeStairsPbdObject(const std::string& name, int numSteps, double width, double height, double depth)
+static std::shared_ptr<CollidingObject>
+makeStairsObject(const std::string& name, int numSteps, double width, double height, double depth)
 {
-    imstkNew<PbdObject> stairObj(name);
+    // Create Object
+    imstkNew<CollidingObject> stairObj(name);
 
+    // Create Mesh
     std::shared_ptr<SurfaceMesh> stairMesh = buildStairs(numSteps, width, height, depth);
 
-    // Setup the parameters
-    imstkNew<PBDModelConfig> pbdParams;
-    pbdParams->m_uniformMassValue = 0.0;
-    pbdParams->collisionParams->m_proximity = -0.1;
-    pbdParams->m_iterations = 0;
-
-    // Setup the model
-    imstkNew<PbdModel> pbdModel;
-    pbdModel->setModelGeometry(stairMesh);
-    pbdModel->configure(pbdParams);
+    std::shared_ptr<DataArray<double>> invMassesPtr = std::make_shared<DataArray<double>>(static_cast<int>(stairMesh->getNumVertices()));
+    for (int i = 0; i < invMassesPtr->size(); i++)
+    {
+        (*invMassesPtr)[i] = 0.0;
+    }
+    stairMesh->setVertexAttribute("InvMass", invMassesPtr);
 
     // Setup the VisualModel
     imstkNew<RenderMaterial> stairMaterial;
@@ -175,9 +173,7 @@ makeStairsPbdObject(const std::string& name, int numSteps, double width, double 
     visualModel->setRenderMaterial(stairMaterial);
 
     stairObj->addVisualModel(visualModel);
-    stairObj->setDynamicalModel(pbdModel);
     stairObj->setCollidingGeometry(stairMesh);
-    stairObj->setPhysicsGeometry(stairMesh);
 
     return stairObj;
 }
@@ -193,6 +189,7 @@ main()
     Logger::startLogger();
 
     imstkNew<Scene> scene("PbdStairsCollision");
+    scene->getConfig()->writeTaskGraph = true;
     {
         scene->getActiveCamera()->setPosition(0.0, 0.0, -30.0);
         scene->getActiveCamera()->setFocalPoint(0.0, 0.0, 0.0);
@@ -201,12 +198,12 @@ main()
         auto pbdDragon1 = makeArmadilloPbdObject("Armadillo");
         scene->addSceneObject(pbdDragon1);
 
-        auto stairObj = makeStairsPbdObject("PbdStairs", 12, 20.0, 10.0, 20.0);
+        auto stairObj = makeStairsObject("PbdStairs", 12, 20.0, 10.0, 20.0);
         scene->addSceneObject(stairObj);
 
         // Collision
         scene->getCollisionGraph()->addInteraction(makeObjectInteractionPair(pbdDragon1, stairObj,
-            InteractionType::PbdObjToPbdObjCollision, CollisionDetection::Type::MeshToMeshBruteForce));
+            InteractionType::PbdObjToCollidingObjCollision, CollisionDetection::Type::MeshToMeshBruteForce));
 
         // Light
         imstkNew<DirectionalLight> light("Light1");

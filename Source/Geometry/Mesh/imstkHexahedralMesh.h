@@ -37,6 +37,7 @@ public:
     /// \brief Constructor
     ///
     HexahedralMesh(const std::string& name = std::string(""));
+    ~HexahedralMesh() override = default;
 
 public:
     ///
@@ -83,6 +84,8 @@ public:
     /// \brief Returns the number of hexahedra
     ///
     size_t getNumHexahedra() const;
+
+    std::string getTypeName() const override { return "HexahedralMesh"; }
 
     ///
     /// \brief Compute and return the volume of the hexahedral mesh

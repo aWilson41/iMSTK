@@ -27,7 +27,7 @@ namespace imstk
 void
 Cube::print() const
 {
-    Geometry::print();
+    AnalyticalGeometry::print();
     LOG(INFO) << "Width: " << m_width;
 }
 

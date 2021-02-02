@@ -26,36 +26,32 @@
 namespace imstk
 {
 ///
-/// \class PbdPointTriangleConstraint
+/// \class PbdEdgeEdgeConstraint
 ///
-/// \brief The PbdPointTriangleConstraint class for point-triangle collision response
+/// \brief Pushes an edge "outside" the other edge
 ///
-class PbdPointTriangleConstraint : public PbdCollisionConstraint
+class PbdEdgeEdgeConstraint : public PbdCollisionConstraint
 {
 public:
-    PbdPointTriangleConstraint() : PbdCollisionConstraint(1, 3)
-    {}
+    PbdEdgeEdgeConstraint() : PbdCollisionConstraint(2, 2) { }
 
+    ~PbdEdgeEdgeConstraint() override = default;
+
+public:
     ///
-    /// \brief Returns the type of the pbd collision constraint
+    /// \brief Get the type of pbd constraint
     ///
-    Type getType() const
-    {
-        return Type::PointTriangle;
-    }
+    Type getType() const { return Type::EdgeEdge; }
 
     ///
     /// \brief initialize constraint
-    /// \param pIdxA1 index of the point from object1
-    /// \param pIdxB1 first point of the triangle from object2
-    /// \param pIdxB2 second point of the triangle from object2
-    /// \param pIdxB3 third point of the triangle from object2
-    /// \return
+    /// \return  true if succeeded
     ///
-    void initConstraint(const size_t& pIdxA1,
-                        const size_t& pIdxB1, const size_t& pIdxB2, const size_t& pIdxB3,
-                        std::shared_ptr<PbdCollisionConstraintConfig> configA,
-                        std::shared_ptr<PbdCollisionConstraintConfig> configB);
+    void initConstraint(Side side,
+        Vec3d* ptA1, double* invMassA1, Vec3d* ptA2, double* invMassA2,
+        Vec3d* ptB1, double* invMassB1, Vec3d* ptB2, double* invMassB2,
+        std::shared_ptr<PbdCollisionConstraintConfig> configA,
+        std::shared_ptr<PbdCollisionConstraintConfig> configB);
 
     ///
     /// \brief compute value and gradient of constraint function
@@ -65,9 +61,7 @@ public:
     /// \param[inout] c constraint value
     /// \param[inout] dcdx constraint gradient
     ///
-    bool computeValueAndGradient(const VecDataArray<double, 3>& currVertexPositionsA,
-                                 const VecDataArray<double, 3>& currVertexPositionsB,
-                                 double& c,
+    bool computeValueAndGradient(double& c,
                                  VecDataArray<double, 3>& dcdxA,
                                  VecDataArray<double, 3>& dcdxB) const override;
 };

@@ -81,7 +81,9 @@ public:
     /// \brief Constructor
     ///
     SurfaceMesh(const std::string& name = std::string(""));
+    ~SurfaceMesh() override = default;
 
+public:
     ///
     /// \brief Initializes the rest of the data structures given vertex positions and
     ///  triangle connectivity
@@ -203,6 +205,8 @@ public:
     /// \brief Get the volume enclosed by the surface mesh
     ///
     double getVolume() override;
+
+    std::string getTypeName() const override { return "SurfaceMesh"; }
 
 // Attributes
 public:

@@ -53,6 +53,8 @@ public:
     ///
     virtual double getFunctionValue(const Vec3d& pos) const override;
 
+    std::string getTypeName() const override { return "CompositeImplicitGeometry"; }
+
     void addImplicitGeometry(std::shared_ptr<ImplicitGeometry> geometry, const GeometryBoolType type) { geometries.push_back(GeometryBoolPair(geometry, type)); }
 
 protected:

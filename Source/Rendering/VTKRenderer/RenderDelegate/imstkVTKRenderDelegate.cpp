@@ -33,6 +33,7 @@
 
 // VTK render delegates
 #include "imstkVTKCapsuleRenderDelegate.h"
+#include "imstkVTKConeRenderDelegate.h"
 #include "imstkVTKCubeRenderDelegate.h"
 #include "imstkVTKCylinderRenderDelegate.h"
 #include "imstkVTKFluidRenderDelegate.h"
@@ -126,6 +127,10 @@ VTKRenderDelegate::makeDelegate(std::shared_ptr<VisualModel> visualModel)
         case Geometry::Type::Cube:
         {
             return std::make_shared<VTKCubeRenderDelegate>(visualModel);
+        }
+        case Geometry::Type::Cone:
+        {
+            return std::make_shared<VTKConeRenderDelegate>(visualModel);
         }
         case Geometry::Type::Cylinder:
         {

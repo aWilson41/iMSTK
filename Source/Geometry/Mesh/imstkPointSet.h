@@ -42,7 +42,9 @@ public:
     /// \brief Protected constructor
     ///
     PointSet(const Type type = Geometry::Type::PointSet, const std::string& name = std::string(""));
+    ~PointSet() override = default;
 
+public:
     ///
     /// \brief Initializes the data structure given vertex positions
     ///
@@ -106,6 +108,8 @@ public:
     /// \brief Returns the number of total vertices in the mesh
     ///
     size_t getNumVertices() const;
+
+    virtual std::string getTypeName() const override { return "PointSet"; }
 
     ///
     /// \brief Set the topologyChanged flag

@@ -43,6 +43,7 @@ public:
     ///
     virtual ~VTKCubeRenderDelegate() override = default;
 
+public:
     ///
     /// \brief Update cube source based on the cube geometry
     ///

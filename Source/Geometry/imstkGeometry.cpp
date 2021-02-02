@@ -26,12 +26,12 @@
 namespace imstk
 {
 Geometry::Geometry(const Geometry::Type type, const std::string& name) :
-    m_type(type), m_geometryIndex(Geometry::getUniqueID()), m_transform(RigidTransform3d::Identity())
+    m_type(type), m_name(name), m_geometryIndex(Geometry::getUniqueID()), m_transform(RigidTransform3d::Identity())
 {
     // If the geometry name is empty, enumerate it by name (which will not be duplicated)
     if (m_name.empty())
     {
-        m_name = getTypeName() + std::string("-") + std::to_string(m_geometryIndex);
+        m_name = "geom_" + std::to_string(m_geometryIndex);
     }
 }
 
@@ -216,34 +216,6 @@ Geometry::setScaling(double s)
     m_scaling = s;
     m_transformModified = true;
     m_transformApplied  = false;
-}
-
-const std::string
-Geometry::getTypeName() const
-{
-    // /todo: create an actual object factory
-    switch (m_type)
-    {
-    case Type::Plane: return "Plane";
-    case Type::Sphere: return "Sphere";
-    case Type::Cylinder: return "Cylinder";
-    case Type::Cube: return "Cube";
-    case Type::Capsule: return "Capsule";
-    case Type::PointSet: return "PointSet";
-    case Type::SurfaceMesh: return "SurfaceMesh";
-    case Type::TetrahedralMesh: return "TetrahedralMesh";
-    case Type::HexahedralMesh: return "HexahedralMesh";
-    case Type::LineMesh: return "LineMesh";
-    case Type::Decal: return "Decal";
-    case Type::DecalPool: return "DecalPool";
-    case Type::RenderParticles: return "RenderParticles";
-    case Type::ImageData: return "ImageData";
-    case Type::SignedDistanceField: return "SignedDistanceField";
-    case Type::CompositeImplicitGeometry: return "CompositeImplicitGeometry";
-    default:
-        LOG(FATAL) << "Mesh type to string has not been completely implemented";
-        return "";
-    }
 }
 
 bool

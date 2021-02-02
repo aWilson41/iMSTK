@@ -43,7 +43,9 @@ public:
     /// \brief Constructor
     ///
     TetrahedralMesh(const std::string& name = std::string(""));
+    ~TetrahedralMesh() override = default;
 
+public:
     ///
     /// \brief Initializes the rest of the data structures given vertex positions and
     ///  tetrahedra connectivity
@@ -119,6 +121,8 @@ public:
     /// \brief Compute and return the volume of the tetrahedral mesh
     ///
     double getVolume() override;
+
+    std::string getTypeName() const override { return "TetrahedralMesh"; }
 
 protected:
     friend class VTKTetrahedralMeshRenderDelegate;

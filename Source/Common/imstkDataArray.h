@@ -26,6 +26,8 @@
 #include "imstkMacros.h"
 //#include "imstkParallelReduce.h"
 
+#define DATA_ARRAY_DEBUG_ITERS
+
 namespace imstk
 {
 ///
@@ -295,8 +297,27 @@ public:
     inline T* getPointer() { return m_data; }
     inline void* getVoidPointer() override { return static_cast<void*>(m_data); }
 
-    inline T& operator[](const size_t pos) { return m_data[pos]; }
-    inline const T& operator[](const size_t pos) const { return m_data[pos]; }
+    inline T& operator[](const size_t pos)
+    {
+#ifdef DATA_ARRAY_DEBUG_ITERS
+        if (pos < 0 || pos >= m_size)
+        {
+            std::exception("VecDataArray: Out of bounds");
+        }
+#endif
+        return m_data[pos];
+    }
+
+    inline const T& operator[](const size_t pos) const
+    {
+#ifdef DATA_ARRAY_DEBUG_ITERS
+        if (pos < 0 || pos >= m_size)
+        {
+            std::exception("VecDataArray: Out of bounds");
+        }
+#endif
+        return m_data[pos];
+    }
 
     ///
     /// \brief Allow initialization from initializer list, ie: DataArray<int> arr = { 1, 2 }

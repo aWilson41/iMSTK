@@ -21,44 +21,37 @@
 
 #pragma once
 
-#include "imstkPointSet.h"
+#include "imstkVTKPolyDataRenderDelegate.h"
 
-#include <memory>
+class vtkConeSource;
 
 namespace imstk
 {
-class SurfaceMesh;
-
 ///
-/// \class VolumetricMesh
+/// \class VTKConeRenderDelegate
 ///
-/// \brief Base class for all volume mesh types
+/// \brief Cone render delegate with VTK backend
 ///
-class VolumetricMesh : public PointSet
+class VTKConeRenderDelegate : public VTKPolyDataRenderDelegate
 {
-protected:
-    VolumetricMesh(Geometry::Type type, const std::string& name = std::string("")) : PointSet(type, name) { }
-
-public:
-    virtual ~VolumetricMesh() override = default;
-
 public:
     ///
-    /// \brief Computes the attached surface mesh
+    /// \brief Constructor
     ///
-    virtual void computeAttachedSurfaceMesh() = 0;
+    VTKConeRenderDelegate(std::shared_ptr<VisualModel> visualModel);
 
     ///
-    /// \brief Returns the attached surface mesh
+    /// \brief Destructor
     ///
-    std::shared_ptr<SurfaceMesh> getAttachedSurfaceMesh();
+    virtual ~VTKConeRenderDelegate() override = default;
 
+public:
     ///
-    /// \brief Sets the surface mesh that is attached
+    /// \brief Update cube source based on the cube geometry
     ///
-    void setAttachedSurfaceMesh(std::shared_ptr<SurfaceMesh> surfaceMesh);
+    void processEvents() override;
 
 protected:
-    std::shared_ptr<SurfaceMesh> m_attachedSurfaceMesh;          ///> Attached surface mesh
+    vtkSmartPointer<vtkConeSource> m_coneSource = nullptr;
 };
 } // imstk

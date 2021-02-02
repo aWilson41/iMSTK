@@ -26,33 +26,36 @@
 namespace imstk
 {
 ///
-/// \class PbdEdgeEdgeConstraint
+/// \class PbdPointTriangleConstraint
 ///
-/// \brief The PbdEdgeEdgeConstraint class for edge-edge collision response
+/// \brief Pushes triangle and point apart according to triangles normal
 ///
-class PbdEdgeEdgeConstraint : public PbdCollisionConstraint
+class PbdPointTriangleConstraint : public PbdCollisionConstraint
 {
 public:
-    PbdEdgeEdgeConstraint() : PbdCollisionConstraint(2, 2) {}
+    PbdPointTriangleConstraint() : PbdCollisionConstraint(1, 3) { }
 
+    ~PbdPointTriangleConstraint() override = default;
+
+public:
     ///
-    /// \brief Get the type of pbd constraint
+    /// \brief Returns the type of the pbd collision constraint
     ///
-    Type getType() const { return Type::EdgeEdge; }
+    Type getType() const { return Type::PointTriangle; }
 
     ///
     /// \brief initialize constraint
-    /// \param pIdx1 first point of the edge from object1
-    /// \param pIdx2 second point of the edge from object1
-    /// \param pIdx3 first point of the edge from object2
-    /// \param pIdx4 second point of the edge from object2
-    /// \return  true if succeeded
+    /// \param pIdxA1 index of the point from object1
+    /// \param pIdxB1 first point of the triangle from object2
+    /// \param pIdxB2 second point of the triangle from object2
+    /// \param pIdxB3 third point of the triangle from object2
+    /// \return
     ///
-    void initConstraint(
-        const size_t& pIdxA1, const size_t& pIdxA2,
-        const size_t& pIdxB1, const size_t& pIdxB2,
-        std::shared_ptr<PbdCollisionConstraintConfig> configA,
-        std::shared_ptr<PbdCollisionConstraintConfig> configB);
+    void initConstraint(const Side side, Vec3d* ptA1, double* invMassA1,
+                        Vec3d* ptB1, double* invMassB1, Vec3d* ptB2, double* invMassB2, Vec3d* ptB3, double* invMassB3,
+                        std::shared_ptr<PbdCollisionConstraintConfig> configA,
+                        std::shared_ptr<PbdCollisionConstraintConfig> configB,
+        Vec3d dir, double depth);
 
     ///
     /// \brief compute value and gradient of constraint function
@@ -62,10 +65,12 @@ public:
     /// \param[inout] c constraint value
     /// \param[inout] dcdx constraint gradient
     ///
-    bool computeValueAndGradient(const VecDataArray<double, 3>& currVertexPositionsA,
-                                 const VecDataArray<double, 3>& currVertexPositionsB,
-                                 double& c,
+    bool computeValueAndGradient(double& c,
                                  VecDataArray<double, 3>& dcdxA,
                                  VecDataArray<double, 3>& dcdxB) const override;
+
+public:
+    Vec3d m_dir;
+    double m_depth;
 };
 } // imstk

@@ -27,7 +27,8 @@
 namespace imstk
 {
 class CollidingObject;
-class PbdPointNormalCollisionConstraint;
+class PbdPointPointConstraint;
+class PbdPointTriangleConstraint;
 class PbdCollisionConstraint;
 class PbdCollisionSolver;
 class PbdObject;
@@ -41,7 +42,6 @@ struct CollisionData;
 class PBDPickingCH : public CollisionHandling
 {
 public:
-
     ///
     /// \brief Constructor
     ///
@@ -50,13 +50,12 @@ public:
                  std::shared_ptr<PbdObject>           pbdObj,
                  std::shared_ptr<CollidingObject>     pickObj);
 
-    PBDPickingCH() = delete;
-
     ///
     /// \brief Destructor
     ///
     virtual ~PBDPickingCH() override;
 
+public:
     ///
     /// \brief Compute forces based on collision data
     ///
@@ -96,7 +95,13 @@ private:
     std::shared_ptr<CollidingObject>    m_pickObj = nullptr;    ///> Picking tool object
     std::shared_ptr<PbdCollisionSolver> m_pbdCollisionSolver = nullptr;
 
-    std::vector<PbdCollisionConstraint*> m_PBDConstraints;              ///> List of PBD constraints
-    std::vector<PbdPointNormalCollisionConstraint*> m_ACConstraintPool; ///> PBD analytical constraints
+    std::vector<PbdCollisionConstraint*>  m_PBDConstraints; ///> List of PBD constraints
+
+    std::vector<PbdPointPointConstraint*> m_PPConstraintPool;
+    size_t m_PPConstraintPoolSize = 0;
+    std::vector<PbdPointTriangleConstraint*> m_VTConstraintPool;
+    size_t m_VTConstraintPoolSize = 0;
+
+    std::vector<std::pair<Vec3d, double>> m_fixedVertexPairs;
 };
 }

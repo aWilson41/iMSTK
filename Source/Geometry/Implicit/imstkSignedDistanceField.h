@@ -76,6 +76,8 @@ public:
     ///
     std::shared_ptr<ImageData> getImage() const { return m_imageDataSdf; }
 
+    std::string getTypeName() const override { return "SignedDistanceField"; }
+
 protected:
     std::shared_ptr<ImageData> m_imageDataSdf;
 

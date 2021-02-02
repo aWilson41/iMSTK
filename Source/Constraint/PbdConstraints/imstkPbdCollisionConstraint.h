@@ -38,6 +38,12 @@ struct PbdCollisionConstraintConfig
     double m_stiffness = 1.0; ///> Stiffness for collision
 };
 
+struct VertexMassPair
+{
+    Vec3d* vertex   = nullptr;
+    double* invMass = nullptr;
+};
+
 ///
 /// \class PbdCollisionConstraint
 ///
@@ -50,7 +56,11 @@ public:
     {
         EdgeEdge,
         PointTriangle,
-        Analytical,
+        PointPoint
+    };
+    enum class Side
+    {
+        A, B, AB
     };
 
     ///
@@ -63,11 +73,12 @@ public:
     ///
     virtual ~PbdCollisionConstraint() = default;
 
+public:
     ///
     /// \brief Get vertex indices of first object
     ///
-    const std::vector<size_t>& getVertexIdsFirst() const { return m_bodiesFirst; }
-    const std::vector<size_t>& getVertexIdsSecond() const { return m_bodiesSecond; }
+    const std::vector<VertexMassPair>& getVertexIdsFirst() const { return m_bodiesFirst; }
+    const std::vector<VertexMassPair>& getVertexIdsSecond() const { return m_bodiesSecond; }
 
     ///
     /// \brief Get config
@@ -78,28 +89,25 @@ public:
     ///
     /// \brief compute value and gradient of constraint function
     ///
-    /// \param[in] currVertexPositionsA current positions from object A
-    /// \param[in] currVertexPositionsA current positions from object B
     /// \param[inout] c constraint value
     /// \param[inout] dcdx constraint gradient
     ///
-    virtual bool computeValueAndGradient(const VecDataArray<double, 3>& posA,
-                                         const VecDataArray<double, 3>& posB,
-                                         double& c,
+    virtual bool computeValueAndGradient(double& c,
                                          VecDataArray<double, 3>& dcdxA,
                                          VecDataArray<double, 3>& dcdxB) const = 0;
 
-    virtual void projectConstraint(const DataArray<double>* invMassA,
-                                   const DataArray<double>* invMassB,
-                                   VecDataArray<double, 3>* posA,
-                                   VecDataArray<double, 3>* posB);
+    virtual void projectConstraint();
 
 protected:
-    std::vector<size_t> m_bodiesFirst;                                 ///> index of points for the first object
-    std::vector<size_t> m_bodiesSecond;                                ///> index of points for the second object
+    std::vector<VertexMassPair> m_bodiesFirst;                         ///> index of points for the first object
+    std::vector<VertexMassPair> m_bodiesSecond;                        ///> index of points for the second object
 
     std::shared_ptr<PbdCollisionConstraintConfig> m_configA = nullptr; ///> parameters of the collision constraint
     std::shared_ptr<PbdCollisionConstraintConfig> m_configB = nullptr; ///> parameters of the collision constraint
+
+    Side m_side = Side::AB;
+    VecDataArray<double, 3> dcdxA;
+    VecDataArray<double, 3> dcdxB;
 };
 
 using PBDCollisionConstraintVector = std::vector<PbdCollisionConstraint*>;

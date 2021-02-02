@@ -25,8 +25,6 @@
 
 namespace imstk
 {
-class Cube;
-
 ///
 /// \class Cube
 ///
@@ -42,7 +40,9 @@ public:
         setOrientationAxis(orientationAxis);
         setWidth(width);
     }
+    ~Cube() override = default;
 
+public:
     ///
     /// \brief Print the cube info
     ///
@@ -57,6 +57,8 @@ public:
     /// \brief Returns the width of the cube
     ///
     double getWidth(DataType type = DataType::PostTransform);
+
+    std::string getTypeName() const override { return "Cube"; }
 
     ///
     /// \brief Sets the width of the cube

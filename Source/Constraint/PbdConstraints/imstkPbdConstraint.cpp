@@ -21,6 +21,8 @@
 
 #include "imstkPbdConstraint.h"
 
+#include <iostream>
+
 namespace imstk
 {
 void
@@ -69,7 +71,9 @@ PbdConstraint::projectConstraint(const DataArray<double>& invMasses, const doubl
         vid = m_vertexIds[i];
         if (invMasses[vid] > 0.0)
         {
-            pos[vid] += invMasses[vid] * lambda * m_dcdx[i];
+            Vec3d dx = invMasses[vid] * lambda * m_dcdx[i];
+            //std::cout << "dxd: " << dx[0] << ", " << dx[1] << ", " << dx[2] << std::endl;
+            pos[vid] += dx;
         }
     }
 }

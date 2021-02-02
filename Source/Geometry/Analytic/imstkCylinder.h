@@ -47,6 +47,9 @@ public:
         updatePostTransformData();
     }
 
+    ~Cylinder() override = default;
+
+public:
     ///
     /// \brief Print the cylinder info
     ///
@@ -61,6 +64,8 @@ public:
     /// \brief Returns the radius of the cylinder
     ///
     double getRadius(DataType type = DataType::PostTransform);
+
+    std::string getTypeName() const override { return "Cylinder"; }
 
     ///
     /// \brief Sets the radius of the cylinder

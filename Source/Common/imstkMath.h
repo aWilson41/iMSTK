@@ -234,4 +234,122 @@ mat4dTRS(const Mat4d& m, Vec3d& t, Mat3d& r, Vec3d& s)
 
     t = m.block<3, 1>(0, 3);
 }
+
+///
+/// \brief Compute bary centric coordinates (u,v,w) given triangle in 2d space (and point p on triangle)
+///
+static Vec3d
+baryCentric(const Vec2d& p, const Vec2d& a, const Vec2d& b, const Vec2d& c)
+{
+    const Vec2d  v0  = b - a;
+    const Vec2d  v1  = c - a;
+    const Vec2d  v2  = p - a;
+    const double den = v0[0] * v1[1] - v1[0] * v0[1];
+    const double v   = (v2[0] * v1[1] - v1[0] * v2[1]) / den;
+    const double w   = (v0[0] * v2[1] - v2[0] * v0[1]) / den;
+    const double u   = 1.0 - v - w;
+    return Vec3d(u, v, w);
+}
+
+///
+/// \brief Compute bary centric coordinates (u,v,w) given triangle in 3d space (and point p on triangle)
+///
+static Vec3d
+baryCentric(const Vec3d& p, const Vec3d& a, const Vec3d& b, const Vec3d& c)
+{
+    Vec3d        v0    = b - a;
+    Vec3d        v1    = c - a;
+    Vec3d        v2    = p - a;
+    const double d00   = v0.dot(v0);
+    const double d01   = v0.dot(v1);
+    const double d11   = v1.dot(v1);
+    const double d20   = v2.dot(v0);
+    const double d21   = v2.dot(v1);
+    const double denom = d00 * d11 - d01 * d01;
+    const double v     = (d11 * d20 - d01 * d21) / denom;
+    const double w     = (d00 * d21 - d01 * d20) / denom;
+    const double u     = 1.0 - v - w;
+    return Vec3d(u, v, w);
+}
+
+static Vec3d
+closestPointOnTriangle(const Vec3d& p, const Vec3d& a, const Vec3d& b, const Vec3d& c)
+{
+    Vec3d ab = b - a;
+    Vec3d ac = c - a;
+    Vec3d ap = p - a;
+
+    double d1 = ab.dot(ap);
+    double d2 = ac.dot(ap);
+    if (d1 <= 0.0 && d2 <= 0.0)
+    {
+        return a; // barycentric coordinates (1,0,0)
+    }
+
+    // Check if P in vertex region outside B
+    Vec3d  bp = p - b;
+    double d3 = ab.dot(bp);
+    double d4 = ac.dot(bp);
+    if (d3 >= 0.0 && d4 <= d3)
+    {
+        return b; // barycentric coordinates (0,1,0)
+    }
+    // Check if P in edge region of AB, if so return projection of P onto AB
+    double vc = d1 * d4 - d3 * d2;
+    if (vc <= 0.0 && d1 >= 0.0 && d3 <= 0.0)
+    {
+        double v = d1 / (d1 - d3);
+        return a + v * ab; // barycentric coordinates (1-v,v,0)
+    }
+
+    // Check if P in vertex region outside C
+    Vec3d  cp = p - c;
+    double d5 = ab.dot(cp);
+    double d6 = ac.dot(cp);
+    if (d6 >= 0.0 && d5 <= d6)
+    {
+        return c; // barycentric coordinates (0,0,1)
+    }
+
+    // Check if P in edge region of AC, if so return projection of P onto AC
+    double vb = d5 * d2 - d1 * d6;
+    if (vb <= 0.0 && d2 >= 0.0 && d6 <= 0.0)
+    {
+        double w = d2 / (d2 - d6);
+        return a + w * ac; // barycentric coordinates (1-w,0,w)
+    }
+
+    // Check if P in edge region of BC, if so return projection of P onto BC
+    double va = d3 * d6 - d5 * d4;
+    if (va <= 0.0 && (d4 - d3) >= 0.0 && (d5 - d6) >= 0.0)
+    {
+        double w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+        return b + w * (c - b); // barycentric coordinates (0,1-w,w)
+    }
+
+    // P inside face region. Compute Q through its barycentric coordinates (u,v,w)
+    double denom = 1.0 / (va + vb + vc);
+    double v     = vb * denom;
+    double w     = vc * denom;
+    return a + ab * v + ac * w; // = u*a + v*b + w*c, u = va * denom = 1.0f-v-w
+}
+
+///
+/// \brief Computes the center of a circumsphere bounding the triangle
+///
+static Vec3d
+circumcenter(const Vec3d& a, const Vec3d& b, const Vec3d& c)
+{
+    const Vec3d ac    = c - a;
+    const Vec3d ab    = b - a;
+    const Vec3d abXac = ab.cross(ac);
+
+    // Distance to circumcenter
+    const Vec3d  dist = (abXac.cross(ab) * ac.dot(ac) + ac.cross(abXac) * ab.dot(ab)) / (2.0 * abXac.dot(abXac));
+    const double circumsphereRadius = dist.norm();
+
+    // The 3 space coords of the circumsphere center then:
+    const Vec3d circumCenter = a + dist;
+    return circumCenter;
+}
 }

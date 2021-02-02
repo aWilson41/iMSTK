@@ -29,26 +29,6 @@ namespace imstk
 class PbdCollisionConstraint;
 
 ///
-/// \struct CollisionConstraintData
-/// \brief Stores positions and masses of two colliding objects
-///
-struct CollisionConstraintData
-{
-    CollisionConstraintData(std::shared_ptr<VecDataArray<double, 3>> posA,
-                            std::shared_ptr<DataArray<double>> invMassA,
-                            std::shared_ptr<VecDataArray<double, 3>> posB,
-                            std::shared_ptr<DataArray<double>> invMassB) :
-        m_posA(posA), m_invMassA(invMassA), m_posB(posB), m_invMassB(invMassB)
-    {
-    }
-
-    std::shared_ptr<VecDataArray<double, 3>> m_posA = nullptr;
-    std::shared_ptr<DataArray<double>> m_invMassA   = nullptr;
-    std::shared_ptr<VecDataArray<double, 3>> m_posB = nullptr;
-    std::shared_ptr<DataArray<double>> m_invMassB   = nullptr;
-};
-
-///
 /// \class PbdSolver
 ///
 /// \brief Position Based Dynamics solver
@@ -145,9 +125,7 @@ public:
     ///
     /// \brief Add the global collision contraints to this solver
     ///
-    void addCollisionConstraints(std::vector<PbdCollisionConstraint*>* constraints,
-                                 std::shared_ptr<VecDataArray<double, 3>> posA, std::shared_ptr<DataArray<double>> invMassA,
-                                 std::shared_ptr<VecDataArray<double, 3>> posB, std::shared_ptr<DataArray<double>> invMassB);
+    void addCollisionConstraints(std::vector<PbdCollisionConstraint*>* constraints);
 
     ///
     /// \brief Solve the non linear system of equations G(x)=0 using Newton's method.
@@ -158,6 +136,5 @@ private:
     size_t m_collisionIterations = 5;                                                                   ///> Number of NL Gauss-Seidel iterations for collision constraints
 
     std::shared_ptr<std::list<std::vector<PbdCollisionConstraint*>*>> m_collisionConstraints = nullptr; ///< Collision contraints charged to this solver
-    std::shared_ptr<std::list<CollisionConstraintData>> m_collisionConstraintsData = nullptr;
 };
 } // imstk

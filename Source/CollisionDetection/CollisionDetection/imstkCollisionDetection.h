@@ -52,7 +52,10 @@ public:
         PointSetToCapsule,
         PointSetToSpherePicking,
         PointSetToSurfaceMesh,
+
+        // Implicit geometry
         PointSetToImplicit,
+        SurfaceMeshToImplicit,
 
         // Mesh to mesh (mesh to analytical object = mesh vertices to analytical object)
         SurfaceMeshToSurfaceMesh,

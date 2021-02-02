@@ -19,39 +19,46 @@
 
 =========================================================================*/
 
-#pragma once
-
-#include "imstkVTKPolyDataRenderDelegate.h"
-
-class vtkCapsuleSource;
+#include "imstkCone.h"
+#include "imstkLogger.h"
 
 namespace imstk
 {
-///
-/// \class VTKCapsuleRenderDelegate
-///
-/// \brief Render capsule object with vtk backend
-///
-class VTKCapsuleRenderDelegate : public VTKPolyDataRenderDelegate
+void
+Cone::print() const
 {
-public:
-    ///
-    /// \brief Constructor
-    ///
-    VTKCapsuleRenderDelegate(std::shared_ptr<VisualModel> visualModel);
+    AnalyticalGeometry::print();
+    LOG(INFO) << "Height: " << m_height;
+    LOG(INFO) << "Angle: " << m_angle;
+}
 
-    ///
-    /// \brief destructor
-    ///
-    virtual ~VTKCapsuleRenderDelegate() override = default;
+double
+Cone::getHeight(DataType type /* = DataType::PostTransform */)
+{
+    if (type == DataType::PostTransform)
+    {
+        this->updatePostTransformData();
+        return m_heightPostTransform;
+    }
+    return m_height;
+}
 
-public:
-    ///
-    /// \brief Update capsule source based on the capsule geometry
-    ///
-    void processEvents() override;
+void
+Cone::applyScaling(const double s)
+{
+    this->setHeight(m_height * s);
+    this->modified();
+}
 
-protected:
-    vtkSmartPointer<vtkCapsuleSource> capsuleSource = nullptr;
-};
-} // imstk
+void
+Cone::updatePostTransformData() const
+{
+    if (m_transformApplied)
+    {
+        return;
+    }
+    AnalyticalGeometry::updatePostTransformData();
+    m_heightPostTransform = m_scaling * m_height;
+    m_transformApplied = true;
+}
+}

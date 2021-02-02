@@ -106,6 +106,8 @@ public:
     ///
     const ScalarType getScalarType() const;
 
+    std::string getTypeName() const { return "ImageData"; }
+
     ///
     /// \brief Returns bounds of the image (voxel to voxel)
     ///

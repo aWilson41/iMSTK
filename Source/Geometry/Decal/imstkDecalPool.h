@@ -37,7 +37,9 @@ class DecalPool : public Geometry
 {
 public:
     DecalPool(unsigned int maxNumDecals = 128, const std::string& name = std::string(""));
+    ~DecalPool() override = default;
 
+public:
     ///
     /// \brief Add a \ref Decal object to this pool
     ///
@@ -68,6 +70,8 @@ public:
     /// \brief Get the max number of decals
     ///
     unsigned int getMaxNumDecals();
+
+    std::string getTypeName() const override { return "DecalPool"; }
 
 protected:
     friend class VulkanDecalRenderDelegate;

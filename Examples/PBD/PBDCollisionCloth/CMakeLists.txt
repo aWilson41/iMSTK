@@ -16,12 +16,12 @@
 #
 ###########################################################################
 
-project(Example-PBDCollision-Box)
+project(Example-PBDCollision-Cloth)
 
 #-----------------------------------------------------------------------------
 # Create executable
 #-----------------------------------------------------------------------------
-imstk_add_executable(${PROJECT_NAME} PBDCollisionBoxExample.cpp)
+imstk_add_executable(${PROJECT_NAME} pbdCollisionClothExample.cpp)
 
 #-----------------------------------------------------------------------------
 # Add the target to Examples folder

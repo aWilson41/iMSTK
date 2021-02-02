@@ -42,7 +42,9 @@ public:
         setPosition(pos);
         setRadius(radius);
     }
+    ~Sphere() override = default;
 
+public:
     ///
     /// \brief Print the sphere info
     ///
@@ -73,10 +75,7 @@ public:
     ///
     double getFunctionValue(const Vec3d& pos) const override { return (pos - m_position).norm() - m_radius; }
 
-///
-/// \brief Returns analytical gradient of distances given position
-///
-//Vec3d getFunctionGrad(const Vec3d& pos, const Vec3d& dx) const override { return 2.0 * (pos - m_position).cwiseProduct(dx); }
+    std::string getTypeName() const override { return "Sphere"; }
 
 protected:
     friend class VTKSphereRenderDelegate;

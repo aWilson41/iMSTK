@@ -27,7 +27,10 @@ limitations under the License.
 #include "imstkPointSetToPlaneCD.h"
 #include "imstkPointSetToSphereCD.h"
 #include "imstkPointSetToSurfaceMeshCD.h"
+
+// Implicit
 #include "imstkImplicitGeometryToPointSetCD.h"
+#include "imstkImplicitGeometryToSurfaceMeshCD.h"
 
 // Mesh to mesh
 #include "imstkMeshToMeshBruteForceCD.h"
@@ -136,6 +139,14 @@ makeCollisionDetectionObject(const CollisionDetection::Type type,
         auto pointSet     = std::dynamic_pointer_cast<PointSet>(collidingGeometryA);
         auto implicitGeom = std::dynamic_pointer_cast<ImplicitGeometry>(collidingGeometryB);
         return std::make_shared<ImplicitGeometryToPointSetCD>(implicitGeom, pointSet, colData);
+    }
+    case CollisionDetection::Type::SurfaceMeshToImplicit:
+    {
+        IMSTK_CHECK_FOR_VALID_GEOMETRIES(collidingGeometryA, collidingGeometryB, SurfaceMesh, ImplicitGeometry);
+
+        auto surfMesh     = std::dynamic_pointer_cast<SurfaceMesh>(collidingGeometryA);
+        auto implicitGeom = std::dynamic_pointer_cast<ImplicitGeometry>(collidingGeometryB);
+        return std::make_shared<ImplicitGeometryToSurfaceMeshCD>(implicitGeom, surfMesh, colData);
     }
     // Mesh to mesh
     case CollisionDetection::Type::SurfaceMeshToSurfaceMesh:

@@ -36,8 +36,10 @@ public:
     ///
     /// \brief Constructor
     ///
-    Capsule(const std::string& name = std::string("defaultCapsule")) : AnalyticalGeometry(Type::Capsule, name) {}
+    Capsule(const std::string& name = std::string("defaultCapsule")) : AnalyticalGeometry(Type::Capsule, name) { }
+    ~Capsule() override = default;
 
+public:
     ///
     /// \brief Print the capsule info
     ///
@@ -52,6 +54,8 @@ public:
     /// \brief Returns the radius of the capsule
     ///
     double getRadius(DataType type = DataType::PostTransform);
+
+    std::string getTypeName() const override { return "Capsule"; }
 
     ///
     /// \brief Sets the radius of the capsule

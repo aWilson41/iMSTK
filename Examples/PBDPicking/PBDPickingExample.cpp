@@ -129,7 +129,7 @@ makeClothObj(const std::string& name,
     imstkNew<PbdObject> clothObj(name);
 
     // Setup the Geometry
-    std::shared_ptr<SurfaceMesh> clothMesh(makeClothGeometry(width, height, nRows, nCols));
+    std::shared_ptr<SurfaceMesh> clothMesh = makeClothGeometry(width, height, nRows, nCols);
 
     // Setup the Parameters
     imstkNew<PBDModelConfig> pbdParams;
@@ -138,8 +138,10 @@ makeClothObj(const std::string& name,
     pbdParams->m_fixedNodeIds     = { 0, static_cast<size_t>(nCols) - 1 };
     pbdParams->m_uniformMassValue = width * height / ((double)nRows * (double)nCols);
     pbdParams->m_gravity    = Vec3d(0.0, -9.8, 0.0);
-    pbdParams->m_defaultDt  = 0.005;
+    pbdParams->m_defaultDt  = 0.008;
     pbdParams->m_iterations = 5;
+    pbdParams->m_collisionParams->m_proximity = 0.0;
+    pbdParams->m_collisionParams->m_stiffness = 0.2;
 
     // Setup the Model
     imstkNew<PbdModel> pbdModel;
@@ -218,7 +220,7 @@ main()
     objLowerJaw->setCollidingGeometry(geomLowerJaw);
     scene->addSceneObject(objLowerJaw);
 
-    /*
+    
     // big capsule for demonstrating pbd-analytical collision
     imstkNew<Capsule> bigCapsule;
     bigCapsule->setLength(25.0);
@@ -229,7 +231,7 @@ main()
     objBigCapsule->setVisualGeometry(bigCapsule);
     objBigCapsule->setCollidingGeometry(bigCapsule);
     scene->addSceneObject(objBigCapsule);
-    */
+    
 
     std::shared_ptr<PbdObject> clothObj = makeClothObj("Cloth", width, height, nRows, nCols);
     scene->addSceneObject(clothObj);
@@ -240,24 +242,23 @@ main()
     scene->addController(controller);
 
     // Add interaction pair for pbd picking
-    imstkNew<PbdObjectPickingPair> upperJawPickingPair(clothObj, objUpperJaw, CollisionDetection::Type::PointSetToCapsule);
-    imstkNew<PbdObjectPickingPair> lowerJawPickingPair(clothObj, objLowerJaw, CollisionDetection::Type::PointSetToCapsule);
-    //imstkNew<PbdObjectPickingPair> bigCapsulePickingPair(clothObj, objBigCapsule, CollisionDetection::Type::PointSetToCapsule);
+    imstkNew<PbdObjectPickingPair> upperJawPickingPair(clothObj, objUpperJaw, CollisionDetection::Type::SurfaceMeshToImplicit);
+    imstkNew<PbdObjectPickingPair> lowerJawPickingPair(clothObj, objLowerJaw, CollisionDetection::Type::SurfaceMeshToImplicit);
+    imstkNew<PbdObjectPickingPair> bigCapsulePickingPair(clothObj, objBigCapsule, CollisionDetection::Type::SurfaceMeshToImplicit);
     scene->getCollisionGraph()->addInteraction(upperJawPickingPair);
     scene->getCollisionGraph()->addInteraction(lowerJawPickingPair);
-    //scene->getCollisionGraph()->addInteraction(bigCapsulePickingPair);
+    scene->getCollisionGraph()->addInteraction(bigCapsulePickingPair);
 
-    /*
+    
     // Move the capsule every frame
-    double t = 0.0;
+    /*double t = 0.0;
     auto   moveCapsule =
         [&bigCapsule, &t](Event*)
     {
-
         bigCapsule->setTranslation(Vec3d(25, -20.0 + 10 * sin(t), 25.0));
         t += 0.01;
-    };
-    */
+    };*/
+    
 
     // Camera
     scene->getActiveCamera()->setPosition(Vec3d(1.0, 1.0, 1.0) * 100.0);

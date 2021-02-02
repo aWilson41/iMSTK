@@ -21,25 +21,24 @@
 
 #include "imstkPbdCollisionConstraint.h"
 
+#include <iostream>
+
 namespace imstk
 {
 PbdCollisionConstraint::PbdCollisionConstraint(const unsigned int& n1, const unsigned int& n2)
 {
     m_bodiesFirst.resize(n1);
+    dcdxA.resize(n1);
     m_bodiesSecond.resize(n2);
+    dcdxB.resize(n2);
 }
 
 void
-PbdCollisionConstraint::projectConstraint(const DataArray<double>* invMassA,
-                                          const DataArray<double>* invMassB,
-                                          VecDataArray<double, 3>* posA,
-                                          VecDataArray<double, 3>* posB)
+PbdCollisionConstraint::projectConstraint()
 {
-    double                  c;
-    VecDataArray<double, 3> dcdxA;
-    VecDataArray<double, 3> dcdxB;
+    double c;
 
-    const bool update = this->computeValueAndGradient(*posA, *posB, c, dcdxA, dcdxB);
+    const bool update = this->computeValueAndGradient(c, dcdxA, dcdxB);
     if (!update)
     {
         return;
@@ -47,34 +46,43 @@ PbdCollisionConstraint::projectConstraint(const DataArray<double>* invMassA,
 
     double lambda = 0.0;
 
-    for (size_t i = 0; i < m_bodiesFirst.size(); ++i)
+    // Sum the mass (so we can weight displacements)
+    for (size_t i = 0; i < m_bodiesFirst.size(); i++)
     {
-        lambda += (*invMassA)[m_bodiesFirst[i]] * dcdxA[i].squaredNorm();
+        lambda += *m_bodiesFirst[i].invMass * dcdxA[i].squaredNorm();
     }
 
-    for (size_t i = 0; i < m_bodiesSecond.size(); ++i)
+    for (size_t i = 0; i < m_bodiesSecond.size(); i++)
     {
-        lambda += (*invMassB)[m_bodiesSecond[i]] * dcdxB[i].squaredNorm();
+        lambda += *m_bodiesSecond[i].invMass * dcdxB[i].squaredNorm();
+    }
+
+    //std::cout << "lambda: " << lambda << std::endl;
+
+    if (lambda == 0.0)
+    {
+        return;
     }
 
     lambda = c / lambda;
 
-    for (size_t i = 0, vid = 0; i < m_bodiesFirst.size(); ++i)
+    for (size_t i = 0; i < m_bodiesFirst.size(); i++)
     {
-        vid = m_bodiesFirst[i];
-        if ((*invMassA)[vid] > 0.0)
+        if (*m_bodiesFirst[i].invMass > 0.0)
         {
-            (*posA)[vid] -= (*invMassA)[vid] * lambda * dcdxA[i] * m_configA->m_stiffness;
+            (*m_bodiesFirst[i].vertex) -= *m_bodiesFirst[i].invMass * lambda * dcdxA[i] * m_configA->m_stiffness;
         }
     }
 
-    for (size_t i = 0, vid = 0; i < m_bodiesSecond.size(); ++i)
+    for (size_t i = 0; i < m_bodiesSecond.size(); i++)
     {
-        vid = m_bodiesSecond[i];
-        if ((*invMassB)[vid] > 0.0)
+        if (*m_bodiesSecond[i].invMass > 0.0)
         {
-            (*posB)[vid] -= (*invMassB)[vid] * lambda * dcdxB[i] * m_configB->m_stiffness;
+            Vec3d dx = *m_bodiesSecond[i].invMass * lambda * dcdxB[i] * m_configB->m_stiffness;
+            //std::cout << "dx " << i << ": " << dx[0] << ", " << dx[1] << ", " << dx[2] << std::endl;
+            (*m_bodiesSecond[i].vertex) -= dx;
         }
     }
+    //std::cout << std::endl;
 }
 } // imstk

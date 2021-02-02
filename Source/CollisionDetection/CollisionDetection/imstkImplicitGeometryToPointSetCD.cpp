@@ -25,8 +25,8 @@ limitations under the License.
 #include "imstkMath.h"
 #include "imstkPointSet.h"
 
-#include "imstkSignedDistanceField.h"
 #include "imstkImageData.h"
+#include "imstkSignedDistanceField.h"
 
 namespace imstk
 {
@@ -49,7 +49,8 @@ ImplicitGeometryToPointSetCD::computeCollisionData()
 {
     m_colData->clearAll();
 
-    const VecDataArray<double, 3>& vertices = *m_pointSetB->getVertexPositions();
+    std::shared_ptr<VecDataArray<double, 3>> verticesPtr = m_pointSetB->getVertexPositions();
+    const VecDataArray<double, 3>&           vertices    = *verticesPtr;
     ParallelUtils::parallelFor(vertices.size(),
         [&](const size_t idx)
         {

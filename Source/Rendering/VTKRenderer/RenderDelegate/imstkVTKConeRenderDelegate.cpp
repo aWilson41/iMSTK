@@ -19,37 +19,37 @@
 
 =========================================================================*/
 
-#include "imstkVTKCapsuleRenderDelegate.h"
-#include "imstkCapsule.h"
+#include "imstkVTKConeRenderDelegate.h"
+#include "imstkCone.h"
 #include "imstkVisualModel.h"
 
 #include <vtkActor.h>
-#include <vtkCapsuleSource.h>
+#include <vtkConeSource.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkTransform.h>
 
 namespace imstk
 {
-VTKCapsuleRenderDelegate::VTKCapsuleRenderDelegate(std::shared_ptr<VisualModel> visualModel) : VTKPolyDataRenderDelegate(visualModel)
+VTKConeRenderDelegate::VTKConeRenderDelegate(std::shared_ptr<VisualModel> visualModel) : VTKPolyDataRenderDelegate(visualModel)
 {
-    auto geometry = std::static_pointer_cast<Capsule>(visualModel->getGeometry());
+    auto geometry = std::static_pointer_cast<Cone>(visualModel->getGeometry());
 
-    capsuleSource = vtkSmartPointer<vtkCapsuleSource>::New();
-    capsuleSource->SetRadius(geometry->getRadius());
-    capsuleSource->SetCylinderLength(geometry->getLength());
-    capsuleSource->SetLatLongTessellation(20);
-    capsuleSource->SetPhiResolution(20);
-    capsuleSource->SetThetaResolution(20);
+    m_coneSource = vtkSmartPointer<vtkConeSource>::New();
+    m_coneSource->SetHeight(geometry->getHeight());
+    m_coneSource->SetAngle(geometry->getAngle() * 180.0 / PI);
+    m_coneSource->SetDirection(0.0, 1.0, 0.0);
+    m_coneSource->SetCenter(0.0, geometry->getHeight() * 0.5, 0.0);
+    m_coneSource->SetResolution(30);
 
     // Setup mapper
     {
         vtkNew<vtkPolyDataMapper> mapper;
-        mapper->SetInputConnection(capsuleSource->GetOutputPort());
+        mapper->SetInputConnection(m_coneSource->GetOutputPort());
         vtkNew<vtkActor> actor;
         actor->SetMapper(mapper);
         actor->SetUserTransform(m_transform);
         m_mapper = mapper;
-        m_actor  = actor;
+        m_actor = actor;
     }
 
     update();
@@ -57,19 +57,20 @@ VTKCapsuleRenderDelegate::VTKCapsuleRenderDelegate(std::shared_ptr<VisualModel> 
 }
 
 void
-VTKCapsuleRenderDelegate::processEvents()
+VTKConeRenderDelegate::processEvents()
 {
     VTKRenderDelegate::processEvents();
 
     // Don't use events for primitives, just always update
-    auto geometry = std::static_pointer_cast<Capsule>(m_visualModel->getGeometry());
+    auto geometry = std::static_pointer_cast<Cone>(m_visualModel->getGeometry());
 
-    capsuleSource->SetRadius(geometry->getRadius());
-    capsuleSource->SetCylinderLength(geometry->getLength());
+    m_coneSource->SetHeight(geometry->getHeight());
+    m_coneSource->SetAngle(geometry->getAngle() * 180.0 / PI);
 
     AffineTransform3d T = AffineTransform3d::Identity();
     T.translate(geometry->getPosition(Geometry::DataType::PostTransform));
     T.rotate(Quatd::FromTwoVectors(UP_VECTOR, geometry->getOrientationAxis(Geometry::DataType::PostTransform)));
+    T.scale(1.0);
     T.matrix().transposeInPlace();
 
     m_transform->SetMatrix(T.data());

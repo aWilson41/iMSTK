@@ -57,12 +57,10 @@ makeObjectInteractionPair(std::shared_ptr<CollidingObject> obj1, std::shared_ptr
     {
         results = std::make_shared<PbdObjectPickingPair>(std::dynamic_pointer_cast<PbdObject>(obj1), std::dynamic_pointer_cast<CollidingObject>(obj2), cdType);
     }
-    //else if (intType == InteractionType::PbdObjToCollidingObjCollision && isType<PbdObject>(obj1))
-    //{
-    //    results = std::make_shared<PbdCollidingObjCollisionPair>(
-    //        std::dynamic_pointer_cast<PbdObject>(obj1),
-    //        std::dynamic_pointer_cast<PbdObject>(obj2), cdType);
-    //}
+    else if (intType == InteractionType::PbdObjToCollidingObjCollision && isType<PbdObject>(obj1))
+    {
+        results = std::make_shared<PbdObjectCollisionPair>(std::dynamic_pointer_cast<PbdObject>(obj1), obj2, cdType);
+    }
     else if (intType == InteractionType::SphObjToCollidingObjCollision && isType<SPHObject>(obj1))
     {
         // Setup CD and collision data
@@ -118,6 +116,10 @@ makeObjectInteractionPair(std::shared_ptr<CollidingObject> obj1, std::shared_ptr
             std::make_shared<BoneDrillingCH>(CollisionHandling::Side::A, colData, obj1, obj2);
 
         results = std::make_shared<CollisionPair>(obj1, obj2, colDetect, colHandler, nullptr);
+    }
+    else
+    {
+        LOG(WARNING) << "Failed to create interaction of type: " << static_cast<int>(intType);
     }
 
     if (results == nullptr)
