@@ -154,6 +154,10 @@ KeyboardSceneControl::OnKeyPress(const char key)
     {
         sceneManager->getActiveScene()->getActiveCamera()->print();
     }
+    else if (key == 'b' || key == 'B')
+    {
+        *sceneManager->getActiveScene()->getCamera(sceneManager->m_prevCamName) = *sceneManager->getActiveScene()->getActiveCamera();
+    }
 }
 
 void

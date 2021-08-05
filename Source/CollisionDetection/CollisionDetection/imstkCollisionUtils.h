@@ -909,6 +909,25 @@ testRayToObb(const Vec3d& rayOrigin, const Vec3d& rayDir,
 }
 
 ///
+/// \brief Ray plane intersection with intersection point
+///
+inline bool
+testRayToPlane(const Vec3d& rayOrigin, const Vec3d& rayDir,
+    const Vec3d& planePos, const Vec3d& planeNormal,
+    Vec3d& iPt)
+{
+    const double denom = rayDir.dot(planeNormal);
+    // Plane and ray are parallel
+    if (std::abs(denom) < IMSTK_DOUBLE_EPS)
+    {
+        return false;
+    }
+    const double t = (planePos - rayOrigin).dot(planeNormal) / denom;
+    iPt = rayOrigin + t * rayDir;
+    return true;
+}
+
+///
 /// \brief Compute closest distance from a point to a segment x1-x2
 ///
 Real pointSegmentClosestDistance(const Vec3d& point, const Vec3d& x1, const Vec3d& x2);
@@ -933,6 +952,37 @@ int triangleToTriangle(
     std::pair<int, Vec3i>& vertexTriangleContact,
     std::pair<Vec3i, int>& triangleVertexContact);
 
+inline int
+axesToAxesClosestPoint(
+    const Vec3d& ray1Start, const Vec3d& ray1Dir,
+    const Vec3d& ray2Start, const Vec3d& ray2Dir,
+    double& t, double& s)
+{
+    const Vec3d srcDiff = ray1Start - ray2Start;
+
+    const double a = ray2Dir.dot(ray1Dir);
+    const double b = ray1Dir.dot(ray1Dir);
+    const double cc = srcDiff.dot(ray1Dir);
+    const double d = ray2Dir.dot(ray2Dir);
+    const double e = a;
+    const double f = srcDiff.dot(ray2Dir);
+
+    const double det = a * e - d * b;
+    s = 0.5;
+    t = 0.5;
+    if (fabs(det) > 1e-12)
+    {
+        s = (cc * e - b * f) / det;
+        t = (cc * d - a * f) / det;
+    }
+    else
+    {
+        // Colinear
+        return -1;
+    }
+    return 0;
+}
+
 ///
 /// \brief Computes the closest point on two edges, reports midpoint
 /// when colinear
@@ -950,36 +1000,21 @@ edgeToEdgeClosestPoints(
     const Vec3d& b0, const Vec3d& b1,
     Vec3d& ptA, Vec3d& ptB)
 {
-    const Vec3d aDiff   = a1 - a0;
-    const Vec3d bDiff   = b1 - b0;
-    const Vec3d srcDiff = a0 - b0;
-
-    const double a  = bDiff.dot(aDiff);
-    const double b  = aDiff.dot(aDiff);
-    const double cc = srcDiff.dot(aDiff);
-    const double d  = bDiff.dot(bDiff);
-    const double e  = a;
-    const double f  = srcDiff.dot(bDiff);
-
-    const double det      = a * e - d * b;
-    double       s        = 0.5;
-    double       t        = 0.5;
-    int          caseType = 0;
-    if (fabs(det) > 1e-12)
+    const Vec3d aDiff = a1 - a0;
+    const Vec3d bDiff = b1 - b0;
+    int caseType = 0;
+    double t, s;
+    if (axesToAxesClosestPoint(a0, aDiff, b0, bDiff, t, s) == -1)
     {
-        s = (cc * e - b * f) / det;
-        t = (cc * d - a * f) / det;
-
-        if (s < 0 || s > 1.0 || t < 0 || t > 1.0)
-        {
-            s = std::max(std::min(s, 1.0), 0.0);
-            t = std::max(std::min(t, 1.0), 0.0);
-            caseType = 1;
-        }
+        // Colinear
+        return -1;
     }
-    else
+    // Clamp to edges
+    if (s < 0 || s > 1.0 || t < 0 || t > 1.0)
     {
-        //LOG(WARNING) << "det is null";
+        s = std::max(std::min(s, 1.0), 0.0);
+        t = std::max(std::min(t, 1.0), 0.0);
+        caseType = 1;
     }
 
     // Two closest points on the line segments

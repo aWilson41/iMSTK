@@ -67,6 +67,13 @@ AbstractVTKViewer::setSize(const int width, const int height)
     }
 }
 
+const Vec2i
+AbstractVTKViewer::getSize() const
+{
+    int* size = m_vtkRenderWindow->GetSize();
+    return Vec2i(size[0], size[1]);
+}
+
 void
 AbstractVTKViewer::setWindowTitle(const std::string& title)
 {
