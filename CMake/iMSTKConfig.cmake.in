@@ -15,6 +15,7 @@ set(iMSTK_USE_VTK_OSMESA @iMSTK_USE_VTK_OSMESA@)
 set(iMSTK_BUILD_TESTING @iMSTK_BUILD_TESTING@)
 set(iMSTK_USE_PHYSX @iMSTK_USE_PHYSX@)
 set(iMSTK_USE_VRPN @iMSTK_USE_VRPN@)
+set(iMSTK_USE_QT @iMSTK_USE_QT@)
 
 # Use the iMSTK modules to find all required packages
 set(CACHE_CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
@@ -94,7 +95,8 @@ set(VTK_DIR "@VTK_DIR@")
 find_dependency(VTK CONFIG)
 # modules are linked via `VTK::CommonCore`
 # vtk_module_autoinit is needed
-find_dependency(VTK COMPONENTS
+
+set(VTK_DEPENDENCIES
   ChartsCore
   CommonCore
   CommonDataModel
@@ -122,6 +124,13 @@ find_dependency(VTK COMPONENTS
   RenderingVolume
   RenderingVolumeOpenGL2
   ViewsContext2D)
+if (iMSTK_USE_QT)
+  list(APPEND VTK_DEPENDENCIES
+    GUISupportQt
+    GUISupportQtSQL
+    RenderingQt
+    ViewsQt)
+endif()
 find_dependency(VTK COMPONENTS ${VTK_DEPENDENCIES})
 if(iMSTK_USE_VTK_OSMESA)
   add_definitions(-DiMSTK_USE_VTK_OSMESA)

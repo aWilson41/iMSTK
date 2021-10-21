@@ -118,6 +118,13 @@ if (UNIX)
 endif()
 option(${PROJECT_NAME}_USE_VRPN "Build with VRPN support" OFF)
 option(${PROJECT_NAME}_USE_PHYSX "Build with Physx support" OFF)
+option(${PROJECT_NAME}_USE_QT "Build with Qt5 support" OFF)
+if (${PROJECT_NAME}_USE_QT)
+  set(Qt5_DIR "NOT-FOUND" CACHE PATH "Qt5 compiler directory")
+  if(Qt5_DIR STREQUAL "NOT-FOUND")
+    message( FATAL_ERROR "Qt5_DIR required, please set to Qt5 compiler directory. Qt 5.12 preferred.")
+  endif()
+endif()
 
 #-----------------------------------------------------------------------------
 # CTest/Dashboards
@@ -321,6 +328,13 @@ list(APPEND VTK_DEPENDENCIES
   RenderingVolume
   RenderingVolumeOpenGL2
   ViewsContext2D)
+if (${PROJECT_NAME}_USE_QT)
+  list(APPEND VTK_DEPENDENCIES
+    GUISupportQt
+    GUISupportQtSQL
+    RenderingQt
+    ViewsQt)
+endif()
 find_package(VTK COMPONENTS ${VTK_DEPENDENCIES})
 if(${PROJECT_NAME}_USE_VTK_OSMESA)
   add_definitions(-DiMSTK_USE_VTK_OSMESA)

@@ -51,6 +51,16 @@ else()
   set(${PROJECT_NAME}_VTK_HASH GIT_TAG origin/${${PROJECT_NAME}_VTK_REPO_SOURCE})
 endif()
 
+if(${PROJECT_NAME}_USE_QT)
+  list(APPEND VTK_MODULE_SETTINGS
+    -DVTK_GROUP_ENABLE_Qt:STRING=YES
+    -DVTK_MODULE_ENABLE_VTK_GUISupportQt:STRING=YES
+    -DVTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=YES
+    -DVTK_MODULE_ENABLE_VTK_RenderingQt:STRING=YES
+    -DVTK_MODULE_ENABLE_VTK_ViewsQt:STRING=YES
+    -DQt5_DIR:PATH=${Qt5_DIR}/lib/cmake/Qt5)
+endif()
+
 #-----------------------------------------------------------------------------
 # Add External Project
 #-----------------------------------------------------------------------------

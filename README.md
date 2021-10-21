@@ -135,6 +135,10 @@ run.
 Currently iMSTK supports VRPN `Analog`, `Button` and `Tracker` devices. Future support will
 depend on user demand.
 
+* #### Qt Support
+
+Whilst iMSTK does not provide any sort of qt integration you may enable it through VTK by toggling iMSTK_USE_QT in cmake. Qt5_DIR must also be provided in cmake, thi would be the path to your qt compiler directory (ex: `C:\Qt\5.12.1\msvc2017_64`). See QtWindow example for one such implementation.
+
 * ##### Offscreen Rendering
 To render without the usage of a GPU or without the usage of a screen on linux (or WSL), iMSTK's VTK renderer may be built with OSMesa.
   1. Install osmesa libraries via:
