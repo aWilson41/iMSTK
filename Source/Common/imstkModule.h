@@ -96,7 +96,10 @@ public:
     ExecutionType getExecutionType() const { return m_executionType; }
     void setExecutionType(const ExecutionType type) { m_executionType = type; }
 
-    void setSleepDelay(const double ms) { sleepDelay = ms; }
+    ///
+    /// \brief Sets a delay to add to the module
+    ///
+    void setSleepDelay(const double ms) { sleepDelay = std::max(ms, 0.0); }
 
     void pause() { m_paused = true; }
     void resume() { m_paused = false; }
