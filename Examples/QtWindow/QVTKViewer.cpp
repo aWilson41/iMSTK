@@ -24,7 +24,9 @@
 #include "imstkScene.h"
 #include "imstkVTKInteractorStyle.h"
 #include "imstkVTKRenderer.h"
+#include "imstkDeviceControl.h"
 
+#include <qapplication.h>
 #include <QVTKOpenGLNativeWidget.h>
 #include <vtkCamera.h>
 #include <vtkOpenGLRenderWindow.h>
@@ -39,8 +41,6 @@
 #include "imstkVtkXRenderWindowInteractor2.h"
 #endif
 
-#include <qapplication.h>
-
 using namespace imstk;
 
 QVTKViewer::QVTKViewer(QVTKOpenGLNativeWidget* widget, std::string name) : AbstractVTKViewer(name)
@@ -48,17 +48,15 @@ QVTKViewer::QVTKViewer(QVTKOpenGLNativeWidget* widget, std::string name) : Abstr
     m_vtkRenderWindow = widget->renderWindow();
 
     // Create the interactor style
-    m_interactorStyle    = std::make_shared<VTKInteractorStyle>();
-    m_vtkInteractorStyle = std::dynamic_pointer_cast<vtkInteractorStyle>(m_interactorStyle);
+    m_vtkInteractorStyle = vtkSmartPointer<VTKInteractorStyle>::New();
 
     // Create the interactor
 #ifdef WIN32
-    vtkNew<vtkRenderWindowInteractor> iren;
-    iren->SetInteractorStyle(m_vtkInteractorStyle.get());
+    auto iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 #else
-    vtkSmartPointer<vtkXRenderWindowInteractor2> iren = vtkSmartPointer<vtkXRenderWindowInteractor2>::New();
-    iren->SetInteractorStyle(m_vtkInteractorStyle.get());
+    auto iren = vtkSmartPointer<vtkXRenderWindowInteractor2>::New();
 #endif
+    iren->SetInteractorStyle(m_vtkInteractorStyle);
 
     // Create the RenderWindow
     m_vtkRenderWindow->SetInteractor(iren);
@@ -152,9 +150,10 @@ QVTKViewer::setRenderingMode(const Renderer::Mode mode)
 bool
 QVTKViewer::initModule()
 {
-    if (!AbstractVTKViewer::initModule())
+    // Print all controls on viewer
+    for (auto control : m_controls)
     {
-        return false;
+        control->printControls();
     }
 
     if (m_vtkRenderWindow->GetInteractor()->HasObserver(vtkCommand::StartEvent))
@@ -169,13 +168,13 @@ QVTKViewer::initModule()
 std::shared_ptr<KeyboardDeviceClient>
 QVTKViewer::getKeyboardDevice() const
 {
-    return std::dynamic_pointer_cast<VTKInteractorStyle>(m_interactorStyle)->getKeyboardDeviceClient();
+    return VTKInteractorStyle::SafeDownCast(m_vtkInteractorStyle)->getKeyboardDeviceClient();
 }
 
 std::shared_ptr<MouseDeviceClient>
 QVTKViewer::getMouseDevice() const
 {
-    return std::dynamic_pointer_cast<VTKInteractorStyle>(m_interactorStyle)->getMouseDeviceClient();
+    return VTKInteractorStyle::SafeDownCast(m_vtkInteractorStyle)->getMouseDeviceClient();
 }
 
 void
@@ -184,7 +183,9 @@ QVTKViewer::updateModule()
     // Process all Qt UI events (include render updates)
     if (m_executionType != ExecutionType::PARALLEL)
     {
-        QApplication::processEvents(QEventLoop::ProcessEventsFlag::AllEvents, 7);
+        // I try to limit max event processing to 1ms but it doesn't really seem to do much
+        // still choppy when qt events are happening
+        QApplication::processEvents(QEventLoop::ProcessEventsFlag::AllEvents, 16);
     }
 
     // Do render

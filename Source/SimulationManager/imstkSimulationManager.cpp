@@ -179,6 +179,14 @@ SimulationManager::start()
                     syncModule->update();
                 }
 
+                // If one of the syncModule's requests to stop we should do so before
+                // updating and presenting the next frame
+                if (newState == ModuleDriverStopped)
+                {
+                    running = false;
+                    continue;
+                }
+
                 for (auto adaptiveModule : m_adaptiveModules)
                 {
                     adaptiveModule->setDt(m_dt);

@@ -22,16 +22,12 @@
 #pragma once
 
 #include "ui_MainWindow.h"
+#include "imstkSimulationManager.h"
+#include "imstkSceneManager.h"
 
 #include <qmainwindow.h>
-#include <qpointer.h>
 #include <QVTKOpenGLNativeWidget.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkRenderer.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-
-#include <vtkSphereSource.h>
 
 class MainWindow : public QMainWindow
 {
@@ -43,19 +39,55 @@ public:
 
         // Create a VTK widget
         ui.qvtkWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        vtkSmartPointer<vtkGenericOpenGLRenderWindow> renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+        renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
         ui.qvtkWidget->setRenderWindow(renWin);
 
-        /* vtkSmartPointer<vtkRenderer> ren = vtkSmartPointer<vtkRenderer>::New();
-         ren->SetBackground(0.1, 0.1, 1.0);
-         ui.qvtkWidget->renderWindow()->AddRenderer(ren);*/
+        connect(ui.startButton, &QPushButton::pressed, this, &MainWindow::toggleSimulation);
     }
 
     virtual ~MainWindow() = default;
 
 public:
+    void closeEvent(QCloseEvent* e) override
+    {
+        // This will only stop it on the next iteration
+        m_driver->requestStatus(ModuleDriverStopped);
+        // But it should be stopped before window closed here
+        QMainWindow::closeEvent(e);
+    }
+
+    void toggleSimulation()
+    {
+        if (m_sceneManager->getPaused())
+        {
+            m_sceneManager->setPaused(false);
+            ui.startButton->setText("Pause Simulation");
+        }
+        else
+        {
+            m_sceneManager->setPaused(true);
+            ui.startButton->setText("Start Simulation");
+        }
+    }
+
+    void setSimManager(std::shared_ptr<imstk::SimulationManager> driver)
+    {
+        m_driver = driver;
+
+        for (auto module : m_driver->getModules())
+        {
+            if (m_sceneManager = std::dynamic_pointer_cast<imstk::SceneManager>(module))
+            {
+                break;
+            }
+        }
+    }
+
     QVTKOpenGLNativeWidget* getQvtkWidget() { return ui.qvtkWidget; }
 
 private:
     Ui::MainWindowWidget ui;
+    std::shared_ptr<imstk::SimulationManager>     m_driver       = nullptr;
+    std::shared_ptr<imstk::SceneManager>          m_sceneManager = nullptr;
+    vtkSmartPointer<vtkGenericOpenGLRenderWindow> renWin;
 };

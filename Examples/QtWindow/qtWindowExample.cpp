@@ -38,6 +38,7 @@
 
 #include "QVTKViewer.h"
 #include "MainWindow.h"
+#include <qobject.h>
 
 using namespace imstk;
 
@@ -197,39 +198,41 @@ main(int argc, char* argv[])
         scene->getActiveCamera()->setPosition(-15.0, -5.0, 25.0);
     }
 
-    // Run the simulation
+    // Setup qt app and window, show the window
+    QApplication app(argc, argv);
+    MainWindow   window;
+    window.show();
+
+    // Setup a viewer to render
+    imstkNew<QVTKViewer> viewer(window.getQvtkWidget());
+    viewer->setActiveScene(scene);
+
+    // Setup a scene manager to advance the scene
+    imstkNew<SceneManager> sceneManager;
+    sceneManager->setActiveScene(scene);
+    sceneManager->pause(); // Start simulation paused
+
+    imstkNew<SimulationManager> driver;
+    driver->addModule(viewer);
+    driver->addModule(sceneManager);
+    driver->setDesiredDt(0.001);
+    // Give the window the driver so it can stop it, it would be better to leave
+    // these decoupled and connect them with events, but this Qt version doesn't
+    // support static events and lambda's
+    window.setSimManager(driver);
+
+    // Add mouse and keyboard controls to the viewer
     {
-        // Setup qt app and window, show the window
-        QApplication app(argc, argv);
-        MainWindow   window;
-        window.show();
+        imstkNew<MouseSceneControl> mouseControl(viewer->getMouseDevice());
+        mouseControl->setSceneManager(sceneManager);
+        viewer->addControl(mouseControl);
 
-        // Setup a viewer to render
-        imstkNew<QVTKViewer> viewer(window.getQvtkWidget());
-        viewer->setActiveScene(scene);
-
-        // Setup a scene manager to advance the scene
-        imstkNew<SceneManager> sceneManager;
-        sceneManager->setActiveScene(scene);
-        sceneManager->pause(); // Start simulation paused
-
-        imstkNew<SimulationManager> driver;
-        driver->addModule(viewer);
-        driver->addModule(sceneManager);
-        driver->setDesiredDt(0.001);
-
-        // Add mouse and keyboard controls to the viewer
-        {
-            imstkNew<MouseSceneControl> mouseControl(viewer->getMouseDevice());
-            mouseControl->setSceneManager(sceneManager);
-            viewer->addControl(mouseControl);
-
-            imstkNew<KeyboardSceneControl> keyControl(viewer->getKeyboardDevice());
-            keyControl->setSceneManager(sceneManager);
-            keyControl->setModuleDriver(driver);
-            viewer->addControl(keyControl);
-        }
-
-        driver->start();
+        imstkNew<KeyboardSceneControl> keyControl(viewer->getKeyboardDevice());
+        keyControl->setSceneManager(sceneManager);
+        keyControl->setModuleDriver(driver);
+        viewer->addControl(keyControl);
     }
+
+    driver->start();
+    app.exit();
 }

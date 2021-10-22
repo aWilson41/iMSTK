@@ -74,6 +74,6 @@ protected:
 
     void updateModule() override;
 
-protected:
+    void uninitModule() override { }
 };
 } // imstk
