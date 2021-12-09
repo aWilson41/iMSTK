@@ -47,7 +47,6 @@ main()
     // Write log to stdout and file
     Logger::startLogger();
 
-    double          sceneSize;
     imstkNew<Scene> scene("Rendering");
     {
         // Add IBL Probe
@@ -118,7 +117,7 @@ main()
         // Enable SSAO
         Vec3d l, u;
         scene->computeBoundingBox(l, u);
-        sceneSize = (u - l).norm();
+        double sceneSize = (u - l).norm();
 
         auto rendConfig = std::make_shared<RendererConfig>();
         rendConfig->m_ssaoConfig.m_enableSSAO = true;

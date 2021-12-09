@@ -202,6 +202,19 @@ main()
         viewer->setActiveScene(scene);
         viewer->setBackgroundColors(Color::Black);
 
+        Vec3d l, u;
+        scene->computeBoundingBox(l, u);
+        double sceneSize = (u - l).norm();
+
+        auto renderConfig = std::make_shared<RendererConfig>();
+        //renderConfig->m_enableShadows = true;
+        renderConfig->m_ssaoConfig.m_enableSSAO = true;
+        renderConfig->m_ssaoConfig.m_SSAOBlur = true;
+        renderConfig->m_ssaoConfig.m_SSAORadius = 50.0 * sceneSize;
+        renderConfig->m_ssaoConfig.m_SSAOBias = 0.01 * sceneSize;
+        renderConfig->m_ssaoConfig.m_KernelSize = 128;
+        viewer->getActiveRenderer()->setConfig(renderConfig);
+
         // Setup a scene manager to advance the scene in its own thread
         imstkNew<SceneManager> sceneManager;
         sceneManager->setActiveScene(scene);
