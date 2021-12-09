@@ -41,6 +41,7 @@ class vtkPlotBar;
 class vtkProp;
 class vtkRenderer;
 class vtkRenderStepsPass;
+class vtkShadowMapPass;
 class vtkSSAOPass;
 class vtkTable;
 
@@ -219,8 +220,10 @@ protected:
     vtkPlotBar* m_timeTablePlot;
     int m_timeTableIter = 0;
 
-    // SSAO Effect
+    // iMSTK Passes (optionally used)
     vtkSmartPointer<vtkSSAOPass> m_ssaoPass;
+    vtkSmartPointer<vtkShadowMapPass> m_shadowPass;
+    vtkSmartPointer<vtkCameraPass>    m_cameraPass;
     vtkSmartPointer<vtkRenderStepsPass> m_renderStepsPass;
 
     bool m_debugActorsVisible;

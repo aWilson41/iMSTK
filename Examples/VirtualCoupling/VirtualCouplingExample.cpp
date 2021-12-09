@@ -143,6 +143,9 @@ main()
         // Setup a viewer to render
         imstkNew<VTKViewer> viewer;
         viewer->setActiveScene(scene);
+        auto renderConfig = std::make_shared<RendererConfig>();
+        renderConfig->m_enableShadows = true;
+        viewer->getActiveRenderer()->setConfig(renderConfig);
 
         // Setup a scene manager to advance the scene
         imstkNew<SceneManager> sceneManager;

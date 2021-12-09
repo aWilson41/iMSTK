@@ -55,6 +55,8 @@
 #include <vtkSequencePass.h>
 #include <vtkSSAOPass.h>
 #include <vtkProperty.h>
+#include <vtkShadowMapPass.h>
+#include <vtkShadowMapBakerPass.h>
 
 namespace imstk
 {
@@ -62,7 +64,9 @@ VTKRenderer::VTKRenderer(std::shared_ptr<Scene> scene, const bool enableVR) :
     m_scene(scene),
     m_textureManager(std::make_shared<TextureManager<VTKTextureDelegate>>()),
     m_ssaoPass(vtkSmartPointer<vtkSSAOPass>::New()),
-    m_renderStepsPass(vtkSmartPointer<vtkRenderStepsPass>::New())
+    m_shadowPass(vtkSmartPointer<vtkShadowMapPass>::New()),
+    m_renderStepsPass(vtkSmartPointer<vtkRenderStepsPass>::New()),
+    m_cameraPass(vtkSmartPointer<vtkCameraPass>::New())
 {
     // create m_vtkRenderer depending on enableVR
     m_VrEnabled = enableVR;
@@ -232,6 +236,14 @@ VTKRenderer::VTKRenderer(std::shared_ptr<Scene> scene, const bool enableVR) :
 
     // Prepare screen space ambient occlusion effect
     m_ssaoPass->SetDelegatePass(m_renderStepsPass);
+
+    // Prepare shadow pipeline
+    vtkNew<vtkSequencePass>         seq;
+    vtkNew<vtkRenderPassCollection> passes;
+    passes->AddItem(m_shadowPass->GetShadowMapBakerPass());
+    passes->AddItem(m_shadowPass);
+    seq->SetPasses(passes);
+    m_cameraPass->SetDelegatePass(seq);
 
     this->setConfig(this->m_config);
 }
@@ -649,7 +661,17 @@ VTKRenderer::setConfig(std::shared_ptr<RendererConfig> config)
 {
     m_config = config;
 
+    {
+        m_shadowPass->GetShadowMapBakerPass()->SetResolution(config->m_shadowResolution);
+        m_shadowPass->GetShadowMapBakerPass()->Modified();
+    }
+
     // update SSAO if enabled
+    if (m_config->m_ssaoConfig.m_enableSSAO && m_config->m_enableShadows)
+    {
+        m_ssaoPass->SetDelegatePass(m_cameraPass);
+        m_vtkRenderer->SetPass(m_ssaoPass);
+    }
     if (m_config->m_ssaoConfig.m_enableSSAO)
     {
         m_config->m_ssaoConfig.m_SSAOBlur ? m_ssaoPass->BlurOn() : m_ssaoPass->BlurOff(); // Blur on/off
@@ -659,6 +681,10 @@ VTKRenderer::setConfig(std::shared_ptr<RendererConfig> config)
 
         m_ssaoPass->SetDelegatePass(m_renderStepsPass);
         m_vtkRenderer->SetPass(m_ssaoPass);
+    }
+    else if (m_config->m_enableShadows)
+    {
+        m_vtkRenderer->SetPass(m_cameraPass);
     }
     else
     {

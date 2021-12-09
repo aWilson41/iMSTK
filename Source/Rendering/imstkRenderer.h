@@ -44,6 +44,9 @@ struct RendererConfig
 
     // ScreenSpace Ambient Occlusion
     SSAOConfig m_ssaoConfig;
+
+    bool m_enableShadows = false;
+    int m_shadowResolution = 2048;
 };
 
 ///
