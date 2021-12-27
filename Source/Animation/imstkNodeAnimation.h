@@ -19,19 +19,36 @@
 
 =========================================================================*/
 
-#include "imstkAnimationObject.h"
+#pragma once
+
+#include "imstkMath.h"
 
 namespace imstk
 {
-std::shared_ptr<AnimationModel>
-AnimationObject::getAnimationModel() const
-{
-    return m_animationModel;
-}
+class AnimationNode;
 
-void
-AnimationObject::setAnimationModel(std::shared_ptr<AnimationModel> model)
+///
+/// \class NodeAnimation
+/// 
+/// \brief A node animation is something that provides a transform for a node
+/// 
+class NodeAnimation
 {
-    m_animationModel = model;
+protected:
+    NodeAnimation() = default;
+public:
+    virtual ~NodeAnimation() = default;
+
+public:
+    virtual void update(const double t) = 0;
+
+    const Mat4d& getTransform() const { return m_transform; }
+
+    std::shared_ptr<AnimationNode> getNode() const { return m_animationNode; }
+    virtual void setNode(std::shared_ptr<AnimationNode> node) { m_animationNode = node; }
+
+protected:
+    Mat4d m_transform;
+    std::shared_ptr<AnimationNode> m_animationNode;
+};
 }
-} // imstk

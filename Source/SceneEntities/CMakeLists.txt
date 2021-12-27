@@ -19,7 +19,8 @@ include(imstkAddLibrary)
 imstk_add_library(SceneEntities
   EXCLUDE_FILES
     ${ExclusionFiles}
-  DEPENDS    
+  DEPENDS
+    Animation  
     Common
     Geometry
     GeometryMappers

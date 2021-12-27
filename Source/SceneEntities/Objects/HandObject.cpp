@@ -18,24 +18,3 @@
    limitations under the License.
 
 =========================================================================*/
-
-#include "imstkAnimationModel.h"
-
-namespace imstk
-{
-AnimationModel::AnimationModel(std::shared_ptr<Geometry> geometry) : m_geometry(geometry)
-{
-}
-
-std::shared_ptr<Geometry>
-AnimationModel::getGeometry()
-{
-    return m_geometry;
-}
-
-void
-AnimationModel::setGeometry(std::shared_ptr<Geometry> geometry)
-{
-    m_geometry = geometry;
-}
-}

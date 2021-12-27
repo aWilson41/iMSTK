@@ -55,6 +55,10 @@ static std::unordered_map<std::string, MeshFileType> extToType =
     { "jpeg", MeshFileType::JPG },
     { "png", MeshFileType::PNG },
     { "bmp", MeshFileType::BMP },
+    { "blend", MeshFileType::BLEND },
+    { "gltf", MeshFileType::GLTF },
+    { "glb", MeshFileType::GLTF },
+    { "x", MeshFileType::X }
 };
 
 std::shared_ptr<PointSet>

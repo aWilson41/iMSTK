@@ -28,8 +28,7 @@ namespace imstk
 {
 RenderParticleEmitter::RenderParticleEmitter(std::shared_ptr<Geometry>   geometry,
                                              const float                 time /*= 3000*/,
-                                             RenderParticleEmitter::Mode mode /*= Mode::CONTINUOUS*/)
-    : AnimationModel(geometry),
+                                             RenderParticleEmitter::Mode mode /*= Mode::CONTINUOUS*/) :
     m_mode(mode), m_time(time), m_emitTime(m_time), m_stopWatch(std::make_unique<StopWatch>())
 {
     this->setGeometry(geometry);
@@ -56,10 +55,11 @@ void
 RenderParticleEmitter::setGeometry(
     std::shared_ptr<Geometry> geometry)
 {
-    CHECK(geometry->getTypeName() == "RenderParticles") << "Error: Geometry must be RenderParticles";
+    auto renderParticles = std::dynamic_pointer_cast<RenderParticles>(geometry);
+    CHECK(renderParticles != nullptr) << "Geometry must be RenderParticles";
 
     m_animationGeometry = geometry;
-    m_particles = &std::static_pointer_cast<RenderParticles>(m_animationGeometry)->getParticles();
+    m_particles = &renderParticles->getParticles();
 }
 
 RenderParticleEmitter::Mode

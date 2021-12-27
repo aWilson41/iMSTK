@@ -19,49 +19,19 @@
 
 =========================================================================*/
 
-#pragma once
-
-#include "imstkSceneObject.h"
+#include "imstkAnimatedObject.h"
 
 namespace imstk
 {
-class Geometry;
-class AnimationModel;
-
-///
-/// \brief TODO
-///
-class AnimationObject : public SceneObject
+std::shared_ptr<AbstractAnimationModel>
+AnimatedObject::getAnimationModel() const
 {
-public:
-    AnimationObject(const std::string& name) : SceneObject(name) { }
-    virtual ~AnimationObject() override = default;
+    return m_animationModel;
+}
 
-public:
-    virtual const std::string getTypeName() const override { return "AnimationObject"; }
-
-    ///
-    /// \brief Set/get animation model
-    ///
-    std::shared_ptr<AnimationModel> getAnimationModel() const;
-    void setAnimationModel(std::shared_ptr<AnimationModel> model);
-
-    ///
-    /// \brief Initialize the scene object
-    ///
-    virtual bool initialize() override
-    {
-        if (SceneObject::initialize())
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-protected:
-    std::shared_ptr<AnimationModel> m_animationModel;
-};
+void
+AnimatedObject::setAnimationModel(std::shared_ptr<AbstractAnimationModel> model)
+{
+    m_animationModel = model;
+}
 } // imstk

@@ -265,6 +265,9 @@ public:
     const bool getRecomputeVertexNormals() const { return m_recomputeVertexNormals; }
     void setRecomputeVertexNormals(const bool recomputeVertexNormals) { m_recomputeVertexNormals = recomputeVertexNormals; }
 
+    const bool getRecomputeFaceNormals() const { return m_recomputeFaceNormals; }
+    void setRecomputeFaceNormals(const bool recomputeFaceNormals) { m_recomputeFaceNormals = recomputeFaceNormals; }
+
     const bool getRenderPointsAsSpheres() const { return m_renderPointsAsSpheres; }
     void setRenderPointsAsSpheres(const bool renderPointsAsSpheres) { m_renderPointsAsSpheres = renderPointsAsSpheres; }
 
@@ -272,7 +275,6 @@ public:
 
 protected:
     friend class VTKRenderDelegate;
-    friend class VTKdbgLinesRenderDelegate;
 
     std::string m_name = "";
 
@@ -329,6 +331,7 @@ protected:
     ShadingModel m_shadingModel = ShadingModel::Phong;
 
     bool m_recomputeVertexNormals = true; ///> Update vertex normals when vertex or index data is changed
+    bool m_recomputeFaceNormals = false; ///> Update face normals when vertex or index data changes
 
     std::shared_ptr<ColorFunction> m_lookupTable;
     bool m_scalarVisibility = false;

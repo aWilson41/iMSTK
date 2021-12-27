@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "imstkMath.h"
-#include "imstkAnimationModel.h"
+#include "imstkAbstractAnimationModel.h"
 #include "imstkColor.h"
+#include "imstkMath.h"
 
 namespace imstk
 {
@@ -50,7 +50,7 @@ struct RenderParticleKeyFrame
 /// \brief Animation method for rendering particles
 /// Common use cases include smoke and fire.
 ///
-class RenderParticleEmitter : public AnimationModel
+class RenderParticleEmitter : public AbstractAnimationModel
 {
 public:
     ///
@@ -147,6 +147,8 @@ public:
     virtual void update();
 
 protected:
+    friend class VulkanParticleRenderDelegate;
+
     ///
     /// \brief Initialize particles
     ///

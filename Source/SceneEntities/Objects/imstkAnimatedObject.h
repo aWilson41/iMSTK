@@ -21,43 +21,49 @@
 
 #pragma once
 
-#include "imstkGeometry.h"
+#include "imstkSceneObject.h"
 
 namespace imstk
 {
+class Geometry;
+class AbstractAnimationModel;
+
 ///
-/// \class AnimationModel
+/// \class AnimatedObject
 ///
-/// \brief Contains geometric and animation render information
+/// \brief TODO
 ///
-class AnimationModel
+class AnimatedObject : public SceneObject
 {
 public:
-    ///
-    /// \brief Constructor
-    ///
-    explicit AnimationModel(std::shared_ptr<Geometry> geometry);
-    AnimationModel() = delete;
+    AnimatedObject(const std::string& name) : SceneObject(name) { }
+    virtual ~AnimatedObject() = default;
+
+public:
+    virtual const std::string getTypeName() const override { return "CollidingObject"; }
 
     ///
-    /// \brief Get/set geometry
+    /// \brief Set/get animation model this object drives in its update
     ///
-    std::shared_ptr<Geometry> getGeometry();
-    virtual void setGeometry(std::shared_ptr<Geometry> geometry);
+    std::shared_ptr<AbstractAnimationModel> getAnimationModel() const;
+    void setAnimationModel(std::shared_ptr<AbstractAnimationModel> model);
 
     ///
-    /// \brief Update animation
+    /// \brief Initialize the scene object
     ///
-    virtual void update() {};
-
-    ///
-    /// \brief Reset animation
-    ///
-    virtual void reset() {};
+    virtual bool initialize() override
+    {
+        if (SceneObject::initialize())
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
 protected:
-    friend class VTKRenderer;
-
-    std::shared_ptr<Geometry> m_geometry = nullptr;
+    std::shared_ptr<AbstractAnimationModel> m_animationModel;
 };
 } // imstk

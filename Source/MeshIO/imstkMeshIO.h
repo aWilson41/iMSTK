@@ -51,7 +51,10 @@ enum class MeshFileType
     MHD,
     JPG,
     PNG,
-    BMP
+    BMP,
+    GLTF,
+    BLEND,
+    X
 };
 
 ///

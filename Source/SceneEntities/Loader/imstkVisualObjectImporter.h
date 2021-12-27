@@ -55,6 +55,23 @@ public:
         const std::string& textureFolderPath,
         const Mat4d&       transform = Mat4d::Identity());
 
+    ///
+    /// \brief Imports an animated object
+    /// Notes on supported file types: Various file types have all sorts
+    /// of limitations, not to mention bugs and other issues in both importers
+    /// and exporters. This is mostly for help exporting from Blender.
+    /// 
+    /// .blend Foolproof way, but doesn't work on the current assimp version.
+    /// .dae Works for skinning but not for rigidly attached objects (ex: ring on finger).
+    /// .fbx Currently best
+    /// .gltf Works but has not good at multiple animations
+    ///
+    static std::shared_ptr<AnimatedObject> importAnimObject(
+        const std::string& objName,
+        const std::string& modelFilePath,
+        const std::string& textureFolderPath,
+        const Mat4d&       transform = Mat4d::Identity());
+
 private:
     ///
     /// \brief Returns texture with file name and type, checks it exists
