@@ -14,9 +14,9 @@ set(iMSTK_DATA_DIR ${PACKAGE_PREFIX_DIR}/data)
 # iMSTK settings
 set(iMSTK_AUDIO_ENABLED @iMSTK_AUDIO_ENABLED@)
 set(iMSTK_USE_OpenHaptics @iMSTK_USE_OpenHaptics@)
-set(iMSTK_USE_VTK_OSMESA @iMSTK_USE_VTK_OSMESA@)
+set(iMSTK_USE_RENDERING @iMSTK_USE_RENDERING@)
+set(iMSTK_RENDER_BACKEND @iMSTK_RENDER_BACKEND@)
 set(iMSTK_BUILD_TESTING @iMSTK_BUILD_TESTING@)
-set(iMSTK_USE_PHYSX @iMSTK_USE_PHYSX@)
 set(iMSTK_USE_VRPN @iMSTK_USE_VRPN@)
 set(iMSTK_VTK_DEPENDENCIES "@iMSTK_VTK_DEPENDENCIES@")
 
@@ -61,7 +61,9 @@ find_dependency( LibNiFalcon )
 find_dependency( Libusb )
 
 # OpenVR
-find_dependency( OpenVR )
+if(iMSTK_USE_RENDERING)
+  find_dependency( OpenVR )
+endif()
 
 # PhysX
 if (iMSTK_USE_PHYSX)
@@ -93,8 +95,10 @@ endif()
 
 # VTK
 find_dependency(VTK CONFIG)
-find_package(vtkRenderingOpenVR QUIET)
-find_package(vtkRenderingExternal QUIET)
+if(iMSTK_USE_RENDERING)
+  find_package(vtkRenderingOpenVR QUIET)
+  find_package(vtkRenderingExternal QUIET)
+endif()
 find_dependency(VTK COMPONENTS ${iMSTK_VTK_DEPENDENCIES})
 
 if(iMSTK_USE_VTK_OSMESA)

@@ -37,7 +37,7 @@
 #include "imstkVTKViewer.h"
 #include "InflatableObject.h"
 
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
 #define EXAMPLE_USE_HAPTICS
 #endif
 

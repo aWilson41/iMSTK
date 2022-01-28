@@ -16,29 +16,31 @@
 #
 ###########################################################################
 
-project(Example-TaskGraph)
+if (iMSTK_MODULE_ENABLE_Common)
+	project(Example-TaskGraph)
 
-#-----------------------------------------------------------------------------
-# Create executable
-#-----------------------------------------------------------------------------
-imstk_add_executable(${PROJECT_NAME} taskGraphExample.cpp)
+	#-----------------------------------------------------------------------------
+	# Create executable
+	#-----------------------------------------------------------------------------
+	imstk_add_executable(${PROJECT_NAME} taskGraphExample.cpp)
 
-#-----------------------------------------------------------------------------
-# Add the target to Examples folder
-#-----------------------------------------------------------------------------
-SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/TaskGraph)
+	#-----------------------------------------------------------------------------
+	# Add the target to Examples folder
+	#-----------------------------------------------------------------------------
+	SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/TaskGraph)
 
-#-----------------------------------------------------------------------------
-# Link libraries to executable
-#-----------------------------------------------------------------------------
-if (UNIX)
-  set(THREADS_PREFER_PTHREAD_FLAG ON)
-  find_package(Threads REQUIRED)
+	#-----------------------------------------------------------------------------
+	# Link libraries to executable
+	#-----------------------------------------------------------------------------
+	if (UNIX)
+	set(THREADS_PREFER_PTHREAD_FLAG ON)
+	find_package(Threads REQUIRED)
 
-  target_link_libraries(${PROJECT_NAME}
-	Common
-	Threads::Threads)
-else()
 	target_link_libraries(${PROJECT_NAME}
-	  Common)
+		Common
+		Threads::Threads)
+	else()
+		target_link_libraries(${PROJECT_NAME}
+		Common)
+	endif()
 endif()

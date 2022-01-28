@@ -44,11 +44,9 @@ endif()
 set_target_properties(iMSTKCWrapper PROPERTIES
     SWIG_COMPILE_OPTIONS "-namespace;Imstk"
     FOLDER Wrappers)
-if(iMSTK_SWIG_PINNED_ARRAY)
-    set_target_properties(iMSTKCWrapper PROPERTIES
-        SWIG_COMPILE_DEFINITIONS "SWIG_PINNED_ARRAY")
-endif()
-if(iMSTK_USE_OpenHaptics)
+set_target_properties(iMSTKCWrapper PROPERTIES
+    SWIG_COMPILE_DEFINITIONS "SWIG_PINNED_ARRAY")
+if(iMSTK_MODULE_ENABLE_DevicesOpenHaptics)
     set_target_properties(iMSTKCWrapper PROPERTIES
         SWIG_COMPILE_DEFINITIONS "iMSTK_USE_OpenHaptics")
 	target_compile_definitions(iMSTKCWrapper PRIVATE iMSTK_USE_OpenHaptics)
@@ -56,27 +54,8 @@ endif()
 
 # Link C Wrapper to the imstk libraries
 target_link_libraries(iMSTKCWrapper PRIVATE
-    Common
-    Materials
-	Geometry
-	DataStructures
-	Devices
-	Filtering
-	FilteringCore
-	Materials
-	RenderingCore
-    RenderingVTK
-	Solvers
-	DynamicalModels
-	CollisionDetection
-	CollisionHandling
-	SceneEntities
-	Scene
-	SimulationManager
-    ViewerCore
-    ViewerVTK
-	Constraints
-	Animation)
+    ${iMSTK_MODULE_LIST})
+    
 target_compile_options(iMSTKCWrapper PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
         -Wall -Wno-unused-function>

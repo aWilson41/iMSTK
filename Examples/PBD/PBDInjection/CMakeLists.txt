@@ -16,24 +16,28 @@
 #
 ###########################################################################
 
-project(Example-PBDInjection)
+if (iMSTK_MODULE_ENABLE_ViewerVTK)
+    project(Example-PBDInjection)
 
-#-----------------------------------------------------------------------------
-# Create executable
-#-----------------------------------------------------------------------------
-imstk_add_executable(${PROJECT_NAME}
-    PBDInjectExample.cpp InflatableObject.h InflatableObject.cpp
-    imstkPbdInflatableVolumeConstraint.h
-    imstkPbdInflatableDistanceConstraint.h)
+    #-----------------------------------------------------------------------------
+    # Create executable
+    #-----------------------------------------------------------------------------
+    imstk_add_executable(${PROJECT_NAME}
+        PBDInjectExample.cpp
+        InflatableObject.h
+        InflatableObject.cpp
+        imstkPbdInflatableVolumeConstraint.h
+        imstkPbdInflatableDistanceConstraint.h)
 
-#-----------------------------------------------------------------------------
-# Add the target to Examples folder
-#-----------------------------------------------------------------------------
-SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/PBD)
+    #-----------------------------------------------------------------------------
+    # Add the target to Examples folder
+    #-----------------------------------------------------------------------------
+    SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/PBD)
 
-#-----------------------------------------------------------------------------
-# Link libraries to executable
-#-----------------------------------------------------------------------------
-target_link_libraries(${PROJECT_NAME}
-    SimulationManager
-    ViewerVTK)
+    #-----------------------------------------------------------------------------
+    # Link libraries to executable
+    #-----------------------------------------------------------------------------
+    target_link_libraries(${PROJECT_NAME}
+        SimulationManager
+        ViewerVTK)
+endif()

@@ -42,7 +42,7 @@
 #include "NeedleInteraction.h"
 #include "NeedleObject.h"
 
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
 #include "imstkHapticDeviceClient.h"
 #include "imstkHapticDeviceManager.h"
 #include "imstkRigidObjectController.h"
@@ -187,7 +187,7 @@ main()
         driver->addModule(sceneManager);
         driver->setDesiredDt(0.001);
 
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
         imstkNew<HapticDeviceManager>       hapticManager;
         std::shared_ptr<HapticDeviceClient> deviceClient = hapticManager->makeDeviceClient();
         driver->addModule(hapticManager);

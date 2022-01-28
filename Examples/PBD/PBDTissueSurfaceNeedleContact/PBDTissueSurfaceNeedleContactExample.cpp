@@ -44,7 +44,7 @@
 #include "imstkVTKViewer.h"
 #include "NeedleInteraction.h"
 
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
 #include "imstkHapticDeviceManager.h"
 #include "imstkHapticDeviceClient.h"
 #include "imstkRigidObjectController.h"
@@ -362,7 +362,7 @@ main()
         driver->addModule(sceneManager);
         driver->setDesiredDt(0.001);
 
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
         imstkNew<HapticDeviceManager> hapticManager;
         hapticManager->setSleepDelay(0.1); // Delay for 1ms (haptics thread is limited to max 1000hz)
         std::shared_ptr<HapticDeviceClient> hapticDeviceClient = hapticManager->makeDeviceClient();

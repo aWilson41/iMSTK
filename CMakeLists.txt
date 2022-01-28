@@ -68,65 +68,109 @@ endif()
 # Options
 #-----------------------------------------------------------------------------
 
-# SWIG 
-option(${PROJECT_NAME}_WRAP_CSHARP "Build iMSTK-C# wrapper code and lib" OFF)
-mark_as_superbuild(${PROJECT_NAME}_WRAP_CSHARP:BOOL)
-
-# SWIG will generate managed array using pinning if this option is ON. Otherwise using P/Invoke default array marshalling.
-option(${PROJECT_NAME}_SWIG_PINNED_ARRAY "Managed C# arrays using pinning" ON)
-mark_as_advanced(${PROJECT_NAME}_SWIG_PINNED_ARRAY)
-mark_as_superbuild(${PROJECT_NAME}_SWIG_PINNED_ARRAY:BOOL)
-
-if (${PROJECT_NAME}_WRAP_CSHARP)
-  find_package(SWIG REQUIRED)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
-  set(CMAKE_SWIG_FLAGS "")
-endif()
-
 # CUDA
-option(${PROJECT_NAME}_ENABLE_CUDA_BACKEND "Enable iMSTK CUDA backend" OFF)
-mark_as_superbuild(${PROJECT_NAME}_ENABLE_CUDA_BACKEND)
-if (${PROJECT_NAME}_ENABLE_CUDA_BACKEND)
-  include(CheckLanguage)
-  check_language(CUDA)
-  if (CMAKE_CUDA_COMPILER)
-    enable_language(CUDA)
-	set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
-	set(CUDA_PROPAGATE_HOST_FLAGS ON)
-	if(NOT DEFINED CMAKE_CUDA_STANDARD)
-	  set(CMAKE_CUDA_STANDARD 11)
-	  set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-	endif()
-  else()
-	message(STATUS "WARNING: CUDA compiler NOT FOUND; CUDA backend not enabled!")
-    set(${PROJECT_NAME}_ENABLE_CUDA_BACKEND OFF)
-  endif()
-endif ()
+# option(${PROJECT_NAME}_ENABLE_CUDA_BACKEND "Enable iMSTK CUDA backend" OFF)
+# mark_as_superbuild(${PROJECT_NAME}_ENABLE_CUDA_BACKEND)
+# if (${PROJECT_NAME}_ENABLE_CUDA_BACKEND)
+#   include(CheckLanguage)
+#   check_language(CUDA)
+#   if (CMAKE_CUDA_COMPILER)
+#     enable_language(CUDA)
+# 	set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
+# 	set(CUDA_PROPAGATE_HOST_FLAGS ON)
+# 	if(NOT DEFINED CMAKE_CUDA_STANDARD)
+# 	  set(CMAKE_CUDA_STANDARD 11)
+# 	  set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+# 	endif()
+#   else()
+# 	message(STATUS "WARNING: CUDA compiler NOT FOUND; CUDA backend not enabled!")
+#     set(${PROJECT_NAME}_ENABLE_CUDA_BACKEND OFF)
+#   endif()
+# endif ()
 
-# Audio
-if(WIN32)
-  if(DEFINED ${PROJECT_NAME}_ENABLE_AUDIO)
-    set(_enable_audio ${${PROJECT_NAME}_ENABLE_AUDIO})
-    set(_reason "${PROJECT_NAME}_ENABLE_AUDIO is SET")
-  else()
-    set(_enable_audio ON)
-    set(_reason "default initialization")
-  endif()
-else()
-  set(_enable_audio OFF)
-  set(_reason "not supported")
+#-----------------------------------------------------------------------------
+# Define all the modules
+# Note: Can be acquired with iMSTK_MODULE_LIST
+#-----------------------------------------------------------------------------
+include(imstkModule)
+set(iMSTK_MODULE_LIST "")
+define_module(Common ON)
+define_module(Materials ON)
+define_module(Geometry ON)
+define_module(MeshIO ON)
+define_module(GeometryMappers ON)
+define_module(DataStructures ON)
+define_module(Constraint ON)
+define_module(DevicesCore ON)
+define_module(DevicesVRPN OFF)
+define_module(DevicesOpenHaptics OFF)
+define_module(Filtering ON)
+define_module(FilteringCore ON)
+define_module(RenderingCore ON)
+define_module(RenderingVTK ON)
+define_module(Solvers ON)
+define_module(DynamicalModels ON)
+define_module(SceneEntities ON)
+define_module(Animation ON)
+define_module(Controllers ON)
+define_module(CollisionDetection ON)
+define_module(CollisionHandling ON)
+define_module(Scene ON)
+define_module(SimulationManager ON)
+define_module(ViewerCore ON)
+define_module(ViewerVTK ON)
+define_module(Wrappers OFF)
+
+#-----------------------------------------------------------------------------
+# Update module groups
+# Note: These should not be used elsewhere. These indicate what modules the user
+# wants, not what ones are present.
+#-----------------------------------------------------------------------------
+option(${PROJECT_NAME}_MODULE_GROUP_RENDERING "Provides default rendering support (VTK)" ON)
+mark_as_superbuild(${PROJECT_NAME}_MODULE_GROUP_RENDERING:BOOL)
+if (${PROJECT_NAME}_MODULE_GROUP_RENDERING)
+  set(${PROJECT_NAME}_MODULE_ENABLE_ViewerCore ON CACHE BOOL "" FORCE)
+  set(${PROJECT_NAME}_MODULE_ENABLE_ViewerVTK ON CACHE BOOL "" FORCE)
+  set(${PROJECT_NAME}_MODULE_ENABLE_RenderingCore ON CACHE BOOL "" FORCE)
+  set(${PROJECT_NAME}_MODULE_ENABLE_RenderingVTK ON CACHE BOOL "" FORCE)
 endif()
-set(_msg "${PROJECT_NAME} Audio support")
-message(STATUS "${_msg} - ${_enable_audio} (${_reason})")
-set(${PROJECT_NAME}_AUDIO_ENABLED ${_enable_audio})
 
-# General Options
+# option(${PROJECT_NAME}_MODULE_GROUP_AUDIO "Provides default audio support (SFML)" OFF)
+# mark_as_superbuild(${PROJECT_NAME}_MODULE_GROUP_AUDIO:BOOL)
+# if (${PROJECT_NAME}_MODULE_GROUP_AUDIO)
+#   set(${PROJECT_NAME}_MODULE_ENABLE_SFML ON CACHE BOOL "")
+# endif()
+
+option(${PROJECT_NAME}_MODULE_GROUP_HAPTICS "Provides default haptic support (OpenHaptics)" OFF)
+mark_as_superbuild(${PROJECT_NAME}_MODULE_GROUP_HAPTICS:BOOL)
+if (${PROJECT_NAME}_MODULE_GROUP_HAPTICS)
+  set(${PROJECT_NAME}_MODULE_ENABLE_DevicesCore ON CACHE BOOL "" FORCE)
+  set(${PROJECT_NAME}_MODULE_ENABLE_DevicesOpenHaptics ON CACHE BOOL "" FORCE)
+endif()
+
+#-----------------------------------------------------------------------------
+# Check module configuration, throw messages and correct invalid configurations
+#-----------------------------------------------------------------------------
+if (${PROJECT_NAME}_MODULE_ENABLE_DevicesOpenHaptics AND WIN32)
+  message(FATAL_ERROR "Setting ${PROJECT_NAME}_MODULE_ENABLE_DevicesOpenHaptics to ON is only supported on Windows")
+  set(${PROJECT_NAME}_MODULE_ENABLE_DevicesOpenHaptics OFF CACHE BOOL "" FORCE)
+endif()
+
+#-----------------------------------------------------------------------------
+# Update module configurations
+# Note: We changed some in states in the previous blocks so we should update our list of provided modules
+#-----------------------------------------------------------------------------
+update_module_list()
+mark_as_superbuild(${iMSTK_MODULE_LIST}:STRING)
+
+#-----------------------------------------------------------------------------
+# Configure other iMSTK options
+#-----------------------------------------------------------------------------
+# Build with examples
 option(${PROJECT_NAME}_BUILD_EXAMPLES "Build iMSTK examples" ON)
 mark_as_superbuild(${PROJECT_NAME}_BUILD_EXAMPLES:BOOL)
 
+# Build with testing
 option(${PROJECT_NAME}_BUILD_TESTING "Build iMSTK tests" ON)
 mark_as_superbuild(${PROJECT_NAME}_BUILD_TESTING:BOOL)
 
@@ -153,28 +197,16 @@ if (UNIX)
   endif()  
 endif()
 
-option(${PROJECT_NAME}_USE_VRPN "Build with VRPN support" OFF)
-mark_as_superbuild(${PROJECT_NAME}_USE_VRPN:BOOL)
+# Build with CSharp wrapper
+if (${PROJECT_NAME}_MODULE_ENABLE_Wrappers)
+  find_package(SWIG REQUIRED)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-option(${PROJECT_NAME}_USE_PHYSX "Build with Physx support" OFF)
-mark_as_superbuild(iMSTK_USE_PHYSX:BOOL)
-if(iMSTK_USE_PHYSX)
-  set(PHYSX_CONFIGURATION "RELEASE" CACHE STRING "PhysX release library type")
-  mark_as_superbuild(PHYSX_CONFIGURATION:STRING)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-  # Set the possible values for cmake-gui
-  set_property(CACHE PHYSX_CONFIGURATION PROPERTY STRINGS
-    "RELEASE"
-    "CHECKED"
-    "PROFILE"
-    )
+  set(CMAKE_SWIG_FLAGS "")
 endif()
 
-option(iMSTK_USE_OpenHaptics "Use OpenHaptic Support." OFF)
-mark_as_superbuild(iMSTK_USE_OpenHaptics:BOOL)
-if(NOT WIN32 AND iMSTK_USE_OpenHaptics)
-  message(FATAL_ERROR "Setting iMSTK_USE_OpenHaptics to ON is only supported on Windows")
-endif()
 
 #-----------------------------------------------------------------------------
 # CTest/Dashboards
@@ -183,6 +215,7 @@ if (${PROJECT_NAME}_BUILD_TESTING)
   include(CTest)
   set_property(CACHE BUILD_TESTING PROPERTY TYPE INTERNAL)
 endif ()
+
 
 #-----------------------------------------------------------------------------
 # SUPERBUILD
@@ -213,28 +246,32 @@ if(${PROJECT_NAME}_SUPERBUILD)
   imstk_define_dependency(Assimp)
   imstk_define_dependency(Eigen3)
   imstk_define_dependency(g3log)
-  imstk_define_dependency(LibNiFalcon)
-  imstk_define_dependency(OpenVR)
-  if (${PROJECT_NAME}_USE_PHYSX)
-    imstk_define_dependency(PhysX)
+
+  if (iMSTK_MODULE_ENABLE_DevicesVRPN)
+    imstk_define_dependency(LibNiFalcon)
   endif()
+
+  if (iMSTK_MODULE_ENABLE_RenderingVTK)
+    imstk_define_dependency(OpenVR)
+  endif()
+
   imstk_define_dependency(TBB)
   imstk_define_dependency(VegaFEM)
   imstk_define_dependency(VTK)
-  if(${PROJECT_NAME}_USE_OpenHaptics)
+
+  if(iMSTK_MODULE_ENABLE_DevicesOpenHaptics)
     imstk_define_dependency(OpenHaptics)
   endif()
-  if (${PROJECT_NAME}_USE_VRPN)
+
+  if (iMSTK_MODULE_ENABLE_DevicesVRPN)
     imstk_define_dependency(VRPN)
+    imstk_define_dependency(Libusb) #for VRPN
+    imstk_define_dependency(FTD2XX) #for LibNiFalcon (which is for VRPN)
   endif()
 
-  if(WIN32)
-    imstk_define_dependency(Libusb) #for VRPN
-    imstk_define_dependency(FTD2XX) #for LibNiFalcon
-    if(${PROJECT_NAME}_AUDIO_ENABLED)
-      imstk_define_dependency(SFML)
-    endif()
-  endif()
+  # if (iMSTK_MODULE_ENABLE_SFML)
+  #   imstk_define_dependency(SFML)
+  # endif()
 
   if(${PROJECT_NAME}_BUILD_TESTING)
     imstk_define_dependency(GTest)
@@ -282,36 +319,35 @@ set(PACKAGE_PREFIX_DIR ${CMAKE_INSTALL_PREFIX})
 
 # Assimp
 find_package( Assimp REQUIRED )
+
 # Eigen
 find_package( Eigen3 3.1.2 REQUIRED )
-if(WIN32)
+
+if(iMSTK_MODULE_ENABLE_DevicesVRPN)
   # FTD2XX
   find_package( FTD2XX REQUIRED )
 endif()
+
 # g3log
 find_package( g3log REQUIRED )
-# LibNiFalcon
-find_package( LibNiFalcon REQUIRED)
-# Libusb
-find_package( Libusb REQUIRED)
-# OpenVR
-find_package( OpenVR REQUIRED )
 
-# PhysX
-if (iMSTK_USE_PHYSX)
-  add_compile_definitions(IMSTK_USE_PHYSX)
-  # Variable PHYSX_CONFIGURATION used in FindPhysX.cmake is set above where
-  # iMSTK_USE_PHYSX CMake option is defined.
-  find_package(PhysX REQUIRED)
+if (iMSTK_MODULE_ENABLE_DevicesVRPN)
+  # LibNiFalcon
+  find_package( LibNiFalcon REQUIRED)
+
+  # Libusb
+  find_package( Libusb REQUIRED)
+endif()
+
+# OpenVR
+if (iMSTK_MODULE_ENABLE_RenderingVTK)
+  find_package( OpenVR REQUIRED )
 endif()
 
 # SFML
-if(NOT iMSTK_AUDIO_ENABLED)
-  remove_definitions( -DiMSTK_AUDIO_ENABLED )
-else()
-  find_package( SFML REQUIRED )
-  add_definitions( -DiMSTK_AUDIO_ENABLED )
-endif()
+# if (iMSTK_MODULE_ENABLE_SFML)
+#   find_package( SFML REQUIRED )
+# endif()
 
 # TBB
 find_package(TBB REQUIRED)
@@ -320,25 +356,22 @@ find_package(TBB REQUIRED)
 find_package( VegaFEM REQUIRED CONFIG )
 
 # VRPN
-if (${PROJECT_NAME}_USE_VRPN)
+if (iMSTK_MODULE_ENABLE_DevicesVRPN)
   find_package( VRPN REQUIRED )
 endif()
 
 # OpenHaptics
-if(${PROJECT_NAME}_USE_OpenHaptics)
+if(iMSTK_MODULE_ENABLE_DevicesOpenHaptics)
   find_package( OpenHapticsSDK REQUIRED )
-  add_definitions( -DiMSTK_USE_OPENHAPTICS )
-else()
-  remove_definitions( -DiMSTK_USE_OPENHAPTICS )
 endif()
 
 # VTK
 find_package(VTK REQUIRED CONFIG)
-# modules are linked via `VTK::CommonCore`
-# vtk_module_autoinit is needed
 
-find_package(vtkRenderingOpenVR QUIET)
-find_package(vtkRenderingExternal QUIET)
+if (iMSTK_MODULE_ENABLE_RenderingVTK)
+  find_package(vtkRenderingOpenVR QUIET)
+  find_package(vtkRenderingExternal QUIET)
+endif()
 
 list(APPEND iMSTK_VTK_DEPENDENCIES
   ChartsCore
@@ -357,21 +390,23 @@ list(APPEND iMSTK_VTK_DEPENDENCIES
   ImagingCore
   ImagingGeneral
   ImagingStencil
-  InteractionStyle
-  RenderingAnnotation
-  RenderingContext2D
-  RenderingContextOpenGL2
-  RenderingCore
-  RenderingExternal
-  RenderingOpenGL2
-  RenderingOpenVR
-  RenderingVolume
-  RenderingVolumeOpenGL2
-  ViewsContext2D)
-find_package(VTK COMPONENTS ${iMSTK_VTK_DEPENDENCIES} REQUIRED)
-if(${PROJECT_NAME}_USE_VTK_OSMESA)
-  add_definitions(-DiMSTK_USE_VTK_OSMESA)
+  InteractionStyle)
+if (iMSTK_MODULE_ENABLE_RenderingVTK)
+  list(APPEND iMSTK_VTK_DEPENDENCIES
+    RenderingAnnotation
+    RenderingContext2D
+    RenderingContextOpenGL2
+    RenderingCore
+    RenderingExternal
+    RenderingOpenGL2
+    RenderingOpenVR
+    RenderingVolume
+    RenderingVolumeOpenGL2
+    ViewsContext2D)
 endif()
+find_package(VTK COMPONENTS ${iMSTK_VTK_DEPENDENCIES} REQUIRED)
+add_definitions(-D${iMSTK_MODULE_ENABLE_RenderingVTK})
+
 
 #--------------------------------------------------------------------------
 # External Utility Packages
@@ -402,13 +437,13 @@ if (${PROJECT_NAME}_BUILD_TESTING OR ${PROJECT_NAME}_BUILD_EXAMPLES)
 endif()
 
 
-
 #-----------------------------------------------------------------------------
 # Testing
 #----------------------------------------------------------------------
 if(${PROJECT_NAME}_BUILD_TESTING)
   find_package( GTest CONFIG REQUIRED )
 endif()
+
 
 #-----------------------------------------------------------------------------
 # Code Coverage
@@ -428,37 +463,16 @@ endif()
 # Folder name to put our headers/cmake config files under
 set(${PROJECT_NAME}_INSTALL_FOLDER ${PROJECT_NAME}-${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR})
 
+
 #--------------------------------------------------------------------------
 # Add Source code subdirectories
 #--------------------------------------------------------------------------
-add_subdirectory(Source/Common)
-add_subdirectory(Source/Materials)
-add_subdirectory(Source/Geometry)
-add_subdirectory(Source/MeshIO)
-add_subdirectory(Source/GeometryMappers)
-add_subdirectory(Source/DataStructures)
-add_subdirectory(Source/Constraint)
-add_subdirectory(Source/Devices)
-add_subdirectory(Source/RenderingCore)
-add_subdirectory(Source/RenderingVTK)
-add_subdirectory(Source/Solvers)
-add_subdirectory(Source/DynamicalModels)
-add_subdirectory(Source/SceneEntities)
-add_subdirectory(Source/Animation)
-add_subdirectory(Source/Controllers)
-add_subdirectory(Source/CollisionDetection)
-add_subdirectory(Source/CollisionHandling)
-add_subdirectory(Source/Scene)
-add_subdirectory(Source/SimulationManager)
-add_subdirectory(Source/ViewerCore)
-add_subdirectory(Source/ViewerVTK)
+foreach(module ${iMSTK_MODULE_LIST})
+  if (iMSTK_MODULE_ENABLE_${module})
+    add_subdirectory(Source/${module})
+  endif()
+endforeach()
 add_subdirectory(Source/Testing)
-add_subdirectory(Source/Filtering)
-add_subdirectory(Source/FilteringCore)
-
-if (${PROJECT_NAME}_WRAP_CSHARP)
-  add_subdirectory(Source/Wrappers)
-endif()
 
 #--------------------------------------------------------------------------
 # Add Examples subdirectories
@@ -548,7 +562,7 @@ set(CONFIG_CODE "${CONFIG_CODE}set(g3log_LIB_DIR \"${g3log_LIB_DIR}\")\n")
 
 set(CONFIG_CODE "${CONFIG_CODE}set(GTest_DIR \"${GTest_DIR}\")\n")
 
-if(WIN32)
+if(iMSTK_MODULE_ENABLE_DevicesVRPN)
   set(CONFIG_CODE "${CONFIG_CODE}# Required by FindFTD2XX CMake module used in and provided by the iMSTK project\n")
   set(CONFIG_CODE "${CONFIG_CODE}set(FTD2XX_ROOT_DIR \"${FTD2XX_ROOT_DIR}\")\n")
   set(CONFIG_CODE "${CONFIG_CODE}set(FTD2XX_LIB_DIR \"${FTD2XX_LIB_DIR}\")\n")
@@ -560,7 +574,7 @@ endif()
 set(CONFIG_CODE "${CONFIG_CODE}set(LibNiFalcon_ROOT_DIR \"${LibNiFalcon_ROOT_DIR}\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(LibNiFalcon_LIB_DIR \"${LibNiFalcon_LIB_DIR}\")\n")
 
-if(WIN32)
+if(iMSTK_MODULE_ENABLE_DevicesVRPN)
   set(CONFIG_CODE "${CONFIG_CODE}set(Libusb_ROOT_DIR \"${Libusb_ROOT_DIR}\")\n")
   set(CONFIG_CODE "${CONFIG_CODE}set(Libusb_LIB_DIR \"${Libusb_LIB_DIR}\")\n")
 else()
@@ -569,20 +583,24 @@ else()
   set(CONFIG_CODE "${CONFIG_CODE}set(Libusb_LIBRARY_libusb-1.0-DEBUG \"${Libusb_LIBRARY_libusb-1.0-DEBUG}\")\n")
 endif()
 
-set(CONFIG_CODE "${CONFIG_CODE}# Add variables to CACHE to workaround issue related to use of\n")
-set(CONFIG_CODE "${CONFIG_CODE}# mark_as_advanced command in FindOpenVR and described in CMP0102\n")
-set(CONFIG_CODE "${CONFIG_CODE}# See https://cmake.org/cmake/help/latest/policy/CMP0102.html\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_INCLUDE_DIR \"${OpenVR_INCLUDE_DIR}\" CACHE PATH \"\")\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_LIBRARY \"${OpenVR_LIBRARY}\" CACHE FILEPATH \"\")\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_ROOT_DIR \"${OpenVR_ROOT_DIR}\")\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_LIB_DIR \"${OpenVR_LIB_DIR}\")\n")
+if (iMSTK_MODULE_ENABLE_RenderingVTK)
+  set(CONFIG_CODE "${CONFIG_CODE}# Add variables to CACHE to workaround issue related to use of\n")
+  set(CONFIG_CODE "${CONFIG_CODE}# mark_as_advanced command in FindOpenVR and described in CMP0102\n")
+  set(CONFIG_CODE "${CONFIG_CODE}# See https://cmake.org/cmake/help/latest/policy/CMP0102.html\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_INCLUDE_DIR \"${OpenVR_INCLUDE_DIR}\" CACHE PATH \"\")\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_LIBRARY \"${OpenVR_LIBRARY}\" CACHE FILEPATH \"\")\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_ROOT_DIR \"${OpenVR_ROOT_DIR}\")\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_LIB_DIR \"${OpenVR_LIB_DIR}\")\n")
+endif()
 
 set(CONFIG_CODE "${CONFIG_CODE}set(TBB_DIR \"${TBB_DIR}\")\n")
 
 set(CONFIG_CODE "${CONFIG_CODE}set(VegaFEM_DIR \"${VegaFEM_DIR}\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(VTK_DIR \"${VTK_DIR}\")\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(vtkRenderingOpenVR_DIR \"${vtkRenderingOpenVR_DIR}\")\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(vtkRenderingExternal_DIR \"${vtkRenderingExternal_DIR}\")\n")
+if (iMSTK_MODULE_ENABLE_RenderingVTK)
+  set(CONFIG_CODE "${CONFIG_CODE}set(vtkRenderingOpenVR_DIR \"${vtkRenderingOpenVR_DIR}\")\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(vtkRenderingExternal_DIR \"${vtkRenderingExternal_DIR}\")\n")
+endif()
 
 set(CONFIG_CODE "${CONFIG_CODE}##################################################")
 set(build_config ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake)

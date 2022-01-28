@@ -16,28 +16,30 @@
 #
 ###########################################################################
 
-project(Example-PBDTissueSurfaceNeedleContact)
+if (iMSTK_MODULE_ENABLE_ViewerVTK)
+    project(Example-PBDTissueSurfaceNeedleContact)
 
-#-----------------------------------------------------------------------------
-# Create executable
-#-----------------------------------------------------------------------------
-imstk_add_executable(${PROJECT_NAME}
-    PBDTissueSurfaceNeedleContactExample.cpp
-    NeedleRigidBodyCH.h
-    NeedlePbdCH.h
-    NeedleObject.h
-    RbdAngularLockingConstraint.h
-    RbdAxesLockingConstraint.h
-    NeedleInteraction.h)
+    #-----------------------------------------------------------------------------
+    # Create executable
+    #-----------------------------------------------------------------------------
+    imstk_add_executable(${PROJECT_NAME}
+        PBDTissueSurfaceNeedleContactExample.cpp
+        NeedleRigidBodyCH.h
+        NeedlePbdCH.h
+        NeedleObject.h
+        RbdAngularLockingConstraint.h
+        RbdAxesLockingConstraint.h
+        NeedleInteraction.h)
 
-#-----------------------------------------------------------------------------
-# Add the target to Examples folder
-#-----------------------------------------------------------------------------
-SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/PBD)
+    #-----------------------------------------------------------------------------
+    # Add the target to Examples folder
+    #-----------------------------------------------------------------------------
+    SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/PBD)
 
-#-----------------------------------------------------------------------------
-# Link libraries to executable
-#-----------------------------------------------------------------------------
-target_link_libraries(${PROJECT_NAME}
-    SimulationManager
-    ViewerVTK)
+    #-----------------------------------------------------------------------------
+    # Link libraries to executable
+    #-----------------------------------------------------------------------------
+    target_link_libraries(${PROJECT_NAME}
+        SimulationManager
+        ViewerVTK)
+endif()

@@ -16,7 +16,7 @@
 #
 ###########################################################################
 
-if(iMSTK_USE_VRPN)
+if(iMSTK_MODULE_ENABLE_DevicesVRPN AND iMSTK_MODULE_ENABLE_ViewerVTK)
     project(Example-VRPNDeviceClient)
 
     #-----------------------------------------------------------------------------

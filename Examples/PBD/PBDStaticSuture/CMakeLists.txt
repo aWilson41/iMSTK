@@ -16,9 +16,9 @@
 #
 ###########################################################################
 
-project(Example-PBDStaticSuture)
+if (iMSTK_MODULE_ENABLE_DevicesOpenHaptics AND iMSTK_MODULE_ENABLE_ViewerVTK)
+    project(Example-PBDStaticSuture)
 
-if (iMSTK_USE_OpenHaptics)
     #-----------------------------------------------------------------------------
     # Create executable
     #-----------------------------------------------------------------------------

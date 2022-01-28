@@ -105,4 +105,3 @@ ExternalProject_AlwaysConfigure(${PROJECT_NAME})
 # Add the target to iMSTK folder
 #-----------------------------------------------------------------------------
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER iMSTK)
-

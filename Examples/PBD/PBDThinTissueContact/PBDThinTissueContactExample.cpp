@@ -39,7 +39,7 @@
 #include "imstkVTKViewer.h"
 #include "imstkPbdConstraintFunctor.h"
 
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
 #include "imstkHapticDeviceManager.h"
 #include "imstkHapticDeviceClient.h"
 #else
@@ -204,7 +204,7 @@ main()
     imstkNew<VecDataArray<int, 2>> indicesPtr(1);
     (*indicesPtr)[0] = Vec2i(0, 1);
     toolGeometry->initialize(verticesPtr, indicesPtr);
-#ifndef iMSTK_USE_OPENHAPTICS
+#ifndef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
     toolGeometry->translate(Vec3d(0.5, 2.0, 0.5));
 #endif
 
@@ -241,7 +241,7 @@ main()
         imstkNew<SimulationManager> driver;
         driver->addModule(viewer);
         driver->addModule(sceneManager);
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
         imstkNew<HapticDeviceManager> hapticManager;
         hapticManager->setSleepDelay(1.0); // Delay for 1ms (haptics thread is limited to max 1000hz)
         std::shared_ptr<HapticDeviceClient> hapticDeviceClient = hapticManager->makeDeviceClient();
@@ -249,7 +249,7 @@ main()
 #endif
         driver->setDesiredDt(0.005);
 
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
         Mat3d rotationalOffset = Mat3d::Identity();
         connect<Event>(sceneManager, SceneManager::preUpdate, [&](Event*)
             {

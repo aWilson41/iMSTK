@@ -15,8 +15,8 @@
 #  limitations under the License.
 #
 ###########################################################################
-if(iMSTK_USE_OpenHaptics)
 
+if(iMSTK_MODULE_ENABLE_DevicesOpenHaptics AND iMSTK_MODULE_ENABLE_ViewerVTK)
   project(Example-ObjectController)
 
   #-----------------------------------------------------------------------------
@@ -27,13 +27,12 @@ if(iMSTK_USE_OpenHaptics)
   #-----------------------------------------------------------------------------
   # Add the target to Examples folder
   #-----------------------------------------------------------------------------
-  SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/Haptics)
+  set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Examples/Haptics)
 
   #-----------------------------------------------------------------------------
   # Link libraries to executable
   #-----------------------------------------------------------------------------
   target_link_libraries(${PROJECT_NAME}
-	SimulationManager
-	ViewerVTK)
-
+	  SimulationManager
+	  ViewerVTK)
 endif()

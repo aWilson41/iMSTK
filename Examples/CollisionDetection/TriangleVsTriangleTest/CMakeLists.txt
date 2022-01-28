@@ -16,21 +16,23 @@
 #
 ###########################################################################
 
-project(Example-TriangleVsTriangleTest)
+if (iMSTK_MODULE_ENABLE_ViewerVTK)
+	project(Example-TriangleVsTriangleTest)
 
-#-----------------------------------------------------------------------------
-# Create executable
-#-----------------------------------------------------------------------------
-imstk_add_executable(${PROJECT_NAME} TriangleVsTriangleTestExample.cpp)
+	#-----------------------------------------------------------------------------
+	# Create executable
+	#-----------------------------------------------------------------------------
+	imstk_add_executable(${PROJECT_NAME} TriangleVsTriangleTestExample.cpp)
 
-#-----------------------------------------------------------------------------
-# Add the target to Examples folder
-#-----------------------------------------------------------------------------
-SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/CollisionDetection)
+	#-----------------------------------------------------------------------------
+	# Add the target to Examples folder
+	#-----------------------------------------------------------------------------
+	SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/CollisionDetection)
 
-#-----------------------------------------------------------------------------
-# Link libraries to executable
-#-----------------------------------------------------------------------------
-target_link_libraries(${PROJECT_NAME}
-	SimulationManager
-	ViewerVTK)
+	#-----------------------------------------------------------------------------
+	# Link libraries to executable
+	#-----------------------------------------------------------------------------
+	target_link_libraries(${PROJECT_NAME}
+		SimulationManager
+		ViewerVTK)
+endif()

@@ -15,8 +15,8 @@
 #  limitations under the License.
 #
 ###########################################################################
-if(iMSTK_USE_OpenHaptics)
 
+if(iMSTK_MODULE_ENABLE_DevicesOpenHaptics AND iMSTK_MODULE_ENABLE_ViewerVTK)
   project(Example-PBDPicking)
 
   #-----------------------------------------------------------------------------
@@ -33,7 +33,6 @@ if(iMSTK_USE_OpenHaptics)
   # Link libraries to executable
   #-----------------------------------------------------------------------------
   target_link_libraries(${PROJECT_NAME}
-	SimulationManager
-	ViewerVTK)
-
+	  SimulationManager
+	  ViewerVTK)
 endif()

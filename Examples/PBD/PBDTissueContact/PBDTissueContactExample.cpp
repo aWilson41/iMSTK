@@ -57,7 +57,7 @@
 #include "imstkPbdObjectCollision.h"
 #endif
 
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
 #include "imstkHapticDeviceManager.h"
 #include "imstkHapticDeviceClient.h"
 #include "imstkRigidObjectController.h"
@@ -309,7 +309,7 @@ makeToolObj()
 
     toolObj->getRigidBody()->m_mass = 1.0;
     toolObj->getRigidBody()->m_intertiaTensor = Mat3d::Identity() * 10000.0;
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
     toolObj->getRigidBody()->m_initPos = Vec3d(0.0, 0.8, 0.0);
 #else
     toolObj->getRigidBody()->m_initPos = Vec3d(0.0, 0.0, 0.0);
@@ -381,7 +381,7 @@ main()
         driver->addModule(sceneManager);
         driver->setDesiredDt(0.002);
 
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
         imstkNew<HapticDeviceManager> hapticManager;
         hapticManager->setSleepDelay(1.0); // Delay for 1ms (haptics thread is limited to max 1000hz)
         std::shared_ptr<HapticDeviceClient> hapticDeviceClient = hapticManager->makeDeviceClient();

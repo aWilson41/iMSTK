@@ -16,24 +16,26 @@
 #
 ###########################################################################
 
-project(Example-OpenVRController)
+if (iMSTK_MODULE_ENABLE_ViewerVTK)
+	project(Example-OpenVRController)
 
-#-----------------------------------------------------------------------------
-# Create executable
-#-----------------------------------------------------------------------------
-imstk_add_executable(${PROJECT_NAME}
-	OpenVRControllerExample.cpp
-	CameraOpenVRControl.h
-	CameraOpenVRControl.cpp)
+	#-----------------------------------------------------------------------------
+	# Create executable
+	#-----------------------------------------------------------------------------
+	imstk_add_executable(${PROJECT_NAME}
+		OpenVRControllerExample.cpp
+		CameraOpenVRControl.h
+		CameraOpenVRControl.cpp)
 
-#-----------------------------------------------------------------------------
-# Add the target to Examples folder
-#-----------------------------------------------------------------------------
-SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/OpenVR)
+	#-----------------------------------------------------------------------------
+	# Add the target to Examples folder
+	#-----------------------------------------------------------------------------
+	SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/OpenVR)
 
-#-----------------------------------------------------------------------------
-# Link libraries to executable
-#-----------------------------------------------------------------------------
-target_link_libraries(${PROJECT_NAME}
-	SimulationManager
-	ViewerVTK)
+	#-----------------------------------------------------------------------------
+	# Link libraries to executable
+	#-----------------------------------------------------------------------------
+	target_link_libraries(${PROJECT_NAME}
+		SimulationManager
+		ViewerVTK)
+endif()

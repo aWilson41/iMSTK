@@ -16,22 +16,24 @@
 #
 ###########################################################################
 
-project(Example-RbdSDFCollision)
+if (iMSTK_MODULE_ENABLE_ViewerVTK)
+	project(Example-RbdSDFCollision)
 
-#-----------------------------------------------------------------------------
-# Create executable
-#-----------------------------------------------------------------------------
-imstk_add_executable(${PROJECT_NAME} RbdSDFCollisionExample.cpp)
+	#-----------------------------------------------------------------------------
+	# Create executable
+	#-----------------------------------------------------------------------------
+	imstk_add_executable(${PROJECT_NAME} RbdSDFCollisionExample.cpp)
 
-#-----------------------------------------------------------------------------
-# Add the target to Examples folder
-#-----------------------------------------------------------------------------
-SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/RBD)
+	#-----------------------------------------------------------------------------
+	# Add the target to Examples folder
+	#-----------------------------------------------------------------------------
+	SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/RBD)
 
-#-----------------------------------------------------------------------------
-# Link libraries to executable
-#-----------------------------------------------------------------------------
-target_link_libraries(${PROJECT_NAME}
-	SimulationManager
-	Filtering
-	ViewerVTK)
+	#-----------------------------------------------------------------------------
+	# Link libraries to executable
+	#-----------------------------------------------------------------------------
+	target_link_libraries(${PROJECT_NAME}
+		SimulationManager
+		Filtering
+		ViewerVTK)
+endif()

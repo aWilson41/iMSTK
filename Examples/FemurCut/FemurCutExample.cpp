@@ -41,7 +41,7 @@
 #include "imstkVolumeRenderMaterial.h"
 #include "imstkVTKViewer.h"
 
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
 #include "imstkHapticDeviceClient.h"
 #include "imstkHapticDeviceManager.h"
 #include "imstkRigidObjectController.h"
@@ -157,7 +157,7 @@ main()
         driver->addModule(sceneManager);
         driver->setDesiredDt(0.001); // Exactly 1000ups
 
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
         imstkNew<HapticDeviceManager> hapticManager;
         hapticManager->setSleepDelay(0.5); // Delay for 1/2ms (haptics thread is limited to max 2000hz)
         driver->addModule(hapticManager);

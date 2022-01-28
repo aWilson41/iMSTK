@@ -16,7 +16,7 @@
 #
 ###########################################################################
 
-if(iMSTK_USE_OpenHaptics)
+if(iMSTK_MODULE_ENABLE_DevicesOpenHaptics AND iMSTK_MODULE_ENABLE_ViewerVTK)
 
   project(Example-BoneShaving)
 

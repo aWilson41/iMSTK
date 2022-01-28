@@ -242,7 +242,7 @@ main()
         driver->addModule(sceneManager);
         driver->setDesiredDt(0.001); // 1ms, 1000hz
 
-#ifdef iMSTK_USE_OPENHAPTICS
+#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
         imstkNew<HapticDeviceManager>       hapticManager;
         std::shared_ptr<HapticDeviceClient> hapticDeviceClient = hapticManager->makeDeviceClient();
         driver->addModule(hapticManager);
