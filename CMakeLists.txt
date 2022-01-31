@@ -126,13 +126,21 @@ define_module(Wrappers OFF)
 # Note: These should not be used elsewhere. These indicate what modules the user
 # wants, not what ones are present.
 #-----------------------------------------------------------------------------
-option(${PROJECT_NAME}_MODULE_GROUP_RENDERING "Provides default rendering support (VTK)" ON)
-mark_as_superbuild(${PROJECT_NAME}_MODULE_GROUP_RENDERING:BOOL)
-if (${PROJECT_NAME}_MODULE_GROUP_RENDERING)
+set(${PROJECT_NAME}_MODULE_GROUP_RENDERING "DEFAULT" CACHE STRING "Provides default rendering support (VTK)")
+set_property(CACHE ${PROJECT_NAME}_MODULE_GROUP_RENDERING PROPERTY STRINGS YES DEFAULT NO)
+mark_as_superbuild(${PROJECT_NAME}_MODULE_GROUP_RENDERING:STRING)
+if (${PROJECT_NAME}_MODULE_GROUP_RENDERING STREQUAL "YES")
   set(${PROJECT_NAME}_MODULE_ENABLE_ViewerCore ON CACHE BOOL "" FORCE)
   set(${PROJECT_NAME}_MODULE_ENABLE_ViewerVTK ON CACHE BOOL "" FORCE)
   set(${PROJECT_NAME}_MODULE_ENABLE_RenderingCore ON CACHE BOOL "" FORCE)
   set(${PROJECT_NAME}_MODULE_ENABLE_RenderingVTK ON CACHE BOOL "" FORCE)
+  set(${PROJECT_NAME}_MODULE_ENABLE_SimulationManager ON CACHE BOOL "" FORCE)
+elseif(${PROJECT_NAME}_MODULE_GROUP_RENDERING STREQUAL "NO")
+  set(${PROJECT_NAME}_MODULE_ENABLE_ViewerCore OFF CACHE BOOL "" FORCE)
+  set(${PROJECT_NAME}_MODULE_ENABLE_ViewerVTK OFF CACHE BOOL "" FORCE)
+  set(${PROJECT_NAME}_MODULE_ENABLE_RenderingCore OFF CACHE BOOL "" FORCE)
+  set(${PROJECT_NAME}_MODULE_ENABLE_RenderingVTK OFF CACHE BOOL "" FORCE)
+  set(${PROJECT_NAME}_MODULE_ENABLE_SimulationManager OFF CACHE BOOL "" FORCE)
 endif()
 
 # option(${PROJECT_NAME}_MODULE_GROUP_AUDIO "Provides default audio support (SFML)" OFF)
@@ -141,11 +149,15 @@ endif()
 #   set(${PROJECT_NAME}_MODULE_ENABLE_SFML ON CACHE BOOL "")
 # endif()
 
-option(${PROJECT_NAME}_MODULE_GROUP_HAPTICS "Provides default haptic support (OpenHaptics)" OFF)
-mark_as_superbuild(${PROJECT_NAME}_MODULE_GROUP_HAPTICS:BOOL)
-if (${PROJECT_NAME}_MODULE_GROUP_HAPTICS)
+set(${PROJECT_NAME}_MODULE_GROUP_HAPTICS "DEFAULT" CACHE STRING "Provides default haptic support (OpenHaptics)")
+set_property(CACHE ${PROJECT_NAME}_MODULE_GROUP_HAPTICS PROPERTY STRINGS YES DEFAULT NO)
+mark_as_superbuild(${PROJECT_NAME}_MODULE_GROUP_HAPTICS:STRING)
+if (${PROJECT_NAME}_MODULE_GROUP_HAPTICS STREQUAL "YES")
   set(${PROJECT_NAME}_MODULE_ENABLE_DevicesCore ON CACHE BOOL "" FORCE)
   set(${PROJECT_NAME}_MODULE_ENABLE_DevicesOpenHaptics ON CACHE BOOL "" FORCE)
+elseif(${PROJECT_NAME}_MODULE_GROUP_HAPTICS STREQUAL "NO")
+  set(${PROJECT_NAME}_MODULE_ENABLE_DevicesCore OFF CACHE BOOL "" FORCE)
+  set(${PROJECT_NAME}_MODULE_ENABLE_DevicesOpenHaptics OFF CACHE BOOL "" FORCE)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -378,19 +390,21 @@ list(APPEND iMSTK_VTK_DEPENDENCIES
   CommonCore
   CommonDataModel
   FiltersCore
-  FiltersExtraction
-  FiltersGeneral
-  FiltersModeling
   FiltersSources
-  IOExport
-  IOImport
-  IOPLY
-  IOParallel
-  IOParallelXML
   ImagingCore
   ImagingGeneral
   ImagingStencil
   InteractionStyle)
+if(iMSTK_MODULE_ENABLE_MeshIO)
+  list(APPEND VTK_MODULE_SETTINGS
+    IOGeometry
+    IOImage
+    IOImport
+    #IOExport
+    IOLegacy
+    IOPLY
+    IOXML)
+endif()
 if (iMSTK_MODULE_ENABLE_RenderingVTK)
   list(APPEND iMSTK_VTK_DEPENDENCIES
     RenderingAnnotation
@@ -403,6 +417,13 @@ if (iMSTK_MODULE_ENABLE_RenderingVTK)
     RenderingVolume
     RenderingVolumeOpenGL2
     ViewsContext2D)
+endif()
+if (iMSTK_MODULE_ENABLE_Filtering)
+  list(APPEND iMSTK_VTK_DEPENDENCIES
+    ImagingMath
+    FiltersExtraction
+    FiltersGeneral
+    FiltersModeling)
 endif()
 find_package(VTK COMPONENTS ${iMSTK_VTK_DEPENDENCIES} REQUIRED)
 add_definitions(-D${iMSTK_MODULE_ENABLE_RenderingVTK})

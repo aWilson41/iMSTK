@@ -8,8 +8,11 @@ imstk_add_library( MeshIO
 	Geometry    
     Assimp::Assimp
     VegaFEM::volumetricMesh
-    ${VTK_LIBRARIES}
-  )
+    VTK::IOGeometry
+    VTK::IOImage
+    VTK::IOLegacy
+    VTK::IOPLY
+    VTK::IOXML)
 
 #-----------------------------------------------------------------------------
 # Testing
