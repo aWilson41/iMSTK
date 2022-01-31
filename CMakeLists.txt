@@ -400,7 +400,6 @@ if(iMSTK_MODULE_ENABLE_MeshIO)
     IOGeometry
     IOImage
     IOImport
-    #IOExport
     IOLegacy
     IOPLY
     IOXML)
