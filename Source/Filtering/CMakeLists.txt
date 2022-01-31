@@ -12,7 +12,10 @@ imstk_add_library( Filtering
     ${cppFiles}
   DEPENDS
     FilteringCore
-    ${VTK_LIBRARIES})
+    VTK::ImagingMath
+    VTK::FiltersExtraction
+    VTK::FiltersGeneral
+    VTK::FiltersModeling)
 
 #-----------------------------------------------------------------------------
 # Testing

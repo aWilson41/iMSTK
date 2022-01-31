@@ -163,7 +163,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Check module configuration, throw messages and correct invalid configurations
 #-----------------------------------------------------------------------------
-if (${PROJECT_NAME}_MODULE_ENABLE_DevicesOpenHaptics AND WIN32)
+if (${PROJECT_NAME}_MODULE_ENABLE_DevicesOpenHaptics AND NOT WIN32)
   message(FATAL_ERROR "Setting ${PROJECT_NAME}_MODULE_ENABLE_DevicesOpenHaptics to ON is only supported on Windows")
   set(${PROJECT_NAME}_MODULE_ENABLE_DevicesOpenHaptics OFF CACHE BOOL "" FORCE)
 endif()
