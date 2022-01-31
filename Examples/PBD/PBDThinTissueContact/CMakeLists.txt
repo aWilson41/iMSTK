@@ -28,7 +28,7 @@ if (iMSTK_MODULE_ENABLE_ViewerVTK)
     #-----------------------------------------------------------------------------
     # Add the target to Examples folder
     #-----------------------------------------------------------------------------
-    SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/PBD)
+    set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Examples/PBD)
 
     #-----------------------------------------------------------------------------
     # Link libraries to executable
@@ -36,4 +36,8 @@ if (iMSTK_MODULE_ENABLE_ViewerVTK)
     target_link_libraries(${PROJECT_NAME}
         SimulationManager
         ViewerVTK)
+
+    if (iMSTK_MODULE_ENABLE_DevicesOpenHaptics)
+        target_link_libraries(${PROJECT_NAME} DevicesOpenHaptics)
+    endif()
 endif()

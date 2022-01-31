@@ -17,31 +17,36 @@
 ###########################################################################
 
 if (iMSTK_MODULE_ENABLE_ViewerVTK)
-  project(Example-RbdSDFPivotNeedle)
+    project(Example-RbdSDFPivotNeedle)
 
-  #-----------------------------------------------------------------------------
-  # Create executable
-  #-----------------------------------------------------------------------------
-  imstk_add_executable(${PROJECT_NAME} RbdSDFPivotNeedleExample.cpp
-    NeedleObject.h
-    NeedleInteraction.h
-    NeedleInteraction.cpp
-    NeedleRigidBodyCH.h
-    NeedleRigidBodyCH.cpp
-    RbdLineToPointTranslationConstraint.h
-    RbdLineToPointRotationConstraint.h
-    NeedleRigidBodyCH.h)
+    #-----------------------------------------------------------------------------
+    # Create executable
+    #-----------------------------------------------------------------------------
+    imstk_add_executable(${PROJECT_NAME}
+        RbdSDFPivotNeedleExample.cpp
+        NeedleObject.h
+        NeedleInteraction.h
+        NeedleInteraction.cpp
+        NeedleRigidBodyCH.h
+        NeedleRigidBodyCH.cpp
+        RbdLineToPointTranslationConstraint.h
+        RbdLineToPointRotationConstraint.h
+        NeedleRigidBodyCH.h)
 
-  #-----------------------------------------------------------------------------
-  # Add the target to Examples folder
-  #-----------------------------------------------------------------------------
-  SET_TARGET_PROPERTIES (${PROJECT_NAME} PROPERTIES FOLDER Examples/RBD)
+    #-----------------------------------------------------------------------------
+    # Add the target to Examples folder
+    #-----------------------------------------------------------------------------
+    set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Examples/RBD)
 
-  #-----------------------------------------------------------------------------
-  # Link libraries to executable
-  #-----------------------------------------------------------------------------
-  target_link_libraries(${PROJECT_NAME}
-    SimulationManager
-    Filtering
-    ViewerVTK)
+    #-----------------------------------------------------------------------------
+    # Link libraries to executable
+    #-----------------------------------------------------------------------------
+    target_link_libraries(${PROJECT_NAME}
+        SimulationManager
+        Filtering
+        ViewerVTK)
+
+    if (iMSTK_MODULE_ENABLE_DevicesOpenHaptics)
+        target_link_libraries(${PROJECT_NAME} DevicesOpenHaptics)
+    endif()
 endif()

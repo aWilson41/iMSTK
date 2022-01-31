@@ -13,12 +13,14 @@ set(iMSTK_DATA_DIR ${PACKAGE_PREFIX_DIR}/data)
 
 # iMSTK settings
 set(iMSTK_AUDIO_ENABLED @iMSTK_AUDIO_ENABLED@)
-set(iMSTK_USE_OpenHaptics @iMSTK_USE_OpenHaptics@)
-set(iMSTK_USE_RENDERING @iMSTK_USE_RENDERING@)
-set(iMSTK_RENDER_BACKEND @iMSTK_RENDER_BACKEND@)
 set(iMSTK_BUILD_TESTING @iMSTK_BUILD_TESTING@)
-set(iMSTK_USE_VRPN @iMSTK_USE_VRPN@)
+set(iMSTK_USE_VTK_OSMESA @iMSTK_USE_VTK_OSMESA@)
 set(iMSTK_VTK_DEPENDENCIES "@iMSTK_VTK_DEPENDENCIES@")
+set(iMSTK_MODULE_LIST @iMSTK_MODULE_LIST@)
+
+foreach(module ${iMSTK_MODULE_LIST})
+  set(iMSTK_MODULE_ENABLE_${module} ON)
+endforeach()
 
 # Save
 set(_iMSTK_ORIG_CMAKE_DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
@@ -42,7 +44,7 @@ find_dependency( Assimp )
 find_dependency( Eigen3 )
 
 # FTD2XX
-if(WIN32)
+if(iMSTK_MODULE_ENABLE_DevicesVRPN AND WIN32)
   find_dependency( FTD2XX )
 endif()
 
@@ -54,20 +56,17 @@ if(iMSTK_BUILD_TESTING)
   find_dependency( GTest CONFIG )
 endif()
 
-# LibNiFalcon
-find_dependency( LibNiFalcon )
+if(iMSTK_MODULE_ENABLE_DevicesVRPN)
+  # LibNiFalcon
+  find_dependency( LibNiFalcon )
 
-# Libusb
-find_dependency( Libusb )
-
-# OpenVR
-if(iMSTK_USE_RENDERING)
-  find_dependency( OpenVR )
+  # Libusb
+  find_dependency( Libusb )
 endif()
 
-# PhysX
-if (iMSTK_USE_PHYSX)
-  find_dependency(PhysX REQUIRED)
+# OpenVR
+if (iMSTK_MODULE_ENABLE_RenderingVTK)
+  find_dependency( OpenVR )
 endif()
 
 # SFML
@@ -83,19 +82,19 @@ find_dependency(TBB)
 find_dependency( VegaFEM )
 
 # VRPN
-if (iMSTK_USE_VRPN)
+if(iMSTK_MODULE_ENABLE_DevicesVRPN)
   find_dependency( VRPN )
 endif()
 
 # OpenHaptics
-if(iMSTK_USE_OpenHaptics)
+if(iMSTK_MODULE_ENABLE_DevicesOpenHaptics)
   find_dependency( OpenHapticsSDK )
   add_definitions( -DiMSTK_USE_OPENHAPTICS )
 endif()
 
 # VTK
 find_dependency(VTK CONFIG)
-if(iMSTK_USE_RENDERING)
+if(iMSTK_MODULE_ENABLE_RenderingVTK)
   find_package(vtkRenderingOpenVR QUIET)
   find_package(vtkRenderingExternal QUIET)
 endif()

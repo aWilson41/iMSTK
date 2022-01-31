@@ -17,7 +17,6 @@
 ###########################################################################
 
 if(iMSTK_MODULE_ENABLE_DevicesOpenHaptics AND iMSTK_MODULE_ENABLE_ViewerVTK)
-
   project(Example-BoneShaving)
 
   #-----------------------------------------------------------------------------
@@ -40,8 +39,7 @@ if(iMSTK_MODULE_ENABLE_DevicesOpenHaptics AND iMSTK_MODULE_ENABLE_ViewerVTK)
   else()
     target_link_libraries(${PROJECT_NAME}
       SimulationManager
-      SFML::SFML
-      ViewerVTK)
+      ViewerVTK
+      DevicesOpenHaptics)
   endif()
-  
 endif()

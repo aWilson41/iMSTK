@@ -37,4 +37,7 @@ if(iMSTK_MODULE_ENABLE_DevicesOpenHaptics AND iMSTK_MODULE_ENABLE_ViewerVTK)
     target_link_libraries(${PROJECT_NAME}
         SimulationManager
         ViewerVTK)
+    if (iMSTK_MODULE_ENABLE_DevicesOpenHaptics)
+        target_link_libraries(${PROJECT_NAME} DevicesOpenHaptics)
+    endif()
 endif()

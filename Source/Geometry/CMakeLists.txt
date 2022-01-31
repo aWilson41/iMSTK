@@ -5,7 +5,9 @@ include(imstkAddLibrary)
 imstk_add_library( Geometry
   DEPENDS
     Common
-    ${VTK_LIBRARIES})
+    VTK::CommonDataModel
+    VTK::FiltersSources
+    VTK::FiltersGeneral)
 
 #-----------------------------------------------------------------------------
 # Testing

@@ -242,7 +242,6 @@ main()
         driver->addModule(sceneManager);
         driver->setDesiredDt(0.001); // 1ms, 1000hz
 
-#ifdef iMSTK_MODULE_ENABLE_DevicesOpenHaptics
         imstkNew<HapticDeviceManager>       hapticManager;
         std::shared_ptr<HapticDeviceClient> hapticDeviceClient = hapticManager->makeDeviceClient();
         driver->addModule(hapticManager);
@@ -258,7 +257,6 @@ main()
         controller->setSmoothingKernelSize(5);
         controller->setUseForceSmoothening(true);
         scene->addController(controller);
-#endif
 
         connect<Event>(sceneManager, &SceneManager::preUpdate,
             [&](Event*)

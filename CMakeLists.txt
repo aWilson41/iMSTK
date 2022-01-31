@@ -143,12 +143,6 @@ elseif(${PROJECT_NAME}_MODULE_GROUP_RENDERING STREQUAL "NO")
   set(${PROJECT_NAME}_MODULE_ENABLE_SimulationManager OFF CACHE BOOL "" FORCE)
 endif()
 
-# option(${PROJECT_NAME}_MODULE_GROUP_AUDIO "Provides default audio support (SFML)" OFF)
-# mark_as_superbuild(${PROJECT_NAME}_MODULE_GROUP_AUDIO:BOOL)
-# if (${PROJECT_NAME}_MODULE_GROUP_AUDIO)
-#   set(${PROJECT_NAME}_MODULE_ENABLE_SFML ON CACHE BOOL "")
-# endif()
-
 set(${PROJECT_NAME}_MODULE_GROUP_HAPTICS "DEFAULT" CACHE STRING "Provides default haptic support (OpenHaptics)")
 set_property(CACHE ${PROJECT_NAME}_MODULE_GROUP_HAPTICS PROPERTY STRINGS YES DEFAULT NO)
 mark_as_superbuild(${PROJECT_NAME}_MODULE_GROUP_HAPTICS:STRING)
@@ -277,13 +271,11 @@ if(${PROJECT_NAME}_SUPERBUILD)
 
   if (iMSTK_MODULE_ENABLE_DevicesVRPN)
     imstk_define_dependency(VRPN)
-    imstk_define_dependency(Libusb) #for VRPN
-    imstk_define_dependency(FTD2XX) #for LibNiFalcon (which is for VRPN)
+    imstk_define_dependency(Libusb)
+    imstk_define_dependency(FTD2XX)
   endif()
 
-  # if (iMSTK_MODULE_ENABLE_SFML)
-  #   imstk_define_dependency(SFML)
-  # endif()
+  imstk_define_dependency(SFML)
 
   if(${PROJECT_NAME}_BUILD_TESTING)
     imstk_define_dependency(GTest)
@@ -357,9 +349,7 @@ if (iMSTK_MODULE_ENABLE_RenderingVTK)
 endif()
 
 # SFML
-# if (iMSTK_MODULE_ENABLE_SFML)
-#   find_package( SFML REQUIRED )
-# endif()
+find_package( SFML REQUIRED )
 
 # TBB
 find_package(TBB REQUIRED)
@@ -396,7 +386,7 @@ list(APPEND iMSTK_VTK_DEPENDENCIES
   ImagingStencil
   InteractionStyle)
 if(iMSTK_MODULE_ENABLE_MeshIO)
-  list(APPEND VTK_MODULE_SETTINGS
+  list(APPEND iMSTK_VTK_DEPENDENCIES
     IOGeometry
     IOImage
     IOImport
@@ -651,8 +641,10 @@ set(CONFIG_CODE "${CONFIG_CODE}set(VTK_DIR \"${VTK_DIR}\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}# Add variables to CACHE to workaround issue related to use of\n")
 set(CONFIG_CODE "${CONFIG_CODE}# mark_as_advanced command in FindOpenVR and described in CMP0102\n")
 set(CONFIG_CODE "${CONFIG_CODE}# See https://cmake.org/cmake/help/latest/policy/CMP0102.html\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_INCLUDE_DIR \"${OpenVR_INCLUDE_DIR}\" CACHE PATH \"\")\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_LIBRARY \"${OpenVR_LIBRARY}\" CACHE FILEPATH \"\")\n")
+if (iMSTK_MODULE_ENABLE_RenderingVTK)
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_INCLUDE_DIR \"${OpenVR_INCLUDE_DIR}\" CACHE PATH \"\")\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_LIBRARY \"${OpenVR_LIBRARY}\" CACHE FILEPATH \"\")\n")
+endif()
 set(CONFIG_CODE "${CONFIG_CODE}##################################################")
 
 set(install_config ${PROJECT_BINARY_DIR}/CMakeFiles/${PROJECT_NAME}Config.cmake)
