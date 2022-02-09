@@ -1,12 +1,3 @@
-#-----------------------------------------------------------------------------
-# Dependencies
-#-----------------------------------------------------------------------------
-set(VTK_DEPENDENCIES "OpenVR")
-
-set(${PROJECT_NAME}_VTK_REPO_SOURCE "9.1" CACHE STRING "Select VTK Source Branch/Tag")
-set(VTK_SOURCES "9.1;master;release;nightly-master" CACHE INTERNAL "List of available VTK branch,tags to get")
-set_property(CACHE ${PROJECT_NAME}_VTK_REPO_SOURCE PROPERTY STRINGS ${VTK_SOURCES})
-
 set(VTK_MODULE_SETTINGS
   -DVTK_MODULE_ENABLE_VTK_ChartsCore:STRING=YES
   -DVTK_MODULE_ENABLE_VTK_FiltersCore:STRING=YES
@@ -30,7 +21,6 @@ set(VTK_MODULE_SETTINGS
   -DVTK_MODULE_ENABLE_VTK_RenderingContextOpenGL2:STRING=YES
   -DVTK_MODULE_ENABLE_VTK_RenderingExternal:STRING=YES
   -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2:STRING=YES
-  -DVTK_MODULE_ENABLE_VTK_RenderingOpenVR:STRING=YES
   -DVTK_MODULE_ENABLE_VTK_RenderingVolumeOpenGL2:STRING=YES
   -DVTK_MODULE_ENABLE_VTK_ViewsContext2D:STRING=YES
   -DVTK_ENABLE_WRAPPING:STRING=OFF
@@ -38,17 +28,31 @@ set(VTK_MODULE_SETTINGS
   -DVTK_BUILD_EXAMPLES:STRING=DONT_WANT
   -DVTK_BUILD_TESTING:STRING=OFF
   -DVTK_GROUP_ENABLE_StandAlone:STRING=DONT_WANT
-  -DVTK_GROUP_ENABLE_Rendering:STRING=DONT_WANT
-  )
+  -DVTK_GROUP_ENABLE_Rendering:STRING=DONT_WANT)
+
 if (${PROJECT_NAME}_USE_VTK_OSMESA)
   list(APPEND VTK_MODULE_SETTINGS  -DVTK_DEFAULT_RENDER_WINDOW_OFFSCREEN=1 -DVTK_OPENGL_HAS_OSMESA=1 -DVTK_USE_COCOA=0 -DVTK_USE_X=0)
 endif()
 set(${PROJECT_NAME}_VTK_SOURCE GIT_REPOSITORY https://gitlab.kitware.com/vtk/vtk.git)
 
-if(${PROJECT_NAME}_VTK_REPO_SOURCE EQUAL "9.1")
-  set(${PROJECT_NAME}_VTK_HASH GIT_TAG 285daeedd58eb890cb90d6e907d822eea3d2d092)
+set(VTK_DEPENDENCIES "")
+# If using openxr we must use a separate sha (openxr is not yet in a VTK release)
+if(${PROJECT_NAME}_VTK_REPO_SOURCE STREQUAL "9.1.202202")
+  set(${PROJECT_NAME}_VTK_HASH GIT_TAG ff69e2622f8ab98ccc9dabb565678ca089c9cf8b)
+  list(APPEND VTK_MODULE_SETTINGS
+    -DVTK_MODULE_ENABLE_VTK_RenderingOpenXR:STRING=YES
+    -DOpenXR_INCLUDE_DIR:PATH=${CMAKE_INSTALL_PREFIX}/include/openxr
+    -DOpenXR_LIBRARY:PATH=${CMAKE_INSTALL_PREFIX}/lib/openxr_loader.lib)
+  list(APPEND VTK_DEPENDENCIES "OpenXR")
 else()
-  set(${PROJECT_NAME}_VTK_HASH GIT_TAG origin/${${PROJECT_NAME}_VTK_REPO_SOURCE})
+  if(${PROJECT_NAME}_VTK_REPO_SOURCE STREQUAL "9.1")
+    set(${PROJECT_NAME}_VTK_HASH GIT_TAG 285daeedd58eb890cb90d6e907d822eea3d2d092)
+  else()
+    set(${PROJECT_NAME}_VTK_HASH GIT_TAG origin/${${PROJECT_NAME}_VTK_REPO_SOURCE})
+  endif()
+  list(APPEND VTK_MODULE_SETTINGS
+      -DVTK_MODULE_ENABLE_VTK_RenderingOpenVR:STRING=YES)
+  list(APPEND VTK_DEPENDENCIES "OpenVR")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -68,6 +72,6 @@ imstk_add_external_project( VTK
   #VERBOSE
 )
 if(NOT USE_SYSTEM_VTK)
-  set(VTK_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/vtk-9.0)
+  set(VTK_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/vtk-9.1)
   #message(STATUS "VTK_DIR : ${VTK_DIR}")
 endif()

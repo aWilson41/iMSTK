@@ -17,6 +17,7 @@ set(iMSTK_USE_OpenHaptics @iMSTK_USE_OpenHaptics@)
 set(iMSTK_USE_VTK_OSMESA @iMSTK_USE_VTK_OSMESA@)
 set(iMSTK_BUILD_TESTING @iMSTK_BUILD_TESTING@)
 set(iMSTK_USE_VRPN @iMSTK_USE_VRPN@)
+set(iMSTK_VTK_REPO_SOURCE @iMSTK_VTK_REPO_SOURCE@)
 set(iMSTK_VTK_DEPENDENCIES "@iMSTK_VTK_DEPENDENCIES@")
 
 # Save
@@ -59,8 +60,11 @@ find_dependency( LibNiFalcon )
 # Libusb
 find_dependency( Libusb )
 
-# OpenVR
-find_dependency( OpenVR )
+if(iMSTK_VTK_REPO_SOURCE STREQUAL "9.1.202202")
+  find_dependency( OpenXR )
+else()
+  find_dependency( OpenVR )
+endif()
 
 # SFML
 if(iMSTK_AUDIO_ENABLED)

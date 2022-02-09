@@ -36,7 +36,6 @@ class vtkCameraPass;
 class vtkChartXY;
 class vtkContextActor;
 class vtkLight;
-class vtkOpenVRCamera;
 class vtkPlotBar;
 class vtkProp;
 class vtkRenderer;

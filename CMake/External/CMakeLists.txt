@@ -83,6 +83,11 @@ if (${PROJECT_NAME}_WRAP_CSHARP)
     -DSWIG_DIR:PATH=${SWIG_DIR}
     -DSWIG_EXECUTABLE:PATH=${SWIG_EXECUTABLE})
 endif()
+if(${PROJECT_NAME}_VTK_REPO_SOURCE STREQUAL "9.1.202202")
+  list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
+    -DOpenXR_INCLUDE_DIR:PATH=${CMAKE_INSTALL_PREFIX}/include/openxr
+    -DOpenXR_LIBRARY:PATH=${CMAKE_INSTALL_PREFIX}/lib/openxr_loader.lib)
+endif()
 
 #-----------------------------------------------------------------------------
 # Inner build of the main project
