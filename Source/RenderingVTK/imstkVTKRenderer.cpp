@@ -48,13 +48,33 @@
 #include <vtkTextProperty.h>
 
 #include <vtkCameraPass.h>
-#include <vtkOpenVRCamera.h>
-#include <vtkOpenVRRenderer.h>
+#include <vtkMatrix4x4.h>
+#include <vtkProperty.h>
 #include <vtkRenderPassCollection.h>
 #include <vtkRenderStepsPass.h>
 #include <vtkSequencePass.h>
 #include <vtkSSAOPass.h>
-#include <vtkProperty.h>
+
+// \todo: Should be removed upon upgrade of VTK. They plan to add factories
+// similar to the other classes in VTK. When that happens vtkVRRenderWindow
+// will automatically allocate an XR or VR depending on which was built with.
+#ifdef iMSTK_USE_OPENXR
+#include <vtkOpenXRCamera.h>
+#include <vtkOpenXRRenderWindow.h>
+#include <vtkOpenXRRenderer.h>
+
+using vtkImstkVRCamera = vtkOpenXRCamera;
+using vtkImstkVRRenderer = vtkOpenXRRenderer;
+using vtkImstkVRRenderWindow = vtkOpenXRRenderWindow;
+#else
+#include <vtkOpenVRCamera.h>
+#include <vtkOpenVRRenderWindow.h>
+#include <vtkOpenVRRenderer.h>
+
+using vtkImstkVRCamera = vtkOpenVRCamera;
+using vtkImstkVRRenderer = vtkOpenVRRenderer;
+using vtkImstkVRRenderWindow = vtkOpenVRRenderWindow;
+#endif
 
 namespace imstk
 {
@@ -72,9 +92,10 @@ VTKRenderer::VTKRenderer(std::shared_ptr<Scene> scene, const bool enableVR) :
     }
     else
     {
-        m_vtkRenderer = vtkSmartPointer<vtkOpenVRRenderer>::New();
-        vtkOpenVRRenderer::SafeDownCast(m_vtkRenderer)->SetAutomaticLightCreation(false);
-        vtkOpenVRRenderer::SafeDownCast(m_vtkRenderer)->SetLightFollowCamera(false);
+        auto vrRen = vtkSmartPointer<vtkImstkVRRenderer>::New();
+        m_vtkRenderer = vrRen;
+        vrRen->SetAutomaticLightCreation(false);
+        vrRen->SetLightFollowCamera(false);
     }
 
     // Process all the changes initially (add all the delegates)
@@ -161,7 +182,7 @@ VTKRenderer::VTKRenderer(std::shared_ptr<Scene> scene, const bool enableVR) :
     }
     else
     {
-        m_camera = vtkSmartPointer<vtkOpenVRCamera>::New();
+        m_camera = vtkSmartPointer<vtkImstkVRCamera>::New();
     }
 
     updateCamera();
@@ -396,8 +417,7 @@ VTKRenderer::updateCamera()
     std::shared_ptr<Camera> cam = m_scene->getActiveCamera();
     getVtkRenderer()->SetActiveCamera(m_camera);
 
-    // As long as we don't have a VR camera apply the camera view
-    if (vtkOpenVRCamera::SafeDownCast(m_camera) == nullptr)
+    if (vtkImstkVRCamera::SafeDownCast(m_camera) == nullptr)
     {
         // Update the camera to obtain corrected view/proj matrices
         cam->update();

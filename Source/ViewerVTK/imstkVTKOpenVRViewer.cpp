@@ -28,12 +28,29 @@
 #include "imstkVTKInteractorStyleVR.h"
 #include "imstkVTKRenderer.h"
 
+#include <vtkMatrix4x4.h>
+#include <vtkRenderer.h>
+
+// \todo: Should be removed upon upgrade of VTK. They plan to add factories
+// similar to the other classes in VTK. When that happens vtkVRRenderWindow
+// will automatically allocate an XR or VR depending on which was built with.
+#ifdef iMSTK_USE_OPENXR
+#include <vtkOpenXRRenderWindow.h>
+#include <vtkOpenXRRenderWindowInteractor.h>
+#include <vtkVRModel.h>
+
+using vtkImstkVRModel = vtkVRModel;
+using vtkImstkVRRenderWindow = vtkOpenXRRenderWindow;
+using vtkImstkVRRenderWindowInteractor = vtkOpenXRRenderWindowInteractor;
+#else
+#include <vtkOpenVRModel.h>
+#include <vtkOpenVRRenderWindow.h>
 #include "imstkVtkOpenVRRenderWindowInteractorImstk.h"
 
-#include <vtkMatrix4x4.h>
-#include <vtkOpenVRRenderer.h>
-#include <vtkOpenVRRenderWindow.h>
-#include <vtkOpenVRModel.h>
+using vtkImstkVRModel = vtkOpenVRModel;
+using vtkImstkVRRenderWindow = vtkOpenVRRenderWindow;
+using vtkImstkVRRenderWindowInteractor = vtkOpenVRRenderWindowInteractorImstk;
+#endif
 
 namespace imstk
 {
@@ -44,11 +61,11 @@ VTKOpenVRViewer::VTKOpenVRViewer(std::string name) : AbstractVTKViewer(name)
     m_vtkInteractorStyle = vrInteractorStyle;
 
     // Create the interactor
-    auto iren = vtkSmartPointer<vtkOpenVRRenderWindowInteractorImstk>::New();
+    auto iren = vtkSmartPointer<vtkImstkVRRenderWindowInteractor>::New();
     iren->SetInteractorStyle(m_vtkInteractorStyle);
 
     // Create the RenderWindow
-    m_vtkRenderWindow = vtkSmartPointer<vtkOpenVRRenderWindow>::New();
+    m_vtkRenderWindow = vtkSmartPointer<vtkImstkVRRenderWindow>::New();
     m_vtkRenderWindow->SetInteractor(iren);
     iren->SetRenderWindow(m_vtkRenderWindow);
     m_vtkRenderWindow->HideCursor();
@@ -99,8 +116,7 @@ VTKOpenVRViewer::setActiveScene(std::shared_ptr<Scene> scene)
 void
 VTKOpenVRViewer::setPhysicalToWorldTransform(const Mat4d& physicalToWorldMatrix)
 {
-    vtkSmartPointer<vtkOpenVRRenderWindow> renWin =
-        vtkOpenVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
+    auto renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
     vtkNew<vtkMatrix4x4> mat;
     for (int i = 0; i < 4; i++)
     {
@@ -115,8 +131,7 @@ VTKOpenVRViewer::setPhysicalToWorldTransform(const Mat4d& physicalToWorldMatrix)
 Mat4d
 VTKOpenVRViewer::getPhysicalToWorldTransform()
 {
-    vtkSmartPointer<vtkOpenVRRenderWindow> renWin =
-        vtkOpenVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
+    auto renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
     Mat4d                transform;
     vtkNew<vtkMatrix4x4> mat;
     renWin->GetPhysicalToWorldMatrix(mat);
@@ -148,9 +163,9 @@ void
 VTKOpenVRViewer::processEvents()
 {
     // Custom call to only process input events, do not perform a render
-    auto iren = vtkOpenVRRenderWindowInteractorImstk::SafeDownCast(m_vtkRenderWindow->GetInteractor());
+    auto iren = vtkImstkVRRenderWindowInteractor::SafeDownCast(m_vtkRenderWindow->GetInteractor());
     auto ren  = std::dynamic_pointer_cast<imstk::VTKRenderer>(getActiveRenderer());
-    iren->DoOneEvent(vtkOpenVRRenderWindow::SafeDownCast(m_vtkRenderWindow), ren->getVtkRenderer(), false);
+    iren->DoOneEvent(vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow), ren->getVtkRenderer(), false);
 
     // Update all controls
     for (auto control : m_controls)
@@ -169,7 +184,7 @@ VTKOpenVRViewer::initModule()
 
     // VR interactor doesn't support timers, here we throw timer event every update
     // another option would be to conform VTKs VR interactor
-    auto iren = vtkOpenVRRenderWindowInteractorImstk::SafeDownCast(m_vtkRenderWindow->GetInteractor());
+    auto iren = vtkImstkVRRenderWindowInteractor::SafeDownCast(m_vtkRenderWindow->GetInteractor());
     //iren->Start(); // Cannot use
     if (iren->HasObserver(vtkCommand::StartEvent))
     {
@@ -177,7 +192,7 @@ VTKOpenVRViewer::initModule()
         return true;
     }
 
-    auto renWin = vtkOpenVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
+    auto renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
     renWin->Initialize();
 
     iren->Initialize();
@@ -192,14 +207,14 @@ VTKOpenVRViewer::initModule()
     iStyle->addMovementActions();
 
     // Hide all controller models
-    for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++)
+    /*for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++)
     {
         vtkVRModel* trackedDeviceModel = renWin->GetTrackedDeviceModel(i);
         if (trackedDeviceModel != nullptr)
         {
             trackedDeviceModel->SetVisibility(false);
         }
-    }
+    }*/
 
     return true;
 }

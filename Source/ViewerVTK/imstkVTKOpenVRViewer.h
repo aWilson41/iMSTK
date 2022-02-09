@@ -23,11 +23,6 @@
 
 #include "imstkAbstractVTKViewer.h"
 
-#include <vtkSmartPointer.h>
-#include <list>
-
-class vtkRenderWindow;
-
 namespace imstk
 {
 class OpenVRDeviceClient;
@@ -73,7 +68,7 @@ public:
     ///
     /// \brief Acquire the full list of VR devices tied to this viewer
     ///
-    const std::list<std::shared_ptr<OpenVRDeviceClient>>& getVRDeviceClients() const { return m_vrDeviceClients; }
+    const std::vector<std::shared_ptr<OpenVRDeviceClient>>& getVRDeviceClients() const { return m_vrDeviceClients; }
 
     ///
     /// \brief VTKOpenVRViewer overrides to provide a non-rendering
@@ -86,7 +81,6 @@ protected:
 
     void updateModule() override;
 
-    ///> The VR controllers are tied to the view
-    std::list<std::shared_ptr<OpenVRDeviceClient>> m_vrDeviceClients;
+    std::vector<std::shared_ptr<OpenVRDeviceClient>> m_vrDeviceClients; ///> The VR controllers are tied to the view
 };
 } // imstk

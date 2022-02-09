@@ -94,8 +94,8 @@ vtkOpenVRRenderWindowInteractorImstk::GetPhysicalTranslation(vtkCamera*)
 
 void
 vtkOpenVRRenderWindowInteractorImstk::ConvertOpenVRPoseToMatrices(
-    const vr::TrackedDevicePose_t& tdPose, vtkMatrix4x4* poseMatrixWorld,
-    vtkMatrix4x4* poseMatrixPhysical /*=nullptr*/)
+    const vr::TrackedDevicePose_t & tdPose, vtkMatrix4x4 * poseMatrixWorld,
+    vtkMatrix4x4 * poseMatrixPhysical /*=nullptr*/)
 {
     if (!poseMatrixWorld && !poseMatrixPhysical)
     {
@@ -117,7 +117,7 @@ vtkOpenVRRenderWindowInteractorImstk::ConvertOpenVRPoseToMatrices(
 
     if (poseMatrixWorld)
     {
-        vtkVRRenderWindow*   win = vtkVRRenderWindow::SafeDownCast(this->RenderWindow);
+        vtkVRRenderWindow* win = vtkVRRenderWindow::SafeDownCast(this->RenderWindow);
         vtkNew<vtkMatrix4x4> physicalToWorldMatrix;
         win->GetPhysicalToWorldMatrix(physicalToWorldMatrix);
         vtkMatrix4x4::Multiply4x4(physicalToWorldMatrix, poseMatrixPhysicalTemp, poseMatrixWorld);
@@ -126,7 +126,7 @@ vtkOpenVRRenderWindowInteractorImstk::ConvertOpenVRPoseToMatrices(
 
 void
 vtkOpenVRRenderWindowInteractorImstk::ConvertPoseToWorldCoordinates(
-    const vr::TrackedDevicePose_t& tdPose,
+    const vr::TrackedDevicePose_t & tdPose,
     double                         pos[3],  // Output world position
     double                         wxyz[4], // Output world orientation quaternion
     double                         ppos[3], // Output physical position
@@ -149,7 +149,7 @@ vtkOpenVRRenderWindowInteractorImstk::ConvertPoseMatrixToWorldCoordinates(
     // TODO: define it in generic superclass VRRenderWindowInteractor
     vtkVRRenderWindow* win = vtkVRRenderWindow::SafeDownCast(this->RenderWindow);
     double             physicalScale = win->GetPhysicalScale();
-    double*            trans = win->GetPhysicalTranslation();
+    double* trans = win->GetPhysicalTranslation();
 
     // Vive to world axes
     double* vup = win->GetPhysicalViewUp();
@@ -209,7 +209,7 @@ vtkOpenVRRenderWindowInteractorImstk::ConvertPoseMatrixToWorldCoordinates(
 
     if (mag != 0.0)
     {
-        wxyz[0]  = 2.0 * vtkMath::DegreesFromRadians(atan2(mag, wxyz[0]));
+        wxyz[0] = 2.0 * vtkMath::DegreesFromRadians(atan2(mag, wxyz[0]));
         wxyz[1] /= mag;
         wxyz[2] /= mag;
         wxyz[3] /= mag;
@@ -228,7 +228,7 @@ vtkOpenVRRenderWindowInteractorImstk::ConvertPoseMatrixToWorldCoordinates(
 //---------------------------------------------------------------------------------------------------------------------
 bool
 GetDigitalActionState(
-    vr::VRActionHandle_t action, vr::VRInputValueHandle_t* pDevicePath = nullptr)
+    vr::VRActionHandle_t action, vr::VRInputValueHandle_t * pDevicePath = nullptr)
 {
     vr::InputDigitalActionData_t actionData;
     vr::VRInput()->GetDigitalActionData(
@@ -277,7 +277,7 @@ vtkOpenVRRenderWindowInteractorImstk::ProcessEvents()
 }
 
 void
-vtkOpenVRRenderWindowInteractorImstk::DoOneEvent(vtkOpenVRRenderWindow* renWin, vtkRenderer* ren, bool doRender)
+vtkOpenVRRenderWindowInteractorImstk::DoOneEvent(vtkOpenVRRenderWindow * renWin, vtkRenderer * ren, bool doRender)
 {
     if (!renWin || !ren)
     {
@@ -293,7 +293,7 @@ vtkOpenVRRenderWindowInteractorImstk::DoOneEvent(vtkOpenVRRenderWindow* renWin, 
     }
 
     vr::VREvent_t     event;
-    vtkOpenVROverlay* ovl    = renWin->GetDashboardOverlay();
+    vtkOpenVROverlay* ovl = renWin->GetDashboardOverlay();
     bool              result = false;
 
     if (vr::VROverlay() && vr::VROverlay()->IsOverlayVisible(ovl->GetOverlayHandle()))
@@ -386,7 +386,7 @@ vtkOpenVRRenderWindowInteractorImstk::DoOneEvent(vtkOpenVRRenderWindow* renWin, 
 
             if (this->Trackers[tracker].LastPose.bPoseIsValid)
             {
-                double pos[3]  = { 0.0 };
+                double pos[3] = { 0.0 };
                 double ppos[3] = { 0.0 };
                 double wxyz[4] = { 0.0 };
                 double wdir[3] = { 0.0 };
@@ -430,8 +430,8 @@ vtkOpenVRRenderWindowInteractorImstk::DoOneEvent(vtkOpenVRRenderWindow* renWin, 
         // handle other actions
         for (auto& it : this->ActionMap)
         {
-            vr::VRActionHandle_t&    actionHandle = it.second.ActionHandle;
-            vtkEventDataDevice3D*    edp = nullptr;
+            vr::VRActionHandle_t& actionHandle = it.second.ActionHandle;
+            vtkEventDataDevice3D* edp = nullptr;
             vr::VRInputValueHandle_t activeOrigin = 0;
 
             if (it.second.IsAnalog)
@@ -463,7 +463,7 @@ vtkOpenVRRenderWindowInteractorImstk::DoOneEvent(vtkOpenVRRenderWindow* renWin, 
 
             if (edp)
             {
-                double pos[3]  = { 0.0 };
+                double pos[3] = { 0.0 };
                 double ppos[3] = { 0.0 };
                 double wxyz[4] = { 0.0 };
                 double wdir[3] = { 0.0 };
@@ -546,7 +546,7 @@ vtkOpenVRRenderWindowInteractorImstk::DoOneEvent(vtkOpenVRRenderWindow* renWin, 
 }
 
 void
-vtkOpenVRRenderWindowInteractorImstk::HandleGripEvents(vtkEventData* ed)
+vtkOpenVRRenderWindowInteractorImstk::HandleGripEvents(vtkEventData * ed)
 {
     vtkEventDataDevice3D* edata = ed->GetAsEventDataDevice3D();
     if (!edata)
@@ -633,7 +633,7 @@ vtkOpenVRRenderWindowInteractorImstk::RecognizeComplexGesture(vtkEventDataDevice
     {
         // calculate the distances
         double originalDistance = sqrt(vtkMath::Distance2BetweenPoints(startVals[0], startVals[1]));
-        double newDistance      = sqrt(vtkMath::Distance2BetweenPoints(posVals[0], posVals[1]));
+        double newDistance = sqrt(vtkMath::Distance2BetweenPoints(posVals[0], posVals[1]));
 
         // calculate the translations
         double t0[3];
@@ -679,8 +679,8 @@ vtkOpenVRRenderWindowInteractorImstk::RecognizeComplexGesture(vtkEventDataDevice
             // the first to break thresh wins
             double thresh = 0.05; // in meters
 
-            double pinchDistance  = fabs(newDistance - originalDistance);
-            double panDistance    = sqrt(trans[0] * trans[0] + trans[1] * trans[1] + trans[2] * trans[2]);
+            double pinchDistance = fabs(newDistance - originalDistance);
+            double panDistance = sqrt(trans[0] * trans[0] + trans[1] * trans[1] + trans[2] * trans[2]);
             double rotateDistance = originalDistance * 3.1415926 * fabs(angleDeviation) / 180.0;
 
             if (pinchDistance > thresh && pinchDistance > panDistance && pinchDistance > rotateDistance)
@@ -692,12 +692,12 @@ vtkOpenVRRenderWindowInteractorImstk::RecognizeComplexGesture(vtkEventDataDevice
             else if (rotateDistance > thresh && rotateDistance > panDistance)
             {
                 this->CurrentGesture = vtkCommand::RotateEvent;
-                this->Rotation       = 0.0;
+                this->Rotation = 0.0;
                 this->StartRotateEvent();
             }
             else if (panDistance > thresh)
             {
-                this->CurrentGesture   = vtkCommand::PanEvent;
+                this->CurrentGesture = vtkCommand::PanEvent;
                 this->Translation3D[0] = 0.0;
                 this->Translation3D[1] = 0.0;
                 this->Translation3D[2] = 0.0;
@@ -720,8 +720,8 @@ vtkOpenVRRenderWindowInteractorImstk::RecognizeComplexGesture(vtkEventDataDevice
         {
             // Vive to world axes
             vtkVRRenderWindow* win = vtkVRRenderWindow::SafeDownCast(this->RenderWindow);
-            double*            vup = win->GetPhysicalViewUp();
-            double*            dop = win->GetPhysicalViewDirection();
+            double* vup = win->GetPhysicalViewUp();
+            double* dop = win->GetPhysicalViewDirection();
             double             physicalScale = win->GetPhysicalScale();
             double             vright[3];
             vtkMath::Cross(dop, vup, vright);
@@ -747,9 +747,9 @@ vtkOpenVRRenderWindowInteractorImstk::AddAction(
     std::string path, vtkCommand::EventIds eid, bool isAnalog)
 {
     auto& am = this->ActionMap[path];
-    am.EventId     = eid;
+    am.EventId = eid;
     am.UseFunction = false;
-    am.IsAnalog    = isAnalog;
+    am.IsAnalog = isAnalog;
     if (this->Initialized)
     {
         vr::VRInput()->GetActionHandle(path.c_str(), &am.ActionHandle);
@@ -764,8 +764,8 @@ vtkOpenVRRenderWindowInteractorImstk::AddAction(
 {
     auto& am = this->ActionMap[path];
     am.UseFunction = true;
-    am.Function    = func;
-    am.IsAnalog    = isAnalog;
+    am.Function = func;
+    am.IsAnalog = isAnalog;
     if (this->Initialized)
     {
         vr::VRInput()->GetActionHandle(path.c_str(), &am.ActionHandle);
@@ -788,7 +788,7 @@ vtkOpenVRRenderWindowInteractorImstk::Initialize()
     }
 
     vtkVRRenderWindow* ren = vtkVRRenderWindow::SafeDownCast(this->RenderWindow);
-    int*               size;
+    int* size;
 
     this->Initialized = 1;
     // get the info we need from the RenderingWindow
@@ -846,7 +846,7 @@ vtkOpenVRRenderWindowInteractorImstk::InternalDestroyTimer(int vtkNotUsed(platfo
 // Specify the default function to be called when an interactor needs to exit.
 // This callback is overridden by an instance ExitMethod that is defined.
 void
-vtkOpenVRRenderWindowInteractorImstk::SetClassExitMethod(void (* f)(void*), void* arg)
+vtkOpenVRRenderWindowInteractorImstk::SetClassExitMethod(void (*f)(void*), void* arg)
 {
     if (f != vtkOpenVRRenderWindowInteractorImstk::ClassExitMethod
         || arg != vtkOpenVRRenderWindowInteractorImstk::ClassExitMethodArg)
@@ -858,7 +858,7 @@ vtkOpenVRRenderWindowInteractorImstk::SetClassExitMethod(void (* f)(void*), void
             (*vtkOpenVRRenderWindowInteractorImstk::ClassExitMethodArgDelete)(
                 vtkOpenVRRenderWindowInteractorImstk::ClassExitMethodArg);
         }
-        vtkOpenVRRenderWindowInteractorImstk::ClassExitMethod    = f;
+        vtkOpenVRRenderWindowInteractorImstk::ClassExitMethod = f;
         vtkOpenVRRenderWindowInteractorImstk::ClassExitMethodArg = arg;
 
         // no call to this->Modified() since this is a class member function
@@ -868,7 +868,7 @@ vtkOpenVRRenderWindowInteractorImstk::SetClassExitMethod(void (* f)(void*), void
 //------------------------------------------------------------------------------
 // Set the arg delete method.  This is used to free user memory.
 void
-vtkOpenVRRenderWindowInteractorImstk::SetClassExitMethodArgDelete(void (* f)(void*))
+vtkOpenVRRenderWindowInteractorImstk::SetClassExitMethodArgDelete(void (*f)(void*))
 {
     if (f != vtkOpenVRRenderWindowInteractorImstk::ClassExitMethodArgDelete)
     {
@@ -880,7 +880,7 @@ vtkOpenVRRenderWindowInteractorImstk::SetClassExitMethodArgDelete(void (* f)(voi
 
 //------------------------------------------------------------------------------
 void
-vtkOpenVRRenderWindowInteractorImstk::PrintSelf(ostream& os, vtkIndent indent)
+vtkOpenVRRenderWindowInteractorImstk::PrintSelf(ostream & os, vtkIndent indent)
 {
     this->Superclass::PrintSelf(os, indent);
     os << indent << "StartedMessageLoop: " << this->StartedMessageLoop << endl;
@@ -921,7 +921,7 @@ vtkOpenVRRenderWindowInteractorImstk::GetPointerDevice()
 //------------------------------------------------------------------------------
 void
 vtkOpenVRRenderWindowInteractorImstk::GetStartingPhysicalToWorldMatrix(
-    vtkMatrix4x4* startingPhysicalToWorldMatrix)
+    vtkMatrix4x4 * startingPhysicalToWorldMatrix)
 {
     if (!startingPhysicalToWorldMatrix)
     {

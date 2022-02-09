@@ -162,6 +162,11 @@ if(NOT WIN32 AND iMSTK_USE_OpenHaptics)
   message(FATAL_ERROR "Setting iMSTK_USE_OpenHaptics to ON is only supported on Windows")
 endif()
 
+set(${PROJECT_NAME}_VTK_REPO_SOURCE "9.1" CACHE STRING "Select VTK Source Branch/Tag")
+set(VTK_SOURCES "9.1;master;release;nightly-master;9.1.202202" CACHE INTERNAL "List of available VTK branch,tags to get")
+set_property(CACHE ${PROJECT_NAME}_VTK_REPO_SOURCE PROPERTY STRINGS ${VTK_SOURCES})
+mark_as_superbuild(${PROJECT_NAME}_VTK_REPO_SOURCE:STRING)
+
 #-----------------------------------------------------------------------------
 # CTest/Dashboards
 #-----------------------------------------------------------------------------
@@ -200,7 +205,12 @@ if(${PROJECT_NAME}_SUPERBUILD)
   imstk_define_dependency(Eigen3)
   imstk_define_dependency(g3log)
   imstk_define_dependency(LibNiFalcon)
-  imstk_define_dependency(OpenVR)
+  if(${PROJECT_NAME}_VTK_REPO_SOURCE STREQUAL "9.1.202202")
+    imstk_define_dependency(OpenXR)
+  else()
+    imstk_define_dependency(OpenVR)
+  endif()
+  
   imstk_define_dependency(TBB)
   imstk_define_dependency(VegaFEM)
   imstk_define_dependency(VTK)
@@ -277,8 +287,13 @@ find_package( g3log REQUIRED )
 find_package( LibNiFalcon REQUIRED)
 # Libusb
 find_package( Libusb REQUIRED)
-# OpenVR
-find_package( OpenVR REQUIRED )
+
+# OpenVR or OpenXR
+if(${PROJECT_NAME}_VTK_REPO_SOURCE STREQUAL "9.1.202202")
+  find_package( OpenXR REQUIRED )
+else()
+  find_package( OpenVR REQUIRED )
+endif()
 
 # SFML
 if(NOT iMSTK_AUDIO_ENABLED)
@@ -314,7 +329,6 @@ endif()
 find_package(VTK REQUIRED CONFIG)
 # modules are linked via `VTK::CommonCore`
 # vtk_module_autoinit is needed
-
 find_package(vtkRenderingOpenVR QUIET)
 find_package(vtkRenderingExternal QUIET)
 
@@ -342,10 +356,14 @@ list(APPEND iMSTK_VTK_DEPENDENCIES
   RenderingCore
   RenderingExternal
   RenderingOpenGL2
-  RenderingOpenVR
   RenderingVolume
   RenderingVolumeOpenGL2
   ViewsContext2D)
+if(${PROJECT_NAME}_VTK_REPO_SOURCE STREQUAL "9.1.202202")
+  list(APPEND iMSTK_VTK_DEPENDENCIES RenderingOpenXR)
+else()
+  list(APPEND iMSTK_VTK_DEPENDENCIES RenderingOpenVR)
+endif()
 find_package(VTK COMPONENTS ${iMSTK_VTK_DEPENDENCIES} REQUIRED)
 if(${PROJECT_NAME}_USE_VTK_OSMESA)
   add_definitions(-DiMSTK_USE_VTK_OSMESA)

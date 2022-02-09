@@ -23,10 +23,16 @@
 #include "imstkLogger.h"
 #include "imstkOpenVRDeviceClient.h"
 
-#include <vtkMath.h>
 #include <vtkEventData.h>
+#include <vtkMath.h>
 #include <vtkObjectFactory.h>
-#include "imstkVtkOpenVRRenderWindowInteractorImstk.h"
+#ifdef iMSTK_USE_OPENXR
+#include <vtkOpenXRRenderWindowInteractor.h>
+using vtkImstkVRRenderWindowInteractor = vtkOpenXRRenderWindowInteractor;
+#else
+#include <vtkOpenVRRenderWindowInteractor.h>
+using vtkImstkVRRenderWindowInteractor = vtkOpenVRRenderWindowInteractor;
+#endif
 
 vtkStandardNewMacro(vtkInteractorStyleVR);
 
@@ -72,18 +78,26 @@ vtkInteractorStyleVR::OnButtonPress(vtkEventData* data, int buttonId)
 void
 vtkInteractorStyleVR::addMovementActions()
 {
-    vtkOpenVRRenderWindowInteractorImstk* iren =
-        vtkOpenVRRenderWindowInteractorImstk::SafeDownCast(GetInteractor());
+    auto iren = vtkImstkVRRenderWindowInteractor::SafeDownCast(GetInteractor());
+
     CHECK(iren->GetInitialized()) << "Cannot addMovementActions to style until "
         "interactor has been initialized";
+#ifdef iMSTK_USE_OPENXR
+    iren->AddAction("/actions/vtk/in/LeftGripMovement",
+#else
     iren->AddAction("/actions/vtk/in/LeftGripMovement", true,
+#endif
         [this](vtkEventData* ed)
         {
             vtkEventDataDevice3D* edd = ed->GetAsEventDataDevice3D();
             const double* pos = edd->GetTrackPadPosition();
             m_leftControllerDeviceClient->setTrackpadPosition(imstk::Vec2d(pos[0], pos[1]));
         });
+#ifdef iMSTK_USE_OPENXR
+    iren->AddAction("/actions/vtk/in/RightGripMovement",
+#else
     iren->AddAction("/actions/vtk/in/RightGripMovement", true,
+#endif
         [this](vtkEventData* ed)
         {
             vtkEventDataDevice3D* edd = ed->GetAsEventDataDevice3D();
@@ -95,8 +109,7 @@ vtkInteractorStyleVR::addMovementActions()
 void
 vtkInteractorStyleVR::addButtonActions()
 {
-    vtkOpenVRRenderWindowInteractorImstk* iren =
-        vtkOpenVRRenderWindowInteractorImstk::SafeDownCast(GetInteractor());
+    auto iren = vtkImstkVRRenderWindowInteractor::SafeDownCast(GetInteractor());
     CHECK(iren->GetInitialized()) << "Cannot addButtonActions to style until "
         "interactor has been initialized";
 
@@ -112,7 +125,11 @@ vtkInteractorStyleVR::addButtonActions()
     };
     for (int i = 0; i < 6; i++)
     {
+#ifdef iMSTK_USE_OPENXR
+        iren->AddAction(buttonActionNames[i],
+#else
         iren->AddAction(buttonActionNames[i], false,
+#endif
             [this, i](vtkEventData* ed)
             {
                 OnButtonPress(ed, i);

@@ -2,15 +2,37 @@
 # Create target
 #-----------------------------------------------------------------------------
 
-file(GLOB H_FILES imstk*.h)
-file(GLOB CPP_FILES imstk*.cpp)
+set(H_FILES
+  imstkAbstractVTKViewer.h
+  imstkScreenCaptureUtility.h
+  imstkVTKInteractorStyle.h
+  imstkVTKInteractorStyleVR.h
+  imstkVTKOpenVRViewer.h
+  imstkVTKScreenCaptureUtility.h
+  imstkVTKTextStatusManager.h
+  imstkVTKViewer.h)
+
+set(SRC_FILES
+  imstkAbstractVTKViewer.cpp
+  imstkScreenCaptureUtility.cpp
+  imstkVTKInteractorStyle.cpp
+  imstkVTKInteractorStyleVR.cpp
+  imstkVTKOpenVRViewer.cpp
+  imstkVTKScreenCaptureUtility.cpp
+  imstkVTKTextStatusManager.cpp
+  imstkVTKViewer.cpp)
+
+if (NOT iMSTK_VTK_REPO_SOURCE STREQUAL "9.1.202202")
+  list(APPEND H_FILES imstkVtkOpenVRRenderWindowInteractorImstk.h)
+  list(APPEND SRC_FILES imstkVtkOpenVRRenderWindowInteractorImstk.cpp)
+endif()
 
 include(imstkAddLibrary)
 imstk_add_library(ViewerVTK
   H_FILES
     ${H_FILES}
   CPP_FILES
-    ${CPP_FILES}
+    ${SRC_FILES}
   DEPENDS
     ViewerCore
     RenderingVTK)

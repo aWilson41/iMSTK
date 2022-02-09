@@ -3,6 +3,19 @@
 #-----------------------------------------------------------------------------
 
 include(imstkAddLibrary)
+
+set(DEPENDENCIES
+    Animation
+    RenderingCore
+    ${VTK_LIBRARIES})
+if(${PROJECT_NAME}_VTK_REPO_SOURCE STREQUAL "9.1.202202")
+    list(APPEND DEPENDENCIES
+        OpenXR::OpenXR)
+else()
+    list(APPEND DEPENDENCIES
+        OpenVR::OpenVR)
+endif()
+
 imstk_add_library(RenderingVTK
   H_FILES
     imstkRenderDelegateObjectFactory.h
@@ -51,10 +64,12 @@ imstk_add_library(RenderingVTK
   SUBDIR_LIST
     RenderDelegate
   DEPENDS
-    OpenVR::OpenVR
-    Animation
-    RenderingCore
-    ${VTK_LIBRARIES})
+    ${DEPENDENCIES})
+
+# OpenXR doesn't have an imported interface target yet so we need to include here
+if(${PROJECT_NAME}_VTK_REPO_SOURCE STREQUAL "9.1.202202")
+    target_compile_definitions(RenderingVTK PUBLIC -DiMSTK_USE_OPENXR)
+endif()
 
 vtk_module_autoinit(TARGETS RenderingVTK MODULES ${VTK_LIBRARIES})
 
