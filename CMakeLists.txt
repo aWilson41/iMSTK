@@ -331,6 +331,7 @@ find_package(VTK REQUIRED CONFIG)
 # vtk_module_autoinit is needed
 find_package(vtkRenderingOpenVR QUIET)
 find_package(vtkRenderingExternal QUIET)
+find_package(vtkRenderingOpenXR QUIET)
 
 list(APPEND iMSTK_VTK_DEPENDENCIES
   ChartsCore
@@ -354,7 +355,6 @@ list(APPEND iMSTK_VTK_DEPENDENCIES
   RenderingContext2D
   RenderingContextOpenGL2
   RenderingCore
-  RenderingExternal
   RenderingOpenGL2
   RenderingVolume
   RenderingVolumeOpenGL2
@@ -568,10 +568,17 @@ endif()
 set(CONFIG_CODE "${CONFIG_CODE}# Add variables to CACHE to workaround issue related to use of\n")
 set(CONFIG_CODE "${CONFIG_CODE}# mark_as_advanced command in FindOpenVR and described in CMP0102\n")
 set(CONFIG_CODE "${CONFIG_CODE}# See https://cmake.org/cmake/help/latest/policy/CMP0102.html\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_INCLUDE_DIR \"${OpenVR_INCLUDE_DIR}\" CACHE PATH \"\")\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_LIBRARY \"${OpenVR_LIBRARY}\" CACHE FILEPATH \"\")\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_ROOT_DIR \"${OpenVR_ROOT_DIR}\")\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_LIB_DIR \"${OpenVR_LIB_DIR}\")\n")
+if(${PROJECT_NAME}_VTK_REPO_SOURCE STREQUAL "9.1.202202")
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenXR_INCLUDE_DIR \"${OpenXR_INCLUDE_DIR}\" CACHE PATH \"\")\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenXR_LIBRARY \"${OpenXR_LIBRARY}\" CACHE FILEPATH \"\")\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenXR_ROOT_DIR \"${OpenXR_ROOT_DIR}\")\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenXR_LIB_DIR \"${OpenXR_LIB_DIR}\")\n")
+else()
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_INCLUDE_DIR \"${OpenVR_INCLUDE_DIR}\" CACHE PATH \"\")\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_LIBRARY \"${OpenVR_LIBRARY}\" CACHE FILEPATH \"\")\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_ROOT_DIR \"${OpenVR_ROOT_DIR}\")\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_LIB_DIR \"${OpenVR_LIB_DIR}\")\n")
+endif()
 
 set(CONFIG_CODE "${CONFIG_CODE}set(TBB_DIR \"${TBB_DIR}\")\n")
 
@@ -579,6 +586,7 @@ set(CONFIG_CODE "${CONFIG_CODE}set(VegaFEM_DIR \"${VegaFEM_DIR}\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(VTK_DIR \"${VTK_DIR}\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(vtkRenderingOpenVR_DIR \"${vtkRenderingOpenVR_DIR}\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(vtkRenderingExternal_DIR \"${vtkRenderingExternal_DIR}\")\n")
+set(CONFIG_CODE "${CONFIG_CODE}set(vtkRenderingOpenXR_DIR \"${vtkRenderingOpenXR_DIR}\")\n")
 
 set(CONFIG_CODE "${CONFIG_CODE}##################################################")
 set(build_config ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake)
@@ -611,6 +619,8 @@ set(CONFIG_CODE "${CONFIG_CODE}# mark_as_advanced command in FindOpenVR and desc
 set(CONFIG_CODE "${CONFIG_CODE}# See https://cmake.org/cmake/help/latest/policy/CMP0102.html\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_INCLUDE_DIR \"${OpenVR_INCLUDE_DIR}\" CACHE PATH \"\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_LIBRARY \"${OpenVR_LIBRARY}\" CACHE FILEPATH \"\")\n")
+set(CONFIG_CODE "${CONFIG_CODE}set(OpenXR_INCLUDE_DIR \"${OpenXR_INCLUDE_DIR}\" CACHE PATH \"\")\n")
+set(CONFIG_CODE "${CONFIG_CODE}set(OpenXR_LIBRARY \"${OpenXR_LIBRARY}\" CACHE FILEPATH \"\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}##################################################")
 
 set(install_config ${PROJECT_BINARY_DIR}/CMakeFiles/${PROJECT_NAME}Config.cmake)

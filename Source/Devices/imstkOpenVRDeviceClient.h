@@ -71,7 +71,14 @@ public:
         m_orientation = orientation;
     }
 
+    ///
+    /// \brief Apply a vibration on the device
+    /// 
+    void applyVibration(const double amplitude, const double duration, const double frequency);
+
 protected:
+    void setVibrationFunc(std::function<void(double, double, double)> vibrationFunc) { m_vibrationFunc = vibrationFunc; }
+
     ///
     /// \brief Emit various button events
     ///
@@ -83,5 +90,7 @@ protected:
 private:
     DeviceType m_deviceType;
     Vec2d      m_trackpadPosition;
+
+    std::function<void(double, double, double)> m_vibrationFunc = nullptr;
 };
 } // namespace imstk

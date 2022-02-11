@@ -79,12 +79,17 @@ void
 vtkInteractorStyleVR::addMovementActions()
 {
     auto iren = vtkImstkVRRenderWindowInteractor::SafeDownCast(GetInteractor());
+    if (iren == nullptr)
+    {
+        LOG(FATAL) << "Cannot add movement actions, wrong interactor";
+        return;
+    }
 
+#ifdef iMSTK_USE_OPENXR
+    iren->AddAction("leftgripmovement",
+#else
     CHECK(iren->GetInitialized()) << "Cannot addMovementActions to style until "
         "interactor has been initialized";
-#ifdef iMSTK_USE_OPENXR
-    iren->AddAction("/actions/vtk/in/LeftGripMovement",
-#else
     iren->AddAction("/actions/vtk/in/LeftGripMovement", true,
 #endif
         [this](vtkEventData* ed)
@@ -94,7 +99,7 @@ vtkInteractorStyleVR::addMovementActions()
             m_leftControllerDeviceClient->setTrackpadPosition(imstk::Vec2d(pos[0], pos[1]));
         });
 #ifdef iMSTK_USE_OPENXR
-    iren->AddAction("/actions/vtk/in/RightGripMovement",
+    iren->AddAction("rightgripmovement",
 #else
     iren->AddAction("/actions/vtk/in/RightGripMovement", true,
 #endif
@@ -110,24 +115,38 @@ void
 vtkInteractorStyleVR::addButtonActions()
 {
     auto iren = vtkImstkVRRenderWindowInteractor::SafeDownCast(GetInteractor());
-    CHECK(iren->GetInitialized()) << "Cannot addButtonActions to style until "
-        "interactor has been initialized";
+    if (iren == nullptr)
+    {
+        LOG(FATAL) << "Cannot add button actions, wrong interactor";
+        return;
+    }
 
     // Called when buttons are pressed/released
     std::array<std::string, 6> buttonActionNames =
     {
+#ifdef iMSTK_USE_OPENXR
+        "button0pressed",
+        "button1pressed",
+        "button2pressed",
+        "button3pressed",
+        "grippressed",
+        "triggerpressed"
+#else
         "/actions/vtk/in/Button0Pressed",
         "/actions/vtk/in/Button1Pressed",
         "/actions/vtk/in/Button2Pressed",
         "/actions/vtk/in/Button3Pressed",
         "/actions/vtk/in/GripPressed",
         "/actions/vtk/in/TriggerPressed"
+#endif
     };
     for (int i = 0; i < 6; i++)
     {
 #ifdef iMSTK_USE_OPENXR
         iren->AddAction(buttonActionNames[i],
 #else
+        CHECK(iren->GetInitialized()) << "Cannot addButtonActions to style until "
+            "interactor has been initialized";
         iren->AddAction(buttonActionNames[i], false,
 #endif
             [this, i](vtkEventData* ed)
@@ -135,6 +154,27 @@ vtkInteractorStyleVR::addButtonActions()
                 OnButtonPress(ed, i);
             });
     }
+}
+
+void
+vtkInteractorStyleVR::addHapticAction()
+{
+    auto iren = vtkImstkVRRenderWindowInteractor::SafeDownCast(GetInteractor());
+    if (iren == nullptr)
+    {
+        LOG(FATAL) << "Cannot add haptic actions, wrong interactor";
+        return;
+    }
+    
+    // Allow the devices to call vibration without it having to hold the interactor
+    m_leftControllerDeviceClient->setVibrationFunc([iren](double amplitude, double duration, double frequency)
+        {
+            iren->ApplyVibration("left_haptic", vtkOpenXRManager::ControllerIndex::Left, amplitude, duration, frequency);
+        });
+    m_rightControllerDeviceClient->setVibrationFunc([iren](double amplitude, double duration, double frequency)
+        {
+            iren->ApplyVibration("right_haptic", vtkOpenXRManager::ControllerIndex::Right, amplitude, duration, frequency);
+        });
 }
 
 void

@@ -17,7 +17,7 @@ set(iMSTK_USE_OpenHaptics @iMSTK_USE_OpenHaptics@)
 set(iMSTK_USE_VTK_OSMESA @iMSTK_USE_VTK_OSMESA@)
 set(iMSTK_BUILD_TESTING @iMSTK_BUILD_TESTING@)
 set(iMSTK_USE_VRPN @iMSTK_USE_VRPN@)
-set(iMSTK_VTK_REPO_SOURCE @iMSTK_VTK_REPO_SOURCE@)
+set(iMSTK_VTK_REPO_SOURCE "@iMSTK_VTK_REPO_SOURCE@")
 set(iMSTK_VTK_DEPENDENCIES "@iMSTK_VTK_DEPENDENCIES@")
 
 # Save
@@ -93,6 +93,7 @@ endif()
 find_dependency(VTK CONFIG)
 find_package(vtkRenderingOpenVR QUIET)
 find_package(vtkRenderingExternal QUIET)
+find_package(vtkRenderingOpenXR QUIET)
 find_dependency(VTK COMPONENTS ${iMSTK_VTK_DEPENDENCIES})
 
 if(iMSTK_USE_VTK_OSMESA)

@@ -215,6 +215,7 @@ main()
     toolObj->getVisualModel(0)->getRenderMaterial()->setLineWidth(5.0);
     toolObj->getVisualModel(0)->getRenderMaterial()->setRecomputeVertexNormals(false);
     toolObj->getVisualModel(0)->getRenderMaterial()->setBackFaceCulling(false);
+    toolObj->getVisualModel(0)->getRenderMaterial()->setDynamicMesh(false);
     scene->addSceneObject(toolObj);
 
     // Add a collision interaction between the tools

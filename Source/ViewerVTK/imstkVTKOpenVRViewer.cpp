@@ -31,13 +31,12 @@
 #include <vtkMatrix4x4.h>
 #include <vtkRenderer.h>
 
-// \todo: Should be removed upon upgrade of VTK. They plan to add factories
-// similar to the other classes in VTK. When that happens vtkVRRenderWindow
-// will automatically allocate an XR or VR depending on which was built with.
+// \todo: Should be removed upon upgrade of VTK. OPENXR preferred
 #ifdef iMSTK_USE_OPENXR
 #include <vtkOpenXRRenderWindow.h>
 #include <vtkOpenXRRenderWindowInteractor.h>
 #include <vtkVRModel.h>
+#include <vtkOpenGLState.h>
 
 using vtkImstkVRModel = vtkVRModel;
 using vtkImstkVRRenderWindow = vtkOpenXRRenderWindow;
@@ -192,29 +191,29 @@ VTKOpenVRViewer::initModule()
         return true;
     }
 
-    auto renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
-    renWin->Initialize();
-
-    iren->Initialize();
-
-    // Hide the device overlays
-    // \todo: Display devices in debug mode
-    renWin->Render(); // Must do one render to initialize vtkOpenVRModel's to then hide the devices
-
+#ifdef iMSTK_USE_OPENXR
     // Actions must be added after initialization of interactor
     vtkInteractorStyleVR* iStyle = vtkInteractorStyleVR::SafeDownCast(m_vtkInteractorStyle);
     iStyle->addButtonActions();
     iStyle->addMovementActions();
+    iStyle->addHapticAction();
 
-    // Hide all controller models
-    /*for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++)
-    {
-        vtkVRModel* trackedDeviceModel = renWin->GetTrackedDeviceModel(i);
-        if (trackedDeviceModel != nullptr)
-        {
-            trackedDeviceModel->SetVisibility(false);
-        }
-    }*/
+    iren->Initialize();
+#else
+    renWin->Initialize();
+    iren->Initialize();
+
+    // Hide the device overlays
+    // \todo: Display devices in debug mode
+    // Must do one render to initialize vtkOpenVRModel's to then hide the devices
+    renWin->Render();
+
+    // Actions must be added after initialization of interactor for openvr
+    vtkInteractorStyleVR* iStyle = vtkInteractorStyleVR::SafeDownCast(m_vtkInteractorStyle);
+    iStyle->addButtonActions();
+    iStyle->addMovementActions();
+    setControllerVisibility(false);
+#endif
 
     return true;
 }
@@ -230,14 +229,55 @@ VTKOpenVRViewer::updateModule()
 
     // For the VR view we can't supply the a camera in the normal sense
     // we need to pre multiply a "user view"
-    std::shared_ptr<Camera> cam  = getActiveScene()->getActiveCamera();
-    const Mat4d&            view = cam->getView();
+    std::shared_ptr<Camera> cam = getActiveScene()->getActiveCamera();
+    const Mat4d& view = cam->getView();
     setPhysicalToWorldTransform(view);
 
-    // Update Camera
-    // \todo: No programmatic control over VR camera currently
-    //renderer->updateSceneCamera(getActiveScene()->getCamera());
+#ifdef iMSTK_USE_OPENXR
+    auto renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
 
+    auto ostate = renWin->GetState();
+    renWin->MakeCurrent();
+    ostate->Reset();
+    ostate->Push();
+
+    if (vtkOpenXRManager::GetInstance()->IsSessionRunning())
+    {
+        vtkOpenXRManager* xrManager = vtkOpenXRManager::GetInstance();
+        if (!xrManager->WaitAndBeginFrame())
+        {
+            return;
+        }
+
+        if (renWin->GetTrackHMD())
+        {
+            renWin->UpdateHMDMatrixPose();
+        }
+
+        if (xrManager->GetShouldRenderCurrentFrame())
+        {
+            // Call visual update on every scene object
+            getActiveScene()->updateVisuals();
+            // Update all the rendering delegates
+            ren->updateRenderDelegates();
+
+            // Start rendering
+            renWin->Superclass::Render();
+
+            // OpenXR does not begin until after the begin event in its event loop
+            // Yet the models can't be hidden until first render
+            if (!m_didFirstRender)
+            {
+                m_didFirstRender = true;
+                setControllerVisibility(false);
+            }
+        }
+
+        xrManager->EndFrame();
+    }
+
+    ostate->Pop();
+#else
     // Call visual update on every scene object
     getActiveScene()->updateVisuals();
     // Update all the rendering delegates
@@ -246,6 +286,7 @@ VTKOpenVRViewer::updateModule()
     // Render
     //m_vtkRenderWindow->GetInteractor()->Render();
     m_vtkRenderWindow->Render();
+#endif
 }
 
 std::shared_ptr<OpenVRDeviceClient>
@@ -257,5 +298,39 @@ VTKOpenVRViewer::getVRDeviceClient(int deviceType)
             return static_cast<int>(deviceClient->getDeviceType()) == deviceType;
         });
     return (iter == m_vrDeviceClients.end()) ? nullptr : *iter;
+}
+
+void
+VTKOpenVRViewer::setControllerVisibility(const bool visible)
+{
+    auto renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
+
+    if (renWin == nullptr)
+    {
+        LOG(FATAL) << "Tried to set controller visibility before render window was initialized";
+        return;
+    }
+
+    // Hide all controller models
+#ifdef iMSTK_USE_OPENXR
+    for (uint32_t hand :
+        { vtkOpenXRManager::ControllerIndex::Left, vtkOpenXRManager::ControllerIndex::Right })
+    {
+        vtkVRModel* trackedDeviceModel = renWin->GetModelForDeviceHandle(hand);
+        if (trackedDeviceModel != nullptr)
+        {
+            trackedDeviceModel->SetVisibility(visible);
+        }
+    }
+#else
+    for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++)
+    {
+        vtkVRModel* trackedDeviceModel = renWin->GetTrackedDeviceModel(i);
+        if (trackedDeviceModel != nullptr)
+        {
+            trackedDeviceModel->SetVisibility(false);
+        }
+    }
+#endif
 }
 } // namespace imstk

@@ -1,0 +1,84 @@
+{
+  "interaction_profile": "/interaction_profiles/oculus/touch_controller",
+
+  "bindings": {
+    "vtk-actions": {
+      "sources": [
+        {
+          "inputs": {
+            "pose": {
+              "output": "handpose"
+            }
+          },
+          "path": "/user/hand/left/input/aim"
+        },
+        {
+          "inputs": {
+            "pose": {
+              "output": "handpose"
+            }
+          },
+          "path": "/user/hand/right/input/aim"
+        },
+        {
+          "inputs": {
+            "position": {
+              "output": "leftgripmovement"
+            }
+          },
+          "path": "/user/hand/left/input/thumbstick"
+        },
+        {
+          "inputs": {
+            "position": {
+              "output": "rightgripmovement"
+            }
+          },
+          "path": "/user/hand/right/input/thumbstick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "button1pressed"
+            }
+          },
+          "path": "/user/hand/right/input/b"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "button0pressed"
+            }
+          },
+          "path": "/user/hand/right/input/a"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "button2pressed"
+            }
+          },
+          "path": "/user/hand/left/input/x"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "button3pressed"
+            }
+          },
+          "path": "/user/hand/left/input/y"
+        }
+      ],
+      "haptics": [
+        {
+          "output": "left_haptic",
+          "path": "/user/hand/left/output/haptic"
+        },
+        {
+          "output": "right_haptic",
+          "path": "/user/hand/right/output/haptic"
+        }
+      ]
+    }
+  }
+}

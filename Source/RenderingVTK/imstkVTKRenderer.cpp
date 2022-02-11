@@ -22,11 +22,11 @@
 #include "imstkVTKRenderer.h"
 #include "imstkCamera.h"
 #include "imstkDirectionalLight.h"
-#include "imstkPointLight.h"
-#include "imstkSpotLight.h"
 #include "imstkLogger.h"
+#include "imstkPointLight.h"
 #include "imstkScene.h"
 #include "imstkSceneObject.h"
+#include "imstkSpotLight.h"
 #include "imstkTextureManager.h"
 #include "imstkVisualModel.h"
 #include "imstkVTKSurfaceMeshRenderDelegate.h"
@@ -60,20 +60,16 @@
 // will automatically allocate an XR or VR depending on which was built with.
 #ifdef iMSTK_USE_OPENXR
 #include <vtkOpenXRCamera.h>
-#include <vtkOpenXRRenderWindow.h>
 #include <vtkOpenXRRenderer.h>
 
 using vtkImstkVRCamera = vtkOpenXRCamera;
 using vtkImstkVRRenderer = vtkOpenXRRenderer;
-using vtkImstkVRRenderWindow = vtkOpenXRRenderWindow;
 #else
 #include <vtkOpenVRCamera.h>
-#include <vtkOpenVRRenderWindow.h>
 #include <vtkOpenVRRenderer.h>
 
 using vtkImstkVRCamera = vtkOpenVRCamera;
 using vtkImstkVRRenderer = vtkOpenVRRenderer;
-using vtkImstkVRRenderWindow = vtkOpenVRRenderWindow;
 #endif
 
 namespace imstk
