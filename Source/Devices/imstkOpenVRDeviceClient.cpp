@@ -20,6 +20,7 @@
 =========================================================================*/
 
 #include "imstkOpenVRDeviceClient.h"
+#include "imstkLogger.h"
 
 namespace imstk
 {
@@ -70,6 +71,20 @@ OpenVRDeviceClient::emitButtonRelease(const int buttonId)
     if (prevButtonState != BUTTON_RELEASED)
     {
         this->postEvent(ButtonEvent(OpenVRDeviceClient::buttonStateChanged(), buttonId, BUTTON_RELEASED));
+    }
+}
+
+void
+OpenVRDeviceClient::applyVibration(const double amplitude, const double duration, const double frequency)
+{
+    // No way to ask the interactor to apply this here
+    if (m_vibrationFunc != nullptr)
+    {
+        m_vibrationFunc(amplitude, duration, frequency);
+    }
+    else
+    {
+        LOG(FATAL) << "Tried to apply vibration on device without vibration function";
     }
 }
 } // namespace imstk

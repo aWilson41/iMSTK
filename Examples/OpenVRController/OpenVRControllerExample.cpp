@@ -48,20 +48,19 @@ makeHandleObject()
     toolHandleMesh->rotate(Vec3d(0.0, 1.0, 0.0), 3.14, Geometry::TransformType::ApplyToData);
     toolHandleMesh->rotate(Vec3d(1.0, 0.0, 0.0), -1.57, Geometry::TransformType::ApplyToData);
     toolHandleMesh->scale(0.06, Geometry::TransformType::ApplyToData);
+    toolHandleMesh->computeVertexNormals(); // Recompute these as we have transformed the vertices
 
-    imstkNew<VisualModel> toolHandleModel;
-    toolHandleModel->setGeometry(toolHandleMesh);
-    imstkNew<RenderMaterial> material;
+    scalpelHandle->setVisualGeometry(toolHandleMesh);
+
+    std::shared_ptr<RenderMaterial> material = scalpelHandle->getVisualModel(0)->getRenderMaterial();
     material->setDisplayMode(RenderMaterial::DisplayMode::Surface);
     material->setShadingModel(RenderMaterial::ShadingModel::PBR);
-    material->setMetalness(0.9f);
-    material->setRoughness(0.2f);
+    material->setMetalness(0.9);
+    material->setRoughness(0.2);
     material->addTexture(std::make_shared<Texture>(
                 iMSTK_DATA_ROOT "/Surgical Instruments/Scalpel/Scalpel_Albedo.png",
                 Texture::Type::Diffuse));
-    toolHandleModel->setRenderMaterial(material);
-
-    scalpelHandle->addVisualModel(toolHandleModel);
+    material->setDynamicMesh(false);
 
     return scalpelHandle;
 }
@@ -75,20 +74,20 @@ makeBlade(std::string filename)
     blade10Mesh->rotate(Vec3d(0.0, 1.0, 0.0), 3.14, Geometry::TransformType::ApplyToData);
     blade10Mesh->rotate(Vec3d(1.0, 0.0, 0.0), -1.57, Geometry::TransformType::ApplyToData);
     blade10Mesh->scale(0.06, Geometry::TransformType::ApplyToData);
+    blade10Mesh->computeVertexNormals(); // Recompute these as we have transformed the vertices
 
-    imstkNew<VisualModel> blade10Model;
-    blade10Model->setGeometry(blade10Mesh);
-    imstkNew<RenderMaterial> material;
+    scalpelBlade->setVisualGeometry(blade10Mesh);
+
+    std::shared_ptr<RenderMaterial> material = scalpelBlade->getVisualModel(0)->getRenderMaterial();
     material->setDisplayMode(RenderMaterial::DisplayMode::Surface);
     material->setShadingModel(RenderMaterial::ShadingModel::PBR);
-    material->setMetalness(0.9f);
-    material->setRoughness(0.2f);
+    material->setMetalness(0.9);
+    material->setRoughness(0.2);
     material->addTexture(std::make_shared<Texture>(
                 iMSTK_DATA_ROOT "/Surgical Instruments/Scalpel/Scalpel_Albedo.png",
                 Texture::Type::Diffuse));
-    blade10Model->setRenderMaterial(material);
+    material->setDynamicMesh(false);
 
-    scalpelBlade->addVisualModel(blade10Model);
     return scalpelBlade;
 }
 
@@ -156,15 +155,20 @@ main()
         camControl->setCamera(scene->getActiveCamera());
         viewer->addControl(camControl); // Only needs to update every render
 
-        // This button event is emitted from the viewer's thread, thus it is queued to the scene so that we do not
-        // run it while the scene is updating
         bool blade10InHand = true;
-        queueConnect<ButtonEvent>(viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER), &OpenVRDeviceClient::buttonStateChanged, sceneManager,
+        connect<ButtonEvent>(viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER), &OpenVRDeviceClient::buttonStateChanged,
             [&](ButtonEvent* e)
             {
                 // When any button pressed, swap blade
                 if (e->m_buttonState == BUTTON_PRESSED)
                 {
+                    if (e->m_button == 0)
+                    {
+                        //viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER)->applyVibration(0.5f, 300000000.0f, 3000.0f);
+                        viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER)->applyVibration(0.5f, -1.0f, 0.0f);
+                        return;
+                    }
+
                     const Vec3d& posControl = viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER)->getPosition();
                     if (blade10InHand)
                     {

@@ -42,6 +42,8 @@ VTKRenderDelegate::VTKRenderDelegate(std::shared_ptr<VisualModel> visualModel) :
     m_visualModel(visualModel),
     m_material(visualModel->getRenderMaterial())
 {
+    m_transform->Identity();
+
     // When render material is modified call materialModified -> updateRenderProperties()
     queueConnect<Event>(m_material, &RenderMaterial::modified, static_cast<VTKRenderDelegate*>(this), &VTKRenderDelegate::materialModified);
 

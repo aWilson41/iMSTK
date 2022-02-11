@@ -16,8 +16,7 @@ else()
         OpenVR::OpenVR)
 endif()
 
-imstk_add_library(RenderingVTK
-  H_FILES
+set(H_FILES
     imstkRenderDelegateObjectFactory.h
     imstkVolumeRenderMaterial.h
     imstkVolumeRenderMaterialPresets.h
@@ -39,7 +38,8 @@ imstk_add_library(RenderingVTK
     RenderDelegate/imstkVTKSurfaceNormalRenderDelegate.h
     RenderDelegate/imstkVTKTetrahedralMeshRenderDelegate.h
     RenderDelegate/imstkVTKVolumeRenderDelegate.h
-  CPP_FILES
+    )
+set(SRC_FILES
     imstkRenderDelegateObjectFactory.cpp
     imstkVolumeRenderMaterial.cpp
     imstkVolumeRenderMaterialPresets.cpp
@@ -61,6 +61,27 @@ imstk_add_library(RenderingVTK
     RenderDelegate/imstkVTKSurfaceNormalRenderDelegate.cpp
     RenderDelegate/imstkVTKTetrahedralMeshRenderDelegate.cpp
     RenderDelegate/imstkVTKVolumeRenderDelegate.cpp
+    )
+
+set(DEPENDENCIES
+    Animation
+    RenderingCore
+    ${VTK_LIBRARIES}
+    )
+
+if(${PROJECT_NAME}_VTK_REPO_SOURCE STREQUAL "9.1.202202")
+    list(APPEND DEPENDENCIES
+        OpenXR::OpenXR)
+else()
+    list(APPEND DEPENDENCIES
+        OpenVR::OpenVR)
+endif()
+
+imstk_add_library(RenderingVTK
+  H_FILES
+    ${H_FILES}
+  CPP_FILES
+    ${SRC_FILES}
   SUBDIR_LIST
     RenderDelegate
   DEPENDS

@@ -1,0 +1,76 @@
+{
+  "actions": [
+    {
+      "name": "triggerpressed",
+      "type": "boolean"
+    },
+    {
+      "name": "rightgripmovement",
+      "type": "vector2"
+    },
+    {
+      "name": "leftgripmovement",
+      "type": "vector2"
+    },
+    {
+      "name": "grippressed",
+      "type": "boolean"
+    },
+    {
+      "name": "button0pressed",
+      "type": "boolean"
+    },
+    {
+      "name": "button1pressed",
+      "type": "boolean"
+    },
+    {
+      "name": "button2pressed",
+      "type": "boolean"
+    },
+    {
+      "name": "button3pressed",
+      "type": "boolean"
+    },
+    {
+      "name": "handpose",
+      "type": "pose"
+    },
+    {
+      "name": "left_haptic",
+      "type": "vibration"
+    },
+    {
+      "name": "right_haptic",
+      "type": "vibration"
+    }
+  ],
+  "default_bindings": [
+    {
+      "binding_url": "vtk_openxr_binding_oculus_touch.json",
+      "controller_type": "oculus_touch"
+    }
+  ],
+  "action_sets": [
+    {
+      "name": "vtk-actions",
+      "localizedName": "VTK actions"
+    }
+  ],
+  "localization": [
+    {
+      "handpose": "Hand Pose",
+      "left_haptic": "Left Haptic",
+      "right_haptic": "Right Haptic",
+      "grippressed": "Grip Pressed",
+      "rightgripmovement": "Right Grip Movement",
+      "leftgripmovement": "Left Grip Movement",
+      "triggerpressed": "Trigger Pressed",
+      "button0pressed": "Button0 Pressed",
+      "button1pressed": "Button1 Pressed",
+      "button2pressed": "Button2 Pressed",
+      "button3pressed": "Button3 Pressed",
+      "language_tag": "en_US"
+    }
+  ]
+}

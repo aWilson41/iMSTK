@@ -35,10 +35,16 @@ imstk_add_library(ViewerVTK
     ${SRC_FILES}
   DEPENDS
     ViewerCore
-    RenderingVTK)
+    RenderingVTK
+  )
 
 # Install VR actions json
-file(GLOB VTK_VR_JSON_FILES vtk_openvr_*.json)
+if (iMSTK_VTK_REPO_SOURCE STREQUAL "9.1.202202")
+  file(GLOB VTK_VR_JSON_FILES vtk_openxr_*.json)
+else()
+  file(GLOB VTK_VR_JSON_FILES vtk_openvr_*.json)
+endif()
+
 if (MSVC)
   # Show them in visual studios
   target_sources(ViewerVTK PRIVATE ${VTK_VR_JSON_FILES})

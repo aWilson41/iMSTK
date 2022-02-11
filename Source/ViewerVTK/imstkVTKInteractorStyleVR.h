@@ -40,6 +40,9 @@ public:
 
     void OnMove3D(vtkEventData* edata) override;
 
+    // Alternatively could be used, switch to when dropping VTK 9.1 support
+    // void SetupActions(vtkRenderWindowInteractor* iren) override;
+
     ///
     /// \brief Adds button actions
     ///
@@ -49,6 +52,13 @@ public:
     /// \brief Adds thumbstick movement actions
     ///
     void addMovementActions();
+
+#ifdef iMSTK_USE_OPENXR
+    ///
+    /// \brief Add haptics action
+    /// 
+    void addHapticAction();
+#endif
 
     std::shared_ptr<imstk::OpenVRDeviceClient> getLeftControllerDeviceClient() const { return m_leftControllerDeviceClient; }
     std::shared_ptr<imstk::OpenVRDeviceClient> getRightControllerDeviceClient() const { return m_rightControllerDeviceClient; }
