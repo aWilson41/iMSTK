@@ -19,63 +19,63 @@
 
 =========================================================================*/
 
-#include "imstkOpenVRDeviceClient.h"
+#include "imstkVRDeviceClient.h"
 #include "imstkLogger.h"
 
 namespace imstk
 {
-std::shared_ptr<OpenVRDeviceClient>
-OpenVRDeviceClient::New(DeviceType deviceType)
+std::shared_ptr<VRDeviceClient>
+VRDeviceClient::New(DeviceType deviceType)
 {
-    return std::shared_ptr<OpenVRDeviceClient>(new OpenVRDeviceClient(deviceType));
+    return std::shared_ptr<VRDeviceClient>(new VRDeviceClient(deviceType));
 }
 
 void
-OpenVRDeviceClient::emitButtonTouched(const int buttonId)
+VRDeviceClient::emitButtonTouched(const int buttonId)
 {
     const int prevButtonState = m_buttons[buttonId];
     m_buttons[buttonId] = BUTTON_TOUCHED;
     if (prevButtonState != BUTTON_TOUCHED)
     {
-        this->postEvent(ButtonEvent(OpenVRDeviceClient::buttonStateChanged(), buttonId, BUTTON_TOUCHED));
+        this->postEvent(ButtonEvent(VRDeviceClient::buttonStateChanged(), buttonId, BUTTON_TOUCHED));
     }
 }
 
 void
-OpenVRDeviceClient::emitButtonUntouched(const int buttonId)
+VRDeviceClient::emitButtonUntouched(const int buttonId)
 {
     const int prevButtonState = m_buttons[buttonId];
     m_buttons[buttonId] = BUTTON_UNTOUCHED;
     if (prevButtonState != BUTTON_UNTOUCHED)
     {
-        this->postEvent(ButtonEvent(OpenVRDeviceClient::buttonStateChanged(), buttonId, BUTTON_UNTOUCHED));
+        this->postEvent(ButtonEvent(VRDeviceClient::buttonStateChanged(), buttonId, BUTTON_UNTOUCHED));
     }
 }
 
 void
-OpenVRDeviceClient::emitButtonPress(const int buttonId)
+VRDeviceClient::emitButtonPress(const int buttonId)
 {
     const int prevButtonState = m_buttons[buttonId];
     m_buttons[buttonId] = BUTTON_PRESSED;
     if (prevButtonState != BUTTON_PRESSED)
     {
-        this->postEvent(ButtonEvent(OpenVRDeviceClient::buttonStateChanged(), buttonId, BUTTON_PRESSED));
+        this->postEvent(ButtonEvent(VRDeviceClient::buttonStateChanged(), buttonId, BUTTON_PRESSED));
     }
 }
 
 void
-OpenVRDeviceClient::emitButtonRelease(const int buttonId)
+VRDeviceClient::emitButtonRelease(const int buttonId)
 {
     const int prevButtonState = m_buttons[buttonId];
     m_buttons[buttonId] = BUTTON_RELEASED;
     if (prevButtonState != BUTTON_RELEASED)
     {
-        this->postEvent(ButtonEvent(OpenVRDeviceClient::buttonStateChanged(), buttonId, BUTTON_RELEASED));
+        this->postEvent(ButtonEvent(VRDeviceClient::buttonStateChanged(), buttonId, BUTTON_RELEASED));
     }
 }
 
 void
-OpenVRDeviceClient::applyVibration(const double amplitude, const double duration, const double frequency)
+VRDeviceClient::applyVibration(const double amplitude, const double duration, const double frequency)
 {
     // No way to ask the interactor to apply this here
     if (m_vibrationFunc != nullptr)

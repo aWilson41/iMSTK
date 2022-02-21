@@ -24,7 +24,7 @@
 
 namespace imstk
 {
-class OpenVRDeviceClient;
+class VRDeviceClient;
 } // namespace imstk
 
 ///
@@ -60,9 +60,9 @@ public:
     void addHapticAction();
 #endif
 
-    std::shared_ptr<imstk::OpenVRDeviceClient> getLeftControllerDeviceClient() const { return m_leftControllerDeviceClient; }
-    std::shared_ptr<imstk::OpenVRDeviceClient> getRightControllerDeviceClient() const { return m_rightControllerDeviceClient; }
-    std::shared_ptr<imstk::OpenVRDeviceClient> getHmdDeviceClient() const { return m_hmdDeviceClient; }
+    std::shared_ptr<imstk::VRDeviceClient> getLeftControllerDeviceClient() const { return m_leftControllerDeviceClient; }
+    std::shared_ptr<imstk::VRDeviceClient> getRightControllerDeviceClient() const { return m_rightControllerDeviceClient; }
+    std::shared_ptr<imstk::VRDeviceClient> getHmdDeviceClient() const { return m_hmdDeviceClient; }
 
     vtkInteractorStyleVR();
 
@@ -70,7 +70,7 @@ protected:
     void OnButtonPress(vtkEventData* data, int buttonId);
 
 public:
-    std::shared_ptr<imstk::OpenVRDeviceClient> m_leftControllerDeviceClient;
-    std::shared_ptr<imstk::OpenVRDeviceClient> m_rightControllerDeviceClient;
-    std::shared_ptr<imstk::OpenVRDeviceClient> m_hmdDeviceClient;
+    std::shared_ptr<imstk::VRDeviceClient> m_leftControllerDeviceClient;
+    std::shared_ptr<imstk::VRDeviceClient> m_rightControllerDeviceClient;
+    std::shared_ptr<imstk::VRDeviceClient> m_hmdDeviceClient;
 };

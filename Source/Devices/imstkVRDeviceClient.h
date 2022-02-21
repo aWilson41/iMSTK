@@ -29,28 +29,28 @@ class vtkInteractorStyleVR;
 namespace imstk
 {
 ///
-/// \class OpenVRDeviceClient
+/// \class VRDeviceClient
 ///
 /// \brief This class provides quantities for the specified VR device
 /// The devices creation is tied to the viewer. It is only acquirable
 /// from a VR viewer and exists on the viewers thread.
 ///
-class OpenVRDeviceClient : public DeviceClient
+class VRDeviceClient : public DeviceClient
 {
 protected:
     ///
     /// This object is only creatable through its New method
     ///
-    OpenVRDeviceClient(DeviceType deviceType) : DeviceClient("OpenVRDevice", ""),
+    VRDeviceClient(DeviceType deviceType) : DeviceClient("VRDevice", ""),
         m_deviceType(deviceType), m_trackpadPosition(Vec2d::Zero()) { }
 
     ///
     /// This object is only creatable through this method
     ///
-    static std::shared_ptr<OpenVRDeviceClient> New(DeviceType deviceType);
+    static std::shared_ptr<VRDeviceClient> New(DeviceType deviceType);
 
 public:
-    virtual ~OpenVRDeviceClient() override = default;
+    virtual ~VRDeviceClient() override = default;
 
     // Only the viewer is allowed to provide these objects
     friend class ::vtkInteractorStyleVR;

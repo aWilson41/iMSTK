@@ -7,7 +7,7 @@ set(H_FILES
   imstkScreenCaptureUtility.h
   imstkVTKInteractorStyle.h
   imstkVTKInteractorStyleVR.h
-  imstkVTKOpenVRViewer.h
+  imstkVTKVRViewer.h
   imstkVTKScreenCaptureUtility.h
   imstkVTKTextStatusManager.h
   imstkVTKViewer.h)
@@ -17,7 +17,7 @@ set(SRC_FILES
   imstkScreenCaptureUtility.cpp
   imstkVTKInteractorStyle.cpp
   imstkVTKInteractorStyleVR.cpp
-  imstkVTKOpenVRViewer.cpp
+  imstkVTKVRViewer.cpp
   imstkVTKScreenCaptureUtility.cpp
   imstkVTKTextStatusManager.cpp
   imstkVTKViewer.cpp)

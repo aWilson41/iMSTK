@@ -27,23 +27,23 @@
 namespace imstk
 {
 class Camera;
-class OpenVRDeviceClient;
+class VRDeviceClient;
 class SceneManager;
 } // namespace imstk
 
 using namespace imstk;
 
 ///
-/// \class CameraOpenVRControl
+/// \class CameraVRControl
 ///
 /// \brief Controls pose of a camera given two trackpads from OpenVRDeviceClient's
 ///
 ///
-class CameraOpenVRControl : public DeviceControl
+class CameraVRControl : public DeviceControl
 {
 public:
-    CameraOpenVRControl() = default;
-    virtual ~CameraOpenVRControl() override = default;
+    CameraVRControl() = default;
+    ~CameraVRControl() override = default;
 
 public:
     ///
@@ -61,14 +61,14 @@ public:
     ///
     /// \brief Get/Set the device that can translate the camera
     ///
-    void setTranslateDevice(std::shared_ptr<OpenVRDeviceClient> translateDevice) { m_translateDevice = translateDevice; }
-    std::shared_ptr<OpenVRDeviceClient> getTranslateDevice() const { return m_translateDevice; }
+    void setTranslateDevice(std::shared_ptr<VRDeviceClient> translateDevice) { m_translateDevice = translateDevice; }
+    std::shared_ptr<VRDeviceClient> getTranslateDevice() const { return m_translateDevice; }
 
     ///
     /// \brief Get/Set the device that can rotate the camera
     ///
-    void setRotateDevice(std::shared_ptr<OpenVRDeviceClient> rotateDevice) { m_rotateDevice = rotateDevice; }
-    std::shared_ptr<OpenVRDeviceClient> getRotateDevice() const { return m_rotateDevice; }
+    void setRotateDevice(std::shared_ptr<VRDeviceClient> rotateDevice) { m_rotateDevice = rotateDevice; }
+    std::shared_ptr<VRDeviceClient> getRotateDevice() const { return m_rotateDevice; }
 
     ///
     /// \brief Get/Set the camera to be controlled
@@ -85,8 +85,8 @@ public:
     void update(const double dt) override;
 
 protected:
-    std::shared_ptr<OpenVRDeviceClient> m_translateDevice = nullptr;
-    std::shared_ptr<OpenVRDeviceClient> m_rotateDevice    = nullptr;
+    std::shared_ptr<VRDeviceClient> m_translateDevice = nullptr;
+    std::shared_ptr<VRDeviceClient> m_rotateDevice    = nullptr;
 
     std::shared_ptr<Camera> m_camera = nullptr;
 

@@ -19,13 +19,12 @@
 
 =========================================================================*/
 
-#include "CameraOpenVRControl.h"
+#include "CameraVRControl.h"
 #include "imstkCamera.h"
 #include "imstkDirectionalLight.h"
 #include "imstkLogger.h"
 #include "imstkMeshIO.h"
 #include "imstkNew.h"
-#include "imstkOpenVRDeviceClient.h"
 #include "imstkRenderMaterial.h"
 #include "imstkScene.h"
 #include "imstkSceneManager.h"
@@ -35,7 +34,8 @@
 #include "imstkSurfaceMesh.h"
 #include "imstkVisualModel.h"
 #include "imstkVisualObjectImporter.h"
-#include "imstkVTKOpenVRViewer.h"
+#include "imstkVRDeviceClient.h"
+#include "imstkVTKVRViewer.h"
 
 using namespace imstk;
 
@@ -127,8 +127,7 @@ main()
 
     {
         // Add a module to run the viewer
-        imstkNew<VTKOpenVRViewer> viewer;
-        viewer->setExecutionType(Module::ExecutionType::SEQUENTIAL);
+        imstkNew<VTKVRViewer> viewer;
         viewer->setActiveScene(scene);
 
         // Add a module to run the scene
@@ -141,22 +140,22 @@ main()
         driver->setDesiredDt(0.01); // Spend less time updating & more time rendering
 
         // Add a VR controller for the scalpel handle
-        imstkNew<SceneObjectController> controller1(scalpelHandle, viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER));
+        imstkNew<SceneObjectController> controller1(scalpelHandle, viewer->getVRDeviceClient(RIGHT_CONTROLLER));
         scene->addController(controller1);
         // Add a VR controller for the scalpel blade
-        imstkNew<SceneObjectController> controller2(scalpelBlade10, viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER));
+        imstkNew<SceneObjectController> controller2(scalpelBlade10, viewer->getVRDeviceClient(RIGHT_CONTROLLER));
         scene->addController(controller2);
 
-        imstkNew<CameraOpenVRControl> camControl;
-        camControl->setRotateDevice(viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER));
-        camControl->setTranslateDevice(viewer->getVRDeviceClient(OPENVR_LEFT_CONTROLLER));
+        imstkNew<CameraVRControl> camControl;
+        camControl->setRotateDevice(viewer->getVRDeviceClient(RIGHT_CONTROLLER));
+        camControl->setTranslateDevice(viewer->getVRDeviceClient(LEFT_CONTROLLER));
         camControl->setTranslateSpeedScale(1.0);
         camControl->setRotateSpeedScale(1.0);
         camControl->setCamera(scene->getActiveCamera());
         viewer->addControl(camControl); // Only needs to update every render
 
         bool blade10InHand = true;
-        connect<ButtonEvent>(viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER), &OpenVRDeviceClient::buttonStateChanged,
+        connect<ButtonEvent>(viewer->getVRDeviceClient(RIGHT_CONTROLLER), &VRDeviceClient::buttonStateChanged,
             [&](ButtonEvent* e)
             {
                 // When any button pressed, swap blade
@@ -165,11 +164,11 @@ main()
                     if (e->m_button == 0)
                     {
                         //viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER)->applyVibration(0.5f, 300000000.0f, 3000.0f);
-                        viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER)->applyVibration(0.5f, -1.0f, 0.0f);
+                        viewer->getVRDeviceClient(RIGHT_CONTROLLER)->applyVibration(0.5f, -1.0f, 0.0f);
                         return;
                     }
 
-                    const Vec3d& posControl = viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER)->getPosition();
+                    const Vec3d& posControl = viewer->getVRDeviceClient(RIGHT_CONTROLLER)->getPosition();
                     if (blade10InHand)
                     {
                         // Swap to blade 15 only if it's close in space

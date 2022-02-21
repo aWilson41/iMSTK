@@ -25,24 +25,21 @@
 
 namespace imstk
 {
-class OpenVRDeviceClient;
+class VRDeviceClient;
 
 ///
-/// \class VTKViewer
+/// \class VTKVRViewer
 ///
 /// \brief Subclasses viewer for the VTK rendering back-end
 /// Creates vtk renderer for each scene. Forwards mouse and keyboard events
 /// to the vtk renderwindow
 ///
-class VTKOpenVRViewer : public AbstractVTKViewer
+class VTKVRViewer : public AbstractVTKViewer
 {
 public:
-    VTKOpenVRViewer(std::string name = "VTKOpenVRViewer");
-    ~VTKOpenVRViewer() override      = default;
+    VTKVRViewer(std::string name = "VTKVRViewer");
+    ~VTKVRViewer() override      = default;
 
-    ///
-    /// \brief Destructor
-    ///
     void setRenderingMode(const Renderer::Mode mode) override;
 
     ///
@@ -63,15 +60,15 @@ public:
     ///
     /// \brief Get one of the device clients for VR
     ///
-    std::shared_ptr<OpenVRDeviceClient> getVRDeviceClient(int deviceType);
+    std::shared_ptr<VRDeviceClient> getVRDeviceClient(int deviceType);
 
     ///
     /// \brief Acquire the full list of VR devices tied to this viewer
     ///
-    const std::vector<std::shared_ptr<OpenVRDeviceClient>>& getVRDeviceClients() const { return m_vrDeviceClients; }
+    const std::vector<std::shared_ptr<VRDeviceClient>>& getVRDeviceClients() const { return m_vrDeviceClients; }
 
     ///
-    /// \brief VTKOpenVRViewer overrides to provide a non-rendering
+    /// \brief VTKVRViewer overrides to provide a non-rendering
     /// event processing loop (to deal with vsync blockage)
     ///
     void processEvents() override;
@@ -86,9 +83,9 @@ protected:
 
     void updateModule() override;
 
-    std::vector<std::shared_ptr<OpenVRDeviceClient>> m_vrDeviceClients; ///> The VR controllers are tied to the view
+    std::vector<std::shared_ptr<VRDeviceClient>> m_vrDeviceClients; ///> The VR controllers are tied to the view
 #ifdef iMSTK_USE_OPENXR
     bool m_didFirstRender = false;                                  ///> Used for lazy initialization of models
 #endif
 };
-} // imstk
+} // namespace imstk

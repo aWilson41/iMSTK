@@ -19,15 +19,15 @@
 
 =========================================================================*/
 
-#include "CameraOpenVRControl.h"
+#include "CameraVRControl.h"
 #include "imstkCamera.h"
 #include "imstkLogger.h"
-#include "imstkOpenVRDeviceClient.h"
+#include "imstkVRDeviceClient.h"
 
 using namespace imstk;
 
 void
-CameraOpenVRControl::printControls()
+CameraVRControl::printControls()
 {
     LOG(INFO) << "Mouse Scene Controls: Only usable in debug mode";
     LOG(INFO) << "----------------------------------------------------------------------";
@@ -37,7 +37,7 @@ CameraOpenVRControl::printControls()
 }
 
 void
-CameraOpenVRControl::update(const double dt)
+CameraVRControl::update(const double dt)
 {
     // We may switch cameras on the controller
     if (m_camera == nullptr)

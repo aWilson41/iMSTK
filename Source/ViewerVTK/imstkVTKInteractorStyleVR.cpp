@@ -21,7 +21,7 @@
 
 #include "imstkVTKInteractorStyleVR.h"
 #include "imstkLogger.h"
-#include "imstkOpenVRDeviceClient.h"
+#include "imstkVRDeviceClient.h"
 
 #include <vtkEventData.h>
 #include <vtkMath.h>
@@ -39,9 +39,9 @@ vtkStandardNewMacro(vtkInteractorStyleVR);
 vtkInteractorStyleVR::vtkInteractorStyleVR()
 {
     // Setup the VR device clients
-    m_leftControllerDeviceClient  = imstk::OpenVRDeviceClient::New(OPENVR_LEFT_CONTROLLER);
-    m_rightControllerDeviceClient = imstk::OpenVRDeviceClient::New(OPENVR_RIGHT_CONTROLLER);
-    m_hmdDeviceClient = imstk::OpenVRDeviceClient::New(OPENVR_HMD);
+    m_leftControllerDeviceClient  = imstk::VRDeviceClient::New(LEFT_CONTROLLER);
+    m_rightControllerDeviceClient = imstk::VRDeviceClient::New(RIGHT_CONTROLLER);
+    m_hmdDeviceClient = imstk::VRDeviceClient::New(VR_HMD);
 }
 
 void
