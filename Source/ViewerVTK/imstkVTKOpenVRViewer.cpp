@@ -115,7 +115,7 @@ VTKOpenVRViewer::setActiveScene(std::shared_ptr<Scene> scene)
 void
 VTKOpenVRViewer::setPhysicalToWorldTransform(const Mat4d& physicalToWorldMatrix)
 {
-    auto renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
+    auto                 renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
     vtkNew<vtkMatrix4x4> mat;
     for (int i = 0; i < 4; i++)
     {
@@ -130,7 +130,7 @@ VTKOpenVRViewer::setPhysicalToWorldTransform(const Mat4d& physicalToWorldMatrix)
 Mat4d
 VTKOpenVRViewer::getPhysicalToWorldTransform()
 {
-    auto renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
+    auto                 renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
     Mat4d                transform;
     vtkNew<vtkMatrix4x4> mat;
     renWin->GetPhysicalToWorldMatrix(mat);
@@ -229,8 +229,8 @@ VTKOpenVRViewer::updateModule()
 
     // For the VR view we can't supply the a camera in the normal sense
     // we need to pre multiply a "user view"
-    std::shared_ptr<Camera> cam = getActiveScene()->getActiveCamera();
-    const Mat4d& view = cam->getView();
+    std::shared_ptr<Camera> cam  = getActiveScene()->getActiveCamera();
+    const Mat4d&            view = cam->getView();
     setPhysicalToWorldTransform(view);
 
 #ifdef iMSTK_USE_OPENXR
@@ -314,7 +314,7 @@ VTKOpenVRViewer::setControllerVisibility(const bool visible)
     // Hide all controller models
 #ifdef iMSTK_USE_OPENXR
     for (uint32_t hand :
-        { vtkOpenXRManager::ControllerIndex::Left, vtkOpenXRManager::ControllerIndex::Right })
+         { vtkOpenXRManager::ControllerIndex::Left, vtkOpenXRManager::ControllerIndex::Right })
     {
         vtkVRModel* trackedDeviceModel = renWin->GetModelForDeviceHandle(hand);
         if (trackedDeviceModel != nullptr)

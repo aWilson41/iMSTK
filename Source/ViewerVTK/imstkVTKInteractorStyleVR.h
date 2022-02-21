@@ -56,7 +56,7 @@ public:
 #ifdef iMSTK_USE_OPENXR
     ///
     /// \brief Add haptics action
-    /// 
+    ///
     void addHapticAction();
 #endif
 

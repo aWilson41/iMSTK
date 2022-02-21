@@ -78,7 +78,7 @@ public:
 
     ///
     /// \brief Toggle the controller model representation. Default off.
-    /// 
+    ///
     void setControllerVisibility(const bool visible);
 
 protected:
@@ -88,7 +88,7 @@ protected:
 
     std::vector<std::shared_ptr<OpenVRDeviceClient>> m_vrDeviceClients; ///> The VR controllers are tied to the view
 #ifdef iMSTK_USE_OPENXR
-    bool m_didFirstRender = false; ///> Used for lazy initialization of models
+    bool m_didFirstRender = false;                                  ///> Used for lazy initialization of models
 #endif
 };
 } // imstk

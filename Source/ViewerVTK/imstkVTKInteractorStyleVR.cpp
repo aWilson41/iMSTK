@@ -92,22 +92,22 @@ vtkInteractorStyleVR::addMovementActions()
         "interactor has been initialized";
     iren->AddAction("/actions/vtk/in/LeftGripMovement", true,
 #endif
-        [this](vtkEventData* ed)
-        {
-            vtkEventDataDevice3D* edd = ed->GetAsEventDataDevice3D();
-            const double* pos = edd->GetTrackPadPosition();
-            m_leftControllerDeviceClient->setTrackpadPosition(imstk::Vec2d(pos[0], pos[1]));
+        [this](vtkEventData * ed)
+    {
+        vtkEventDataDevice3D* edd = ed->GetAsEventDataDevice3D();
+        const double* pos = edd->GetTrackPadPosition();
+        m_leftControllerDeviceClient->setTrackpadPosition(imstk::Vec2d(pos[0], pos[1]));
         });
 #ifdef iMSTK_USE_OPENXR
     iren->AddAction("rightgripmovement",
 #else
     iren->AddAction("/actions/vtk/in/RightGripMovement", true,
 #endif
-        [this](vtkEventData* ed)
-        {
-            vtkEventDataDevice3D* edd = ed->GetAsEventDataDevice3D();
-            const double* pos = edd->GetTrackPadPosition();
-            m_rightControllerDeviceClient->setTrackpadPosition(imstk::Vec2d(pos[0], pos[1]));
+        [this](vtkEventData * ed)
+    {
+        vtkEventDataDevice3D* edd = ed->GetAsEventDataDevice3D();
+        const double* pos = edd->GetTrackPadPosition();
+        m_rightControllerDeviceClient->setTrackpadPosition(imstk::Vec2d(pos[0], pos[1]));
         });
 }
 
@@ -149,9 +149,9 @@ vtkInteractorStyleVR::addButtonActions()
             "interactor has been initialized";
         iren->AddAction(buttonActionNames[i], false,
 #endif
-            [this, i](vtkEventData* ed)
-            {
-                OnButtonPress(ed, i);
+            [this, i](vtkEventData * ed)
+        {
+            OnButtonPress(ed, i);
             });
     }
 }
@@ -165,16 +165,16 @@ vtkInteractorStyleVR::addHapticAction()
         LOG(FATAL) << "Cannot add haptic actions, wrong interactor";
         return;
     }
-    
+
     // Allow the devices to call vibration without it having to hold the interactor
     m_leftControllerDeviceClient->setVibrationFunc([iren](double amplitude, double duration, double frequency)
         {
             iren->ApplyVibration("left_haptic", vtkOpenXRManager::ControllerIndex::Left, amplitude, duration, frequency);
         });
     m_rightControllerDeviceClient->setVibrationFunc([iren](double amplitude, double duration, double frequency)
-        {
-            iren->ApplyVibration("right_haptic", vtkOpenXRManager::ControllerIndex::Right, amplitude, duration, frequency);
-        });
+                                                    {
+                                                        iren->ApplyVibration("right_haptic", vtkOpenXRManager::ControllerIndex::Right, amplitude, duration, frequency);
+                                                    });
 }
 
 void
@@ -185,7 +185,7 @@ vtkInteractorStyleVR::OnMove3D(vtkEventData* eventData)
         return;
     }
     vtkEventDataDevice3D* eventDataDevice = static_cast<vtkEventDataDevice3D*>(eventData);
-    if (vtkEventDataDevice::LeftController == eventDataDevice->GetDevice())
+                                                                               if (vtkEventDataDevice::LeftController == eventDataDevice->GetDevice())
     {
         imstk::Vec3d pos;
         eventDataDevice->GetWorldPosition(pos.data());
@@ -194,7 +194,7 @@ vtkInteractorStyleVR::OnMove3D(vtkEventData* eventData)
         m_leftControllerDeviceClient->setPose(pos, imstk::Quatd(imstk::Rotd(vtkMath::RadiansFromDegrees(orientation[0]),
             imstk::Vec3d(orientation[1], orientation[2], orientation[3]))));
     }
-    else if (vtkEventDataDevice::RightController == eventDataDevice->GetDevice())
+                                                                               else if (vtkEventDataDevice::RightController == eventDataDevice->GetDevice())
     {
         imstk::Vec3d pos;
         eventDataDevice->GetWorldPosition(pos.data());
@@ -203,7 +203,7 @@ vtkInteractorStyleVR::OnMove3D(vtkEventData* eventData)
         m_rightControllerDeviceClient->setPose(pos, imstk::Quatd(imstk::Rotd(vtkMath::RadiansFromDegrees(orientation[0]),
             imstk::Vec3d(orientation[1], orientation[2], orientation[3]))));
     }
-    else if (vtkEventDataDevice::HeadMountedDisplay == eventDataDevice->GetDevice())
+                                                                               else if (vtkEventDataDevice::HeadMountedDisplay == eventDataDevice->GetDevice())
     {
         imstk::Vec3d pos;
         eventDataDevice->GetWorldPosition(pos.data());
