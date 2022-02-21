@@ -32,9 +32,9 @@ namespace imstk
 using DeviceType = int;
 #define UNKNOWN_DEVICE 0
 #define OPENHAPTICS_DEVICE 1
-#define OPENVR_LEFT_CONTROLLER 3
-#define OPENVR_RIGHT_CONTROLLER 4
-#define OPENVR_HMD 5
+#define LEFT_CONTROLLER 3
+#define RIGHT_CONTROLLER 4
+#define VR_HMD 5
 
 using ButtonStateType = int;
 #define BUTTON_RELEASED 0
@@ -51,7 +51,7 @@ public:
     {
     }
 
-    virtual ~ButtonEvent() override = default;
+    ~ButtonEvent() override = default;
 
     ButtonStateType m_buttonState;
     const int       m_button = -1;

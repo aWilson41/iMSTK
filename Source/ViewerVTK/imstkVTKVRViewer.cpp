@@ -19,12 +19,12 @@
 
 =========================================================================*/
 
-#include "imstkVTKOpenVRViewer.h"
+#include "imstkVTKVRViewer.h"
 #include "imstkCamera.h"
 #include "imstkDeviceControl.h"
 #include "imstkLogger.h"
-#include "imstkOpenVRDeviceClient.h"
 #include "imstkScene.h"
+#include "imstkVRDeviceClient.h"
 #include "imstkVTKInteractorStyleVR.h"
 #include "imstkVTKRenderer.h"
 
@@ -53,7 +53,7 @@ using vtkImstkVRRenderWindowInteractor = vtkOpenVRRenderWindowInteractorImstk;
 
 namespace imstk
 {
-VTKOpenVRViewer::VTKOpenVRViewer(std::string name) : AbstractVTKViewer(name)
+VTKVRViewer::VTKVRViewer(std::string name) : AbstractVTKViewer(name)
 {
     // Create the interactor style
     auto vrInteractorStyle = vtkSmartPointer<vtkInteractorStyleVR>::New();
@@ -75,7 +75,7 @@ VTKOpenVRViewer::VTKOpenVRViewer(std::string name) : AbstractVTKViewer(name)
 }
 
 void
-VTKOpenVRViewer::setActiveScene(std::shared_ptr<Scene> scene)
+VTKVRViewer::setActiveScene(std::shared_ptr<Scene> scene)
 {
     // If already current scene
     if (scene == m_activeScene)
@@ -113,7 +113,7 @@ VTKOpenVRViewer::setActiveScene(std::shared_ptr<Scene> scene)
 }
 
 void
-VTKOpenVRViewer::setPhysicalToWorldTransform(const Mat4d& physicalToWorldMatrix)
+VTKVRViewer::setPhysicalToWorldTransform(const Mat4d& physicalToWorldMatrix)
 {
     auto                 renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
     vtkNew<vtkMatrix4x4> mat;
@@ -128,7 +128,7 @@ VTKOpenVRViewer::setPhysicalToWorldTransform(const Mat4d& physicalToWorldMatrix)
 }
 
 Mat4d
-VTKOpenVRViewer::getPhysicalToWorldTransform()
+VTKVRViewer::getPhysicalToWorldTransform()
 {
     auto                 renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
     Mat4d                transform;
@@ -145,7 +145,7 @@ VTKOpenVRViewer::getPhysicalToWorldTransform()
 }
 
 void
-VTKOpenVRViewer::setRenderingMode(const Renderer::Mode mode)
+VTKVRViewer::setRenderingMode(const Renderer::Mode mode)
 {
     if (!m_activeScene)
     {
@@ -159,7 +159,7 @@ VTKOpenVRViewer::setRenderingMode(const Renderer::Mode mode)
 }
 
 void
-VTKOpenVRViewer::processEvents()
+VTKVRViewer::processEvents()
 {
     // Custom call to only process input events, do not perform a render
     auto iren = vtkImstkVRRenderWindowInteractor::SafeDownCast(m_vtkRenderWindow->GetInteractor());
@@ -174,7 +174,7 @@ VTKOpenVRViewer::processEvents()
 }
 
 bool
-VTKOpenVRViewer::initModule()
+VTKVRViewer::initModule()
 {
     if (!AbstractVTKViewer::initModule())
     {
@@ -219,7 +219,7 @@ VTKOpenVRViewer::initModule()
 }
 
 void
-VTKOpenVRViewer::updateModule()
+VTKVRViewer::updateModule()
 {
     auto ren = std::dynamic_pointer_cast<imstk::VTKRenderer>(getActiveRenderer());
     if (ren == nullptr)
@@ -289,11 +289,11 @@ VTKOpenVRViewer::updateModule()
 #endif
 }
 
-std::shared_ptr<OpenVRDeviceClient>
-VTKOpenVRViewer::getVRDeviceClient(int deviceType)
+std::shared_ptr<VRDeviceClient>
+VTKVRViewer::getVRDeviceClient(int deviceType)
 {
     auto iter = std::find_if(m_vrDeviceClients.begin(), m_vrDeviceClients.end(),
-        [&](const std::shared_ptr<OpenVRDeviceClient>& deviceClient)
+        [&](const std::shared_ptr<VRDeviceClient>& deviceClient)
         {
             return static_cast<int>(deviceClient->getDeviceType()) == deviceType;
         });
@@ -301,7 +301,7 @@ VTKOpenVRViewer::getVRDeviceClient(int deviceType)
 }
 
 void
-VTKOpenVRViewer::setControllerVisibility(const bool visible)
+VTKVRViewer::setControllerVisibility(const bool visible)
 {
     auto renWin = vtkImstkVRRenderWindow::SafeDownCast(m_vtkRenderWindow);
 
