@@ -75,7 +75,7 @@ makeRigidObj(const std::string& name)
         toolMaterial->setMetalness(0.9);
         toolMaterial->setRoughness(0.4);
         toolMaterial->setDiffuseColor(Color(0.7, 0.7, 0.7));
-        toolMaterial->setDynamicMesh(false);
+        toolMaterial->setIsDynamicMesh(false);
 
         // Create the object
         rigidObj->setVisualGeometry(toolMesh);
