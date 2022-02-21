@@ -62,13 +62,13 @@
 #include <vtkOpenXRCamera.h>
 #include <vtkOpenXRRenderer.h>
 
-using vtkImstkVRCamera = vtkOpenXRCamera;
+using vtkImstkVRCamera   = vtkOpenXRCamera;
 using vtkImstkVRRenderer = vtkOpenXRRenderer;
 #else
 #include <vtkOpenVRCamera.h>
 #include <vtkOpenVRRenderer.h>
 
-using vtkImstkVRCamera = vtkOpenVRCamera;
+using vtkImstkVRCamera   = vtkOpenVRCamera;
 using vtkImstkVRRenderer = vtkOpenVRRenderer;
 #endif
 

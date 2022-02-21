@@ -73,7 +73,7 @@ public:
 
     ///
     /// \brief Apply a vibration on the device
-    /// 
+    ///
     void applyVibration(const double amplitude, const double duration, const double frequency);
 
 protected:
