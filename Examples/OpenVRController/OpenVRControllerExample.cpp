@@ -60,7 +60,7 @@ makeHandleObject()
     material->addTexture(std::make_shared<Texture>(
                 iMSTK_DATA_ROOT "/Surgical Instruments/Scalpel/Scalpel_Albedo.png",
                 Texture::Type::Diffuse));
-    material->setDynamicMesh(false);
+    material->setIsDynamicMesh(false);
 
     return scalpelHandle;
 }
@@ -86,7 +86,7 @@ makeBlade(std::string filename)
     material->addTexture(std::make_shared<Texture>(
                 iMSTK_DATA_ROOT "/Surgical Instruments/Scalpel/Scalpel_Albedo.png",
                 Texture::Type::Diffuse));
-    material->setDynamicMesh(false);
+    material->setIsDynamicMesh(false);
 
     return scalpelBlade;
 }
