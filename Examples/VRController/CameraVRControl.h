@@ -90,6 +90,8 @@ protected:
 
     std::shared_ptr<Camera> m_camera = nullptr;
 
+    Mat4d m_deltaTransform = Mat4d::Identity();
+
     // User changeable values
     double m_rotateSpeedScale    = 1.0;
     double m_translateSpeedScale = 1.0;

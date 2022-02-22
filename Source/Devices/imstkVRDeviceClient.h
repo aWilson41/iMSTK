@@ -50,7 +50,7 @@ protected:
     static std::shared_ptr<VRDeviceClient> New(DeviceType deviceType);
 
 public:
-    virtual ~VRDeviceClient() override = default;
+    ~VRDeviceClient() override = default;
 
     // Only the viewer is allowed to provide these objects
     friend class ::vtkInteractorStyleVR;
@@ -59,7 +59,11 @@ public:
     DeviceType getDeviceType() const { return m_deviceType; }
 
     const Vec2d& getTrackpadPosition() { return m_trackpadPosition; }
-    void setTrackpadPosition(const Vec2d& pos) { m_trackpadPosition = pos; }
+    void setTrackpadPosition(const Vec2d& pos)
+    {
+        m_trackpadUpdated  = true;
+        m_trackpadPosition = pos;
+    }
 
     ///
     /// \brief Set the current position and orientation
@@ -76,6 +80,8 @@ public:
     ///
     void applyVibration(const double amplitude, const double duration, const double frequency);
 
+    void update() override;
+
 protected:
     void setVibrationFunc(std::function<void(double, double, double)> vibrationFunc) { m_vibrationFunc = vibrationFunc; }
 
@@ -89,7 +95,9 @@ protected:
 
 private:
     DeviceType m_deviceType;
-    Vec2d      m_trackpadPosition;
+
+    bool  m_trackpadUpdated = false;
+    Vec2d m_trackpadPosition;
 
     std::function<void(double, double, double)> m_vibrationFunc = nullptr;
 };

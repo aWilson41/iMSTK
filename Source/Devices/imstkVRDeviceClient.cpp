@@ -87,4 +87,19 @@ VRDeviceClient::applyVibration(const double amplitude, const double duration, co
         LOG(FATAL) << "Tried to apply vibration on device without vibration function";
     }
 }
+
+void
+VRDeviceClient::update()
+{
+    // The trackpad doesn't emit events when not moving and at 0. So it should be reset to 0
+    // before updating. Otherwise taking thumb off would result in nonzero trackpad position.
+    // Our update loop is ([process input events -> update] -> render)
+    // Meaning we can't reset before updating. So we use a flag to indicate whether a new
+    // trackpad position was delivered or not.
+    if (!m_trackpadUpdated)
+    {
+        m_trackpadPosition = Vec2d::Zero();
+    }
+    m_trackpadUpdated = false;
+}
 } // namespace imstk
