@@ -6,6 +6,38 @@
       "sources": [
         {
           "inputs": {
+            "value": {
+              "output": "grippressed"
+            }
+          },
+          "path": "/user/hand/left/input/squeeze"
+        },
+        {
+          "inputs": {
+            "value": {
+              "output": "grippressed"
+            }
+          },
+          "path": "/user/hand/right/input/squeeze"
+        },
+        {
+          "inputs": {
+            "value": {
+              "output": "triggerpressed"
+            }
+          },
+          "path": "/user/hand/left/input/trigger"
+        },
+        {
+          "inputs": {
+            "value": {
+              "output": "triggerpressed"
+            }
+          },
+          "path": "/user/hand/right/input/trigger"
+        },
+        {
+          "inputs": {
             "pose": {
               "output": "handpose"
             }

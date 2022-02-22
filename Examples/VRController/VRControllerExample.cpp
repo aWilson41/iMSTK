@@ -102,7 +102,7 @@ main()
     Logger::startLogger();
 
     // Setup the scene
-    imstkNew<Scene> scene("OpenVRControllerExample");
+    imstkNew<Scene> scene("VRControllerExample");
 
     std::shared_ptr<SceneObject> scalpelHandle = makeHandleObject();
     scene->addSceneObject(scalpelHandle);
@@ -154,21 +154,18 @@ main()
         camControl->setCamera(scene->getActiveCamera());
         viewer->addControl(camControl); // Only needs to update every render
 
-        bool blade10InHand = true;
-        connect<ButtonEvent>(viewer->getVRDeviceClient(RIGHT_CONTROLLER), &VRDeviceClient::buttonStateChanged,
+        bool                            blade10InHand = true;
+        std::shared_ptr<VRDeviceClient> rightControllerDevice = viewer->getVRDeviceClient(RIGHT_CONTROLLER);
+        connect<ButtonEvent>(rightControllerDevice, &VRDeviceClient::buttonStateChanged,
             [&](ButtonEvent* e)
             {
                 // When any button pressed, swap blade
                 if (e->m_buttonState == BUTTON_PRESSED)
                 {
-                    if (e->m_button == 0)
-                    {
-                        //viewer->getVRDeviceClient(OPENVR_RIGHT_CONTROLLER)->applyVibration(0.5f, 300000000.0f, 3000.0f);
-                        viewer->getVRDeviceClient(RIGHT_CONTROLLER)->applyVibration(0.5f, -1.0f, 0.0f);
-                        return;
-                    }
+                    //rightControllerDevice->applyVibration(0.5f, 300000000.0f, 3000.0f);
+                    rightControllerDevice->applyVibration(0.5f, -1.0f, 0.0f);
 
-                    const Vec3d& posControl = viewer->getVRDeviceClient(RIGHT_CONTROLLER)->getPosition();
+                    const Vec3d& posControl = rightControllerDevice->getPosition();
                     if (blade10InHand)
                     {
                         // Swap to blade 15 only if it's close in space
