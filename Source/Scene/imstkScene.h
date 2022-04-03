@@ -257,6 +257,8 @@ public:
     ///
     double getFPS() const { return m_fps; }
 
+    double getSceneTime() const { return m_sceneTime; }
+
     ///
     /// \brief Get the map of elapsed times
     ///
@@ -277,7 +279,7 @@ public:
 protected:
     std::shared_ptr<SceneConfig> m_config;
 
-    std::string m_name; ///> Name of the scene
+    std::string m_name; ///< Name of the scene
     std::unordered_set<std::shared_ptr<SceneObject>> m_sceneObjects;
     std::unordered_map<std::string, std::shared_ptr<Light>> m_lightsMap;
     std::shared_ptr<IblProbe> m_globalIBLProbe = nullptr;
@@ -285,16 +287,17 @@ protected:
     std::unordered_map<std::string, std::shared_ptr<Camera>> m_cameras;
     std::shared_ptr<Camera> m_activeCamera;
 
-    std::vector<std::shared_ptr<TrackingDeviceControl>> m_trackingControllers; ///> List of object controllers
+    std::vector<std::shared_ptr<TrackingDeviceControl>> m_trackingControllers; ///< List of object controllers
 
-    std::shared_ptr<TaskGraph> m_taskGraph;                                    ///> Computational graph
-    std::shared_ptr<TaskGraphController> m_taskGraphController   = nullptr;    ///> Controller for the computational graph
+    std::shared_ptr<TaskGraph> m_taskGraph;                                    ///< Computational graph
+    std::shared_ptr<TaskGraphController> m_taskGraphController   = nullptr;    ///< Controller for the computational graph
     std::function<void(Scene*)> m_postTaskGraphConfigureCallback = nullptr;
 
     std::shared_ptr<ParallelUtils::SpinLock> m_computeTimesLock;
-    std::unordered_map<std::string, double>  m_nodeComputeTimes; ///> Map of ComputeNode names to elapsed times for benchmarking
+    std::unordered_map<std::string, double>  m_nodeComputeTimes; ///< Map of ComputeNode names to elapsed times for benchmarking
 
-    double m_fps = 0.0;
+    double m_fps       = 0.0;
+    double m_sceneTime = 0.0; ///< Scene time/simulation total time, updated at the end of scene update
 
     std::atomic<bool> m_resetRequested = ATOMIC_VAR_INIT(false);
 };
