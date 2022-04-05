@@ -55,9 +55,9 @@ public:
 
     ///
     /// \brief Compute value and gradient of the constraint
-    ///
-    /// \param[in] currVertexPositions vector of current positions
-    /// \param[inout] c constraint value
+    /// \param Vertex positions of particles
+    /// \param Constraint value
+    /// \param Normalized constraint gradients (per vertex)
     ///
     virtual bool computeValueAndGradient(
         const VecDataArray<double, 3>& currVertexPositions,
@@ -104,12 +104,12 @@ public:
     virtual void projectConstraint(const DataArray<double>& currInvMasses, const double dt, const SolverType& type, VecDataArray<double, 3>& pos);
 
 protected:
-    std::vector<size_t> m_vertexIds;   ///> index of points for the constraint
-    double m_epsilon        = 1.0e-16; ///> Tolerance used for the costraints
-    double m_stiffness      = 1.0;     ///> used in PBD, [0, 1]
-    double m_compliance     = 1e-7;    ///> used in xPBD, inverse of Young's Modulus
-    mutable double m_lambda = 0.0;     ///> Lagrange multiplier
+    std::vector<size_t> m_vertexIds;   ///< index of points for the constraint
+    double m_epsilon        = 1.0e-16; ///< Tolerance used for the costraints
+    double m_stiffness      = 1.0;     ///< used in PBD, [0, 1]
+    double m_compliance     = 1e-7;    ///< used in xPBD, inverse of Young's Modulus
+    mutable double m_lambda = 0.0;     ///< Lagrange multiplier
 
-    std::vector<Vec3d> m_dcdx;
+    std::vector<Vec3d> m_dcdx; ///< Normalized constraint gradients (per vertex)
 };
 } // namespace imstk
