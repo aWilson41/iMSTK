@@ -42,11 +42,22 @@ function(imstk_add_test_internal target kind)
   imstk_add_executable(${test_driver_executable} ${test_files})
 
   # Link test driver against current target and GTest
-  target_link_libraries(${test_driver_executable}
+  set(DEPENDENCIES
     ${target}
     Testing
     GTest::gtest
     GTest::gmock
+    )
+
+  # Visual tests link to VisualTesting library
+  if (${kind} STREQUAL "VisualTests")
+    list(APPEND DEPENDENCIES
+      VisualTesting
+      )
+  endif()
+
+  target_link_libraries(${test_driver_executable} PUBLIC
+    ${DEPENDENCIES}
     )
 
 if (MSVC)
