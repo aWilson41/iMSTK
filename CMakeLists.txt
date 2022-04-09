@@ -145,6 +145,8 @@ endif ()
 option(${PROJECT_NAME}_BUILD_BENCHMARK "Build iMSTK benchmarks" OFF)
 mark_as_superbuild(${PROJECT_NAME}_BUILD_BENCHMARK:BOOL)
 
+option(BUILD_SHARED_LIBS "Build iMSTK shared or static libraries" ON)
+mark_as_superbuild(BUILD_SHARED_LIBS:BOOL)
 
 if (UNIX)
   option(${PROJECT_NAME}_USE_MODEL_REDUCTION "Build with model reduction, requires a VegaFEM built with Intel MKL and arpack" OFF)

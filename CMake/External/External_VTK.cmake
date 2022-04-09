@@ -60,6 +60,7 @@ imstk_add_external_project( VTK
   ${${PROJECT_NAME}_VTK_HASH}
   CMAKE_ARGS
        ${VTK_MODULE_SETTINGS}
+      -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
       -DVTK_WRAP_PYTHON:BOOL=OFF
       -DVTK_LEGACY_REMOVE:BOOL=ON
       -DCMAKE_INSTALL_RPATH:PATH=$ORIGIN/../lib
@@ -68,6 +69,6 @@ imstk_add_external_project( VTK
   #VERBOSE
 )
 if(NOT USE_SYSTEM_VTK)
-  set(VTK_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/vtk-9.0)
+  set(VTK_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/vtk-9.1)
   #message(STATUS "VTK_DIR : ${VTK_DIR}")
 endif()

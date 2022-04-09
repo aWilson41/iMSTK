@@ -13,12 +13,12 @@ endmacro()
 function(imstk_add_library target)
 
   set(options VERBOSE)
-  set(oneValueArgs)
+  set(oneValueArgs TYPE)
   set(multiValueArgs H_FILES CPP_FILES SUBDIR_LIST EXCLUDE_FILES DEPENDS)
   include(CMakeParseArguments)
   cmake_parse_arguments(target "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
-  message(STATUS "Configuring ${target}")
+  message(STATUS "Configuring ${target} [${target_TYPE}]")
 
   #-----------------------------------------------------------------------------
   # Verbose (display arguments)
@@ -63,10 +63,23 @@ function(imstk_add_library target)
   #-----------------------------------------------------------------------------
   # Create target (library)
   #-----------------------------------------------------------------------------
-  add_library( ${target} STATIC
+  add_library( ${target} ${target_TYPE}
     ${target_H_FILES}
     ${target_CPP_FILES}
+    ${CMAKE_CURRENT_BINARY_DIR}/${target}_export.h
     )
+
+  #-----------------------------------------------------------------------------
+  # Generate export header
+  #-----------------------------------------------------------------------------
+  include(GenerateExportHeader)
+  generate_export_header(${target})
+
+  # If you still want to build static, this tells header to do that
+  if(target_TYPE STREQUAL "STATIC")
+    string(TOUPPER ${target} TARGET_UPPER)
+    add_definitions(-D${TARGET_UPPER}_STATIC_DEFINE)
+  endif()
 
   #-----------------------------------------------------------------------------
   # Link libraries to current target
@@ -79,6 +92,9 @@ function(imstk_add_library target)
   target_link_libraries( ${target} PUBLIC
     ${${target}_LIBRARIES}
     )
+
+  # Append the build directory for generated includes
+  list(APPEND target_BUILD_INTERFACE_LIST "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
 
   #-----------------------------------------------------------------------------
   # Include directories
