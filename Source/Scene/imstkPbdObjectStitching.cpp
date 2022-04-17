@@ -124,7 +124,6 @@ getWeights(const std::vector<VertexMassPair>& cellVerts, const Vec3d& pt)
 };
 
 PbdObjectStitching::PbdObjectStitching(std::shared_ptr<PbdObject> obj) :
-    SceneObject("PbdObjectStitching_" + obj->getName()),
     m_objectToStitch(obj), m_pickMethod(std::make_shared<CellPicker>())
 {
     m_stitchingNode = std::make_shared<TaskNode>(std::bind(&PbdObjectStitching::updateStitching, this),

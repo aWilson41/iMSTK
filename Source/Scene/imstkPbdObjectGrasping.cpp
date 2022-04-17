@@ -90,7 +90,6 @@ getElement(const PickData& pickData, const MeshSide& side)
 }
 
 PbdObjectGrasping::PbdObjectGrasping(std::shared_ptr<PbdObject> obj) :
-    SceneObject("PbdObjectGrasping_" + obj->getName()),
     m_objectToGrasp(obj), m_pickMethod(std::make_shared<CellPicker>())
 {
     m_pickingNode = std::make_shared<TaskNode>(std::bind(&PbdObjectGrasping::updatePicking, this),
