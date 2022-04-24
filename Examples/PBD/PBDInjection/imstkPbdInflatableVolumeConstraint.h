@@ -37,12 +37,12 @@ public:
     ///
     /// \brief Initializes the inflatable volume constraint
     ///
-    void initConstraint(const VecDataArray<double, 3>& initVertexPositions,
-                        const size_t& pIdx0, const size_t& pIdx1,
-                        const size_t& pIdx2, const size_t& pIdx3,
+    void initConstraint(const Vec3d& p0, const Vec3d& p1, const Vec3d& p2, const Vec3d& p3,
+                        const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
+                        const BodyVertexId& pIdx2, const BodyVertexId& pIdx3,
                         const double k = 2.0)
     {
-        PbdVolumeConstraint::initConstraint(initVertexPositions, pIdx0, pIdx1, pIdx2, pIdx3, k);
+        PbdVolumeConstraint::initConstraint(p0, p1, p2, p3, pIdx0, pIdx1, pIdx2, pIdx3, k);
         m_initialRestVolume = m_restVolume;
     }
 
@@ -92,8 +92,11 @@ struct PbdInflatableVolumeConstraintFunctor : public PbdVolumeConstraintFunctor
             {
                 auto& tet = elements[k];
                 auto c    = std::make_shared<PbdInflatableVolumeConstraint>();
-                c->initConstraint(vertices,
-                    tet[0], tet[1], tet[2], tet[3], m_stiffness);
+                c->initConstraint(
+                    vertices[tet[0]], vertices[tet[1]], vertices[tet[2]], vertices[tet[3]],
+                    { m_bodyIndex, tet[0] }, { m_bodyIndex, tet[1] },
+                    { m_bodyIndex, tet[2] }, { m_bodyIndex, tet[3] },
+                    m_stiffness);
                 constraints.addConstraint(c);
             });
     }

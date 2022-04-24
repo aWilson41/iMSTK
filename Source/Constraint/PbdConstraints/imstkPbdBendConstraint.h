@@ -33,11 +33,7 @@ namespace imstk
 class PbdBendConstraint : public PbdConstraint
 {
 public:
-    PbdBendConstraint() : PbdConstraint()
-    {
-        m_vertexIds.resize(3);
-        m_dcdx.resize(3);
-    }
+    PbdBendConstraint() : PbdConstraint(3) { }
 
     /**
         \brief initConstraint
@@ -55,11 +51,11 @@ public:
         \param k stiffness
     */
     void initConstraint(
-        const VecDataArray<double, 3>& initVertexPositions,
-        const size_t pIdx1, const size_t pIdx2, const size_t pIdx3,
+        const Vec3d& initPos0, const Vec3d& initPos1, const Vec3d& initPos2,
+        const BodyVertexId& pIdx0, const BodyVertexId& pIdx1, const BodyVertexId& pIdx2,
         const double k);
     void initConstraint(
-        const size_t pIdx1, const size_t pIdx2, const size_t pIdx3,
+        const BodyVertexId& pIdx0, const BodyVertexId& pIdx1, const BodyVertexId& pIdx2,
         const double restLength,
         const double k);
 
@@ -67,9 +63,9 @@ public:
     /// \brief Compute the value and gradient of constraint
     ///
     bool computeValueAndGradient(
-        const VecDataArray<double, 3>& currVertexPosition,
-        double& c,
-        std::vector<Vec3d>& dcdx) const override;
+        std::vector<PbdBody>& bodies,
+        double&               c,
+        std::vector<Vec3d>&   dcdx) const override;
 public:
     double m_restLength = 0.; ///< Rest length
 };

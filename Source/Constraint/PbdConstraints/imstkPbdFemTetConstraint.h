@@ -35,22 +35,23 @@ class PbdFemTetConstraint : public PbdFemConstraint
 {
 public:
     PbdFemTetConstraint(MaterialType mType = MaterialType::StVK) :
-        PbdFemConstraint(4, mType) {}
+        PbdFemConstraint(4, mType) { }
 
     ///
     /// \brief Initialize the tetrahedral FEM constraint
     ///
-    bool initConstraint(const VecDataArray<double, 3>& initVertexPositions,
-                        const size_t& pIdx1, const size_t& pIdx2,
-                        const size_t& pIdx3, const size_t& pIdx4,
-                        std::shared_ptr<PbdFemConstraintConfig> config);
+    bool initConstraint(
+        const Vec3d& p0, const Vec3d& p1, const Vec3d& p2, const Vec3d& p3,
+        const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
+        const BodyVertexId& pIdx2, const BodyVertexId& pIdx3,
+        std::shared_ptr<PbdFemConstraintConfig> config);
 
     ///
     /// \brief Compute the value and gradient of constraint
     ///
     bool computeValueAndGradient(
-        const VecDataArray<double, 3>& currVertexPosition,
-        double& c,
-        std::vector<Vec3d>& dcdx) const override;
+        std::vector<PbdBody>& bodies,
+        double&               c,
+        std::vector<Vec3d>&   dcdx) const override;
 };
 } // namespace imstk

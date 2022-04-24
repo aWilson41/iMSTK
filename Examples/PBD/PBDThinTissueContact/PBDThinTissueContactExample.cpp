@@ -68,17 +68,6 @@ makeTissueObj(const std::string& name,
     imstkNew<PbdModelConfig> pbdParams;
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 5000.0);
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Dihedral, 5000.0);
-    for (int x = 0; x < rowCount; x++)
-    {
-        for (int y = 0; y < colCount; y++)
-        {
-            if (x == 0 || y == 0 || x == rowCount - 1 || y == colCount - 1)
-            {
-                pbdParams->m_fixedNodeIds.push_back(x * colCount + y);
-            }
-        }
-    }
-    pbdParams->m_uniformMassValue = width * height / (rowCount * colCount);
     pbdParams->m_gravity    = Vec3d(0.0, -20.0, 0.0); // Slightly larger gravity to compensate viscosity
     pbdParams->m_dt         = 0.005;
     pbdParams->m_iterations = 2;
@@ -111,6 +100,18 @@ makeTissueObj(const std::string& name,
     pbdObject->setPhysicsGeometry(clothMesh);
     pbdObject->setCollidingGeometry(clothMesh);
     pbdObject->setDynamicalModel(pbdModel);
+
+    pbdObject->getPbdBody()->uniformMassValue = width * height / (rowCount * colCount);
+    for (int x = 0; x < rowCount; x++)
+    {
+        for (int y = 0; y < colCount; y++)
+        {
+            if (x == 0 || y == 0 || x == rowCount - 1 || y == colCount - 1)
+            {
+                pbdObject->getPbdBody()->fixedNodeIds.push_back(x * colCount + y);
+            }
+        }
+    }
 
     return pbdObject;
 }

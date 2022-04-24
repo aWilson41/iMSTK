@@ -33,24 +33,24 @@ namespace imstk
 class PbdDistanceConstraint : public PbdConstraint
 {
 public:
-    PbdDistanceConstraint() : PbdConstraint()
-    {
-        m_vertexIds.resize(2);
-        m_dcdx.resize(2);
-    }
+    PbdDistanceConstraint() : PbdConstraint(2) { }
 
     ///
     /// \brief Initializes the distance constraint
-    ///
-    void initConstraint(const VecDataArray<double, 3>& initVertexPositions,
-                        const size_t& pIdx0,
-                        const size_t& pIdx1,
+    ///@{
+    void initConstraint(
+        const Vec3d& p0, const Vec3d& p1,
+        const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
+        const double k = 1e5);
+    void initConstraint(const double restLength,
+                        const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
                         const double k = 1e5);
+    ///@}
 
     bool computeValueAndGradient(
-        const VecDataArray<double, 3>& currVertexPositions,
-        double& c,
-        std::vector<Vec3d>& dcdx) const override;
+        std::vector<PbdBody>& bodies,
+        double&               c,
+        std::vector<Vec3d>&   dcdx) const override;
 
 public:
     double m_restLength = 0.0; ///< Rest length between the nodes

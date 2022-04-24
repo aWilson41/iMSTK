@@ -24,7 +24,8 @@
 namespace imstk
 {
 void
-PbdConstraint::projectConstraint(const DataArray<double>& invMasses, const double dt, const SolverType& solverType, VecDataArray<double, 3>& pos)
+PbdConstraint::projectConstraint(std::vector<PbdBody>& bodies,
+                                 const double dt, const SolverType& solverType)
 {
     if (dt == 0.0)
     {
@@ -32,7 +33,7 @@ PbdConstraint::projectConstraint(const DataArray<double>& invMasses, const doubl
     }
 
     double c      = 0.0;
-    bool   update = this->computeValueAndGradient(pos, c, m_dcdx);
+    bool   update = this->computeValueAndGradient(bodies, c, m_dcdx);
     if (!update)
     {
         return;
@@ -42,9 +43,11 @@ PbdConstraint::projectConstraint(const DataArray<double>& invMasses, const doubl
     double lambda = 0.0;
     double alpha  = 0.0;
 
-    for (size_t i = 0; i < m_vertexIds.size(); ++i)
+    for (size_t i = 0; i < m_bodyVertexIds.size(); i++)
     {
-        dcMidc += invMasses[m_vertexIds[i]] * m_dcdx[i].squaredNorm();
+        const size_t& bodyId = m_bodyVertexIds[i].first;
+        const size_t& vertId = m_bodyVertexIds[i].second;
+        dcMidc += (*bodies[bodyId].invMasses)[vertId] * m_dcdx[i].squaredNorm();
     }
 
     if (dcMidc < IMSTK_DOUBLE_EPS)
@@ -68,12 +71,17 @@ PbdConstraint::projectConstraint(const DataArray<double>& invMasses, const doubl
         m_lambda += lambda;
     }
 
-    for (size_t i = 0, vid = 0; i < m_vertexIds.size(); ++i)
+    size_t vertexId = 0;
+    size_t bodyId   = 0;
+    for (size_t i = 0; i < m_bodyVertexIds.size(); i++)
     {
-        vid = m_vertexIds[i];
-        if (invMasses[vid] > 0.0)
+        bodyId   = m_bodyVertexIds[i].first;
+        vertexId = m_bodyVertexIds[i].second;
+
+        const double invMass = (*bodies[bodyId].invMasses)[vertexId];
+        if (invMass > 0.0)
         {
-            pos[vid] += invMasses[vid] * lambda * m_dcdx[i];
+            (*bodies[bodyId].vertices)[vertexId] += invMass * lambda * m_dcdx[i];
         }
     }
 }

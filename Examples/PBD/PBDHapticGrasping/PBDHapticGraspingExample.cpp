@@ -73,23 +73,11 @@ makePbdObjSurface(const std::string& name,
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Dihedral, 1.0);
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 1.0);
 
-    pbdParams->m_doPartitioning   = true;
-    pbdParams->m_uniformMassValue = 0.05;
+    pbdParams->m_doPartitioning = true;
     pbdParams->m_gravity    = Vec3d(0.0, 0.0, 0.0);
     pbdParams->m_dt         = 0.005;
     pbdParams->m_iterations = numIter;
     pbdParams->m_viscousDampingCoeff = 0.003;
-
-    // Fix the borders
-    for (int vert_id = 0; vert_id < surfMesh->getNumVertices(); vert_id++)
-    {
-        auto position = surfMesh->getVertexPosition(vert_id);
-
-        if (position(1) == -2.0)
-        {
-            pbdParams->m_fixedNodeIds.push_back(vert_id);
-        }
-    }
 
     // Setup the Model
     imstkNew<PbdModel> pbdModel;
@@ -110,6 +98,17 @@ makePbdObjSurface(const std::string& name,
     prismObj->setPhysicsGeometry(surfMesh);
     prismObj->setCollidingGeometry(surfMesh);
     prismObj->setDynamicalModel(pbdModel);
+    prismObj->getPbdBody()->uniformMassValue = 0.05;
+    // Fix the borders
+    for (int vert_id = 0; vert_id < surfMesh->getNumVertices(); vert_id++)
+    {
+        auto position = surfMesh->getVertexPosition(vert_id);
+
+        if (position(1) == -2.0)
+        {
+            prismObj->getPbdBody()->fixedNodeIds.push_back(vert_id);
+        }
+    }
 
     return prismObj;
 }

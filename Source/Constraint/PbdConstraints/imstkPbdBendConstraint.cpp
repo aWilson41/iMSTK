@@ -24,14 +24,11 @@
 namespace imstk
 {
 void
-PbdBendConstraint::initConstraint(const VecDataArray<double, 3>& initVertexPositions,
-                                  const size_t pIdx0, const size_t pIdx1, const size_t pIdx2,
-                                  const double k)
+PbdBendConstraint::initConstraint(
+    const Vec3d& p0, const Vec3d& p1, const Vec3d& p2,
+    const BodyVertexId& pIdx0, const BodyVertexId& pIdx1, const BodyVertexId& pIdx2,
+    const double k)
 {
-    const Vec3d& p0 = initVertexPositions[pIdx0];
-    const Vec3d& p1 = initVertexPositions[pIdx1];
-    const Vec3d& p2 = initVertexPositions[pIdx2];
-
     // Instead of using the angle between the segments we can use the distance
     // from the center of the triangle
     const Vec3d& center = (p0 + p1 + p2) / 3.0;
@@ -41,13 +38,13 @@ PbdBendConstraint::initConstraint(const VecDataArray<double, 3>& initVertexPosit
 
 void
 PbdBendConstraint::initConstraint(
-    const size_t pIdx0, const size_t pIdx1, const size_t pIdx2,
+    const BodyVertexId& pIdx0, const BodyVertexId& pIdx1, const BodyVertexId& pIdx2,
     const double restLength,
     const double k)
 {
-    m_vertexIds[0] = pIdx0;
-    m_vertexIds[1] = pIdx1;
-    m_vertexIds[2] = pIdx2;
+    m_bodyVertexIds[0] = pIdx0;
+    m_bodyVertexIds[1] = pIdx1;
+    m_bodyVertexIds[2] = pIdx2;
 
     setStiffness(k);
 
@@ -56,17 +53,17 @@ PbdBendConstraint::initConstraint(
 
 bool
 PbdBendConstraint::computeValueAndGradient(
-    const VecDataArray<double, 3>& currVertexPositions,
-    double& c,
-    std::vector<Vec3d>& dcdx) const
+    std::vector<PbdBody>& bodies,
+    double&               c,
+    std::vector<Vec3d>&   dcdx) const
 {
-    const size_t i0 = m_vertexIds[0];
-    const size_t i1 = m_vertexIds[1];
-    const size_t i2 = m_vertexIds[2];
+    const BodyVertexId& i0 = m_bodyVertexIds[0];
+    const BodyVertexId& i1 = m_bodyVertexIds[1];
+    const BodyVertexId& i2 = m_bodyVertexIds[2];
 
-    const Vec3d& p0 = currVertexPositions[i0];
-    const Vec3d& p1 = currVertexPositions[i1];
-    const Vec3d& p2 = currVertexPositions[i2];
+    const Vec3d& p0 = (*bodies[i0.first].vertices)[i0.second];
+    const Vec3d& p1 = (*bodies[i1.first].vertices)[i1.second];
+    const Vec3d& p2 = (*bodies[i2.first].vertices)[i2.second];
 
     // Move towards triangle center
     const Vec3d& center = (p0 + p1 + p2) / 3.0;

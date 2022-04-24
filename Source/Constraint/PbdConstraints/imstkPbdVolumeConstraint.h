@@ -33,27 +33,24 @@ namespace imstk
 class PbdVolumeConstraint : public PbdConstraint
 {
 public:
-    PbdVolumeConstraint()
-    {
-        m_vertexIds.resize(4);
-        m_dcdx.resize(4);
-    }
+    PbdVolumeConstraint() : PbdConstraint(4) { }
 
     ///
     /// \brief Initializes the volume constraint
     ///
-    void initConstraint(const VecDataArray<double, 3>& initVertexPositions,
-                        const size_t& pIdx1, const size_t& pIdx2,
-                        const size_t& pIdx3, const size_t& pIdx4,
-                        const double k = 2.0);
+    void initConstraint(
+        const Vec3d& p0, const Vec3d& p1, const Vec3d& p2, const Vec3d& p3,
+        const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
+        const BodyVertexId& pIdx2, const BodyVertexId& pIdx3,
+        const double k = 2.0);
 
     ///
     /// \brief Compute the value and gradient of constraint
     ///
     bool computeValueAndGradient(
-        const VecDataArray<double, 3>& currVertexPosition,
-        double& c,
-        std::vector<Vec3d>& dcdx) const override;
+        std::vector<PbdBody>& bodies,
+        double&               c,
+        std::vector<Vec3d>&   dcdx) const override;
 
 protected:
     double m_restVolume = 0.0; ///< Rest volume

@@ -53,63 +53,51 @@ PbdModelConfig::computeElasticConstants()
 }
 
 void
-PbdModelConfig::enableConstraint(ConstraintGenType type, double stiffness)
+PbdModelConfig::enableConstraint(ConstraintGenType type, double stiffness, const int bodyId)
 {
     auto& funcs = m_functors[type];
     if (type == ConstraintGenType::Distance)
     {
-        if (funcs.size() == 0)
-        {
-            funcs.push_back(std::make_shared<PbdDistanceConstraintFunctor>());
-        }
-        auto functor = std::dynamic_pointer_cast<PbdDistanceConstraintFunctor>(funcs.front());
+        auto functor = std::make_shared<PbdDistanceConstraintFunctor>();
+        funcs.push_back(functor);
         functor->setStiffness(stiffness);
+        functor->setBodyIndex(bodyId);
     }
     else if (type == ConstraintGenType::Volume)
     {
-        if (funcs.size() == 0)
-        {
-            funcs.push_back(std::make_shared<PbdVolumeConstraintFunctor>());
-        }
-        auto functor = std::dynamic_pointer_cast<PbdVolumeConstraintFunctor>(funcs.front());
+        auto functor = std::make_shared<PbdVolumeConstraintFunctor>();
+        funcs.push_back(functor);
         functor->setStiffness(stiffness);
+        functor->setBodyIndex(bodyId);
     }
     else if (type == ConstraintGenType::Area)
     {
-        if (funcs.size() == 0)
-        {
-            funcs.push_back(std::make_shared<PbdAreaConstraintFunctor>());
-        }
-        auto functor = std::dynamic_pointer_cast<PbdAreaConstraintFunctor>(funcs.front());
+        auto functor = std::make_shared<PbdAreaConstraintFunctor>();
+        funcs.push_back(functor);
         functor->setStiffness(stiffness);
+        functor->setBodyIndex(bodyId);
     }
     else if (type == ConstraintGenType::Bend)
     {
-        if (funcs.size() == 0)
-        {
-            funcs.push_back(std::make_shared<PbdBendConstraintFunctor>());
-        }
-        auto functor = std::dynamic_pointer_cast<PbdBendConstraintFunctor>(funcs.front());
+        auto functor = std::make_shared<PbdBendConstraintFunctor>();
+        funcs.push_back(functor);
         functor->setStiffness(stiffness);
         functor->setStride(1);
+        functor->setBodyIndex(bodyId);
     }
     else if (type == ConstraintGenType::Dihedral)
     {
-        if (funcs.size() == 0)
-        {
-            funcs.push_back(std::make_shared<PbdDihedralConstraintFunctor>());
-        }
-        auto functor = std::dynamic_pointer_cast<PbdDihedralConstraintFunctor>(funcs.front());
+        auto functor = std::make_shared<PbdDihedralConstraintFunctor>();
+        funcs.push_back(functor);
         functor->setStiffness(stiffness);
+        functor->setBodyIndex(bodyId);
     }
     else if (type == ConstraintGenType::ConstantDensity)
     {
-        if (funcs.size() == 0)
-        {
-            funcs.push_back(std::make_shared<PbdConstantDensityConstraintFunctor>());
-        }
-        auto functor = std::dynamic_pointer_cast<PbdConstantDensityConstraintFunctor>(funcs.front());
+        auto functor = std::make_shared<PbdConstantDensityConstraintFunctor>();
+        funcs.push_back(functor);
         functor->setStiffness(stiffness);
+        functor->setBodyIndex(bodyId);
     }
     else
     {
@@ -118,7 +106,7 @@ PbdModelConfig::enableConstraint(ConstraintGenType type, double stiffness)
 }
 
 void
-PbdModelConfig::enableBendConstraint(const double stiffness, const int stride, const bool restLength0)
+PbdModelConfig::enableBendConstraint(const double stiffness, const int stride, const bool restLength0, const int bodyId)
 {
     auto& funcs = m_functors[ConstraintGenType::Bend];
 
@@ -126,8 +114,7 @@ PbdModelConfig::enableBendConstraint(const double stiffness, const int stride, c
     std::shared_ptr<PbdBendConstraintFunctor> foundFunctor = nullptr;
     for (auto functor : funcs)
     {
-        auto bendFunctor =
-            std::dynamic_pointer_cast<PbdBendConstraintFunctor>(functor);
+        auto bendFunctor = std::dynamic_pointer_cast<PbdBendConstraintFunctor>(functor);
         if (bendFunctor->getStride() == stride)
         {
             foundFunctor = bendFunctor;
@@ -143,12 +130,13 @@ PbdModelConfig::enableBendConstraint(const double stiffness, const int stride, c
     }
 
     foundFunctor->setRestLength(restLength0 ? 0.0 : -1.0);
+    foundFunctor->setBodyIndex(bodyId);
     foundFunctor->setStiffness(stiffness);
     foundFunctor->setStride(stride);
 }
 
 void
-PbdModelConfig::enableFemConstraint(PbdFemConstraint::MaterialType material)
+PbdModelConfig::enableFemConstraint(PbdFemConstraint::MaterialType material, const int bodyId)
 {
     auto& funcs = m_functors[ConstraintGenType::FemTet];
     if (funcs.size() == 0)
@@ -156,14 +144,12 @@ PbdModelConfig::enableFemConstraint(PbdFemConstraint::MaterialType material)
         funcs.push_back(std::make_shared<PbdFemTetConstraintFunctor>());
     }
     auto functor = std::dynamic_pointer_cast<PbdFemTetConstraintFunctor>(funcs.front());
+    functor->setBodyIndex(bodyId);
     functor->setFemConfig(m_femParams);
     functor->setMaterialType(material);
 }
 
 PbdModel::PbdModel() : DynamicalModel(DynamicalModelType::PositionBasedDynamics),
-    m_mass(std::make_shared<DataArray<double>>()),
-    m_invMass(std::make_shared<DataArray<double>>()),
-    m_fixedNodeInvMass(std::make_shared<std::unordered_map<size_t, double>>()),
     m_config(std::make_shared<PbdModelConfig>())
 {
     m_validGeometryTypes = {
@@ -192,9 +178,15 @@ PbdModel::configure(std::shared_ptr<PbdModelConfig> config)
 bool
 PbdModel::initialize()
 {
-    LOG_IF(FATAL, (!this->getModelGeometry())) << "Model geometry is not yet set! Cannot initialize without model geometry.";
-
-    initState();
+    getCurrentState()->initialize();
+    // Setup the initial state
+    getInitialState()->setState(getCurrentState());
+    getPreviousState()->setState(getCurrentState());
+    // Use ptr reference on initial state to the initial positions in the mesh
+    for (auto body : getInitialState()->m_bodies)
+    {
+        body->vertices = getInitialState()->getBodyGeometry(*body)->getInitialVertexPositions();
+    }
 
     // Initialize constraints
     {
@@ -202,14 +194,29 @@ PbdModel::initialize()
 
         m_config->computeElasticConstants();
 
-        auto pointSet = std::dynamic_pointer_cast<PointSet>(getModelGeometry());
-        for (auto functorVec : m_config->m_functors)
+        // Run the functor for every body
+        for (const auto& functorVec : m_config->m_functors)
         {
-            for (auto functorPtr : functorVec.second)
+            for (const auto& functor : functorVec.second)
             {
-                PbdConstraintFunctor& functor = *functorPtr;
-                functor.setGeometry(pointSet);
-                functor(*m_constraints);
+                // If a body functor, run on a specific body
+                if (auto bodyFunctor = std::dynamic_pointer_cast<PbdBodyConstraintFunctor>(functor))
+                {
+                    for (const auto& body : getCurrentState()->m_bodies)
+                    {
+                        // Only execute if this is that body
+                        if (bodyFunctor->m_bodyIndex == body->bodyHandle)
+                        {
+                            bodyFunctor->setGeometry(getCurrentState()->getBodyGeometry(*body));
+                            (*bodyFunctor)(*m_constraints);
+                        }
+                    }
+                }
+                // If not a body functor always run it
+                else
+                {
+                    (*functor)(*m_constraints);
+                }
             }
         }
 
@@ -228,88 +235,9 @@ PbdModel::initialize()
     if (m_pbdSolver == nullptr)
     {
         m_pbdSolver = std::make_shared<PbdSolver>();
-        m_pbdSolver->setIterations(m_config->m_iterations);
-        m_pbdSolver->setSolverType(m_config->m_solverType);
     }
-    m_pbdSolver->setPositions(getCurrentState()->getPositions());
-    m_pbdSolver->setInvMasses(getInvMasses());
-    m_pbdSolver->setConstraints(getConstraints());
-    m_pbdSolver->setTimeStep(m_config->m_dt);
-
-    this->setTimeStepSizeType(m_timeStepSizeType);
 
     return true;
-}
-
-void
-PbdModel::initState()
-{
-    // Get the mesh
-    m_mesh = std::dynamic_pointer_cast<PointSet>(m_geometry);
-    const int numParticles = m_mesh->getNumVertices();
-
-    m_initialState  = std::make_shared<PbdState>(numParticles);
-    m_previousState = std::make_shared<PbdState>(numParticles);
-    m_currentState  = std::make_shared<PbdState>(numParticles);
-
-    // Set the positional values (by ptr reference)
-    m_initialState->setPositions(m_mesh->getInitialVertexPositions());
-    m_currentState->setPositions(m_mesh->getVertexPositions());
-    m_previousState->setPositions(std::make_shared<VecDataArray<double, 3>>(*m_mesh->getVertexPositions()));
-
-    // Initialize Mass+InvMass
-    {
-        // If the input mesh has masses defined, use those
-        std::shared_ptr<AbstractDataArray> masses = m_mesh->getVertexAttribute("Mass");
-        if (masses != nullptr && masses->getNumberOfComponents() == 1 && masses->getScalarType() == IMSTK_DOUBLE && masses->size() == numParticles)
-        {
-            m_mass = std::dynamic_pointer_cast<DataArray<double>>(masses);
-            m_invMass->resize(m_mass->size());
-            for (int i = 0; i < m_mass->size(); i++)
-            {
-                (*m_invMass)[i] = ((*m_mass)[i] == 0.0) ? 0.0 : 1.0 / (*m_mass)[i];
-            }
-        }
-        // If not, initialize as uniform and put on mesh
-        else
-        {
-            // Initialize as uniform
-            m_mass->resize(numParticles);
-            m_invMass->resize(numParticles);
-
-            const double uniformMass = m_config->m_uniformMassValue;
-            std::fill(m_mass->begin(), m_mass->end(), uniformMass);
-            std::fill(m_invMass->begin(), m_invMass->end(), (uniformMass != 0.0) ? 1.0 / uniformMass : 0.0);
-
-            m_mesh->setVertexAttribute("Mass", m_mass);
-        }
-        m_mesh->setVertexAttribute("InvMass", m_invMass);
-    }
-
-    // Initialize Velocities
-    {
-        // If the input mesh has per vertex velocities, use those
-        std::shared_ptr<AbstractDataArray> velocities = m_mesh->getVertexAttribute("Velocities");
-        if (velocities != nullptr && velocities->getNumberOfComponents() == 3 && velocities->getScalarType() == IMSTK_DOUBLE
-            && std::dynamic_pointer_cast<VecDataArray<double, 3>>(velocities)->size() == numParticles)
-        {
-            m_currentState->setVelocities(std::dynamic_pointer_cast<VecDataArray<double, 3>>(velocities));
-        }
-        // If not, put existing (0 initialized velocities) on mesh
-        else
-        {
-            m_mesh->setVertexAttribute("Velocities", m_currentState->getVelocities());
-        }
-    }
-
-    // Define accelerations on the geometry
-    m_mesh->setVertexAttribute("Accelerations", m_currentState->getAccelerations());
-
-    // Overwrite some masses for specified fixed points
-    for (auto i : m_config->m_fixedNodeIds)
-    {
-        setFixedPoint(i);
-    }
 }
 
 void
@@ -335,59 +263,32 @@ PbdModel::addConstraints(std::shared_ptr<std::unordered_set<size_t>> vertices)
 }
 
 void
-PbdModel::setParticleMass(const double val, const size_t idx)
-{
-    DataArray<double>& masses    = *m_mass;
-    DataArray<double>& invMasses = *m_invMass;
-    if (idx < m_mesh->getNumVertices())
-    {
-        masses[idx]    = val;
-        invMasses[idx] = 1.0 / val;
-    }
-}
-
-void
-PbdModel::setFixedPoint(const size_t idx)
-{
-    DataArray<double>&                  invMasses = *m_invMass;
-    std::unordered_map<size_t, double>& fixedNodeInvMass = *m_fixedNodeInvMass;
-    if (idx < m_mesh->getNumVertices())
-    {
-        fixedNodeInvMass[idx] = invMasses[idx];
-        invMasses[idx] = 0.0;
-    }
-}
-
-void
-PbdModel::setPointUnfixed(const size_t idx)
-{
-    DataArray<double>&                  invMasses = *m_invMass;
-    std::unordered_map<size_t, double>& fixedNodeInvMass = *m_fixedNodeInvMass;
-    if (fixedNodeInvMass.find(idx) != fixedNodeInvMass.end())
-    {
-        invMasses[idx] = fixedNodeInvMass[idx];
-        fixedNodeInvMass.erase(idx);
-    }
-}
-
-void
 PbdModel::integratePosition()
 {
-    std::shared_ptr<VecDataArray<double, 3>> prevPosPtr = m_previousState->getPositions();
-    VecDataArray<double, 3>&                 prevPos    = *prevPosPtr;
+    for (const auto& body : getCurrentState()->m_bodies)
+    {
+        integratePosition(*body);
+    }
+}
 
-    std::shared_ptr<VecDataArray<double, 3>> posPtr = m_currentState->getPositions();
-    VecDataArray<double, 3>&                 pos    = *posPtr;
+void
+PbdModel::integratePosition(const PbdBody& body)
+{
+    VecDataArray<double, 3>& pos       = *body.vertices;
+    VecDataArray<double, 3>& prevPos   = *body.prevVertices;
+    VecDataArray<double, 3>& vel       = *body.velocities;
+    VecDataArray<double, 3>& accn      = *body.accelerations;
+    const DataArray<double>& invMasses = *body.invMasses;
 
-    std::shared_ptr<VecDataArray<double, 3>> velPtr = m_currentState->getVelocities();
-    VecDataArray<double, 3>&                 vel    = *velPtr;
+    // Check all the arrays are the same
+    const int numVerts = pos.size();
+    CHECK(numVerts == prevPos.size()) << "PbdModel data corrupt";
+    CHECK(numVerts == vel.size()) << "PbdModel data corrupt";
+    CHECK(numVerts == accn.size()) << "PbdModel data corrupt";
+    CHECK(numVerts == invMasses.size()) << "PbdModel data corrupt";
 
-    std::shared_ptr<VecDataArray<double, 3>> accnPtr   = m_currentState->getAccelerations();
-    VecDataArray<double, 3>&                 accn      = *accnPtr;
-    const DataArray<double>&                 invMasses = *m_invMass;
-
-    ParallelUtils::parallelFor(m_mesh->getNumVertices(),
-        [&](const size_t i)
+    ParallelUtils::parallelFor(numVerts,
+        [&](const int i)
         {
             if (std::abs(invMasses[i]) > 0.0)
             {
@@ -396,39 +297,50 @@ PbdModel::integratePosition()
                 prevPos[i] = pos[i];
                 pos[i]    += (1.0 - m_config->m_viscousDampingCoeff) * vel[i] * m_config->m_dt;
             }
-        }, m_mesh->getNumVertices() > 50);
+        }, numVerts > 50); // Only run parallel when more than 50 pts
 }
 
 void
 PbdModel::updateVelocity()
 {
-    std::shared_ptr<VecDataArray<double, 3>> prevPosPtr = m_previousState->getPositions();
-    const VecDataArray<double, 3>&           prevPos    = *prevPosPtr;
-    std::shared_ptr<VecDataArray<double, 3>> posPtr     = m_currentState->getPositions();
-    const VecDataArray<double, 3>&           pos       = *posPtr;
-    std::shared_ptr<VecDataArray<double, 3>> velPtr    = m_currentState->getVelocities();
-    VecDataArray<double, 3>&                 vel       = *velPtr;
-    const DataArray<double>&                 invMasses = *m_invMass;
+    for (const auto& body : getCurrentState()->m_bodies)
+    {
+        updateVelocity(*body);
+    }
+}
 
+void
+PbdModel::updateVelocity(const PbdBody& body)
+{
     if (m_config->m_dt > 0.0)
     {
+        const VecDataArray<double, 3>& pos       = *body.vertices;
+        const VecDataArray<double, 3>& prevPos   = *body.prevVertices;
+        VecDataArray<double, 3>&       vel       = *body.velocities;
+        const DataArray<double>&       invMasses = *body.invMasses;
+
+        // Check all the arrays are the same
+        const int numVerts = pos.size();
+        CHECK(numVerts == prevPos.size()) << "PbdModel data corrupt";
+        CHECK(numVerts == vel.size()) << "PbdModel data corrupt";
+        CHECK(numVerts == invMasses.size()) << "PbdModel data corrupt";
+
         const double invDt = 1.0 / m_config->m_dt;
-        ParallelUtils::parallelFor(m_mesh->getNumVertices(),
-            [&](const size_t i)
+        ParallelUtils::parallelFor(numVerts,
+            [&](const int i)
             {
                 if (std::abs(invMasses[i]) > 0.0)
                 {
                     vel[i] = (pos[i] - prevPos[i]) * invDt;
                 }
-            }, m_mesh->getNumVertices() > 50);
+            }, numVerts > 50);
     }
 }
 
 void
 PbdModel::solveConstraints()
 {
-    m_pbdSolver->setPositions(m_currentState->getPositions());
-    m_pbdSolver->setInvMasses(m_invMass);
+    m_pbdSolver->setPbdBodies(getCurrentState()->m_bodies);
     m_pbdSolver->setConstraints(getConstraints());
     m_pbdSolver->setTimeStep(m_config->m_dt);
     m_pbdSolver->setIterations(m_config->m_iterations);

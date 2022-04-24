@@ -24,20 +24,16 @@
 namespace imstk
 {
 bool
-PbdFemTetConstraint::initConstraint(const VecDataArray<double, 3>& initVertexPositions,
-                                    const size_t& pIdx0, const size_t& pIdx1,
-                                    const size_t& pIdx2, const size_t& pIdx3,
-                                    std::shared_ptr<PbdFemConstraintConfig> config)
+PbdFemTetConstraint::initConstraint(
+    const Vec3d& p0, const Vec3d& p1, const Vec3d& p2, const Vec3d& p3,
+    const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
+    const BodyVertexId& pIdx2, const BodyVertexId& pIdx3,
+    std::shared_ptr<PbdFemConstraintConfig> config)
 {
-    m_vertexIds[0] = pIdx0;
-    m_vertexIds[1] = pIdx1;
-    m_vertexIds[2] = pIdx2;
-    m_vertexIds[3] = pIdx3;
-
-    const Vec3d& p0 = initVertexPositions[pIdx0];
-    const Vec3d& p1 = initVertexPositions[pIdx1];
-    const Vec3d& p2 = initVertexPositions[pIdx2];
-    const Vec3d& p3 = initVertexPositions[pIdx3];
+    m_bodyVertexIds[0] = pIdx0;
+    m_bodyVertexIds[1] = pIdx1;
+    m_bodyVertexIds[2] = pIdx2;
+    m_bodyVertexIds[3] = pIdx3;
 
     m_elementVolume = (1.0 / 6.0) * (p3 - p0).dot((p1 - p0).cross(p2 - p0));
     m_config     = config;
@@ -60,19 +56,19 @@ PbdFemTetConstraint::initConstraint(const VecDataArray<double, 3>& initVertexPos
 
 bool
 PbdFemTetConstraint::computeValueAndGradient(
-    const VecDataArray<double, 3>& currVertexPositions,
-    double& cval,
-    std::vector<Vec3d>& dcdx) const
+    std::vector<PbdBody>& bodies,
+    double&               cval,
+    std::vector<Vec3d>&   dcdx) const
 {
-    const auto i0 = m_vertexIds[0];
-    const auto i1 = m_vertexIds[1];
-    const auto i2 = m_vertexIds[2];
-    const auto i3 = m_vertexIds[3];
+    const BodyVertexId& i0 = m_bodyVertexIds[0];
+    const BodyVertexId& i1 = m_bodyVertexIds[1];
+    const BodyVertexId& i2 = m_bodyVertexIds[2];
+    const BodyVertexId& i3 = m_bodyVertexIds[3];
 
-    const Vec3d& p0 = currVertexPositions[i0];
-    const Vec3d& p1 = currVertexPositions[i1];
-    const Vec3d& p2 = currVertexPositions[i2];
-    const Vec3d& p3 = currVertexPositions[i3];
+    const Vec3d& p0 = (*bodies[i0.first].vertices)[i0.second];
+    const Vec3d& p1 = (*bodies[i1.first].vertices)[i1.second];
+    const Vec3d& p2 = (*bodies[i2.first].vertices)[i2.second];
+    const Vec3d& p3 = (*bodies[i3.first].vertices)[i3.second];
 
     Mat3d m;
     m.col(0) = p0 - p3;
@@ -148,8 +144,32 @@ PbdFemTetConstraint::computeValueAndGradient(
     // P(F) = mu*(F - mu*F^-T) + lambda*log(J)F^-T;
     case MaterialType::NeoHookean:
     {
+        // This is a modified NeoHookean to deal with inversions
+        // - for which log produces nans
+        // - log also gets drastically large as we near 0, so an epsilon is used
+
+        // Modified NeoHookean with flip
         Mat3d  invFT = F.inverse().transpose();
-        double logJ  = log(F.determinant());
+        double det   = F.determinant();
+        double logJ  = log(std::abs(det)) * static_cast<double>(!std::signbit(det));
+
+        // Modified NeoHookean with epsilon
+        /*Mat3d  invFT = F.inverse().transpose();
+        double det = F.determinant();
+        double logJ = 0.0;
+        if (det < 0.00001)
+        {
+            logJ = log(0.00001);
+        }
+        else
+        {
+            logJ = log(det);
+        }*/
+
+        // Original NeoHookean
+        /* Mat3d  invFT = F.inverse().transpose();
+         double logJ  = log(F.determinant());*/
+
         P = mu * (F - invFT) + lambda * logJ * invFT;
 
         C = F(0, 0) * F(0, 0) + F(0, 1) * F(0, 1) + F(0, 2) * F(0, 2)

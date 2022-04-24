@@ -22,6 +22,7 @@
 #include "imstkPbdObject.h"
 #include "imstkLogger.h"
 #include "imstkPbdModel.h"
+#include "imstkPointSet.h"
 
 namespace imstk
 {
@@ -45,5 +46,32 @@ PbdObject::initialize()
     DynamicObject::initialize();
 
     return true;
+}
+
+void
+PbdObject::setDynamicalModel(std::shared_ptr<AbstractDynamicalModel> dynaModel)
+{
+    // todo: If already has another model, should remove the corresponding body?
+    m_pbdModel       = std::dynamic_pointer_cast<PbdModel>(dynaModel);
+    m_dynamicalModel = dynaModel;
+    m_pbdBody = m_pbdModel->addPbdBody();
+    if (m_physicsGeometry != nullptr)
+    {
+        auto pointSet = std::dynamic_pointer_cast<PointSet>(m_physicsGeometry);
+        CHECK(pointSet != nullptr) << "PbdObject " << m_name << " only supports PointSet geometries";
+        m_pbdModel->getCurrentState()->setBodyGeometry(*m_pbdBody, pointSet);
+    }
+}
+
+void
+PbdObject::setPhysicsGeometry(std::shared_ptr<Geometry> geometry)
+{
+    DynamicObject::setPhysicsGeometry(geometry);
+    if (m_pbdModel != nullptr)
+    {
+        auto pointSet = std::dynamic_pointer_cast<PointSet>(m_physicsGeometry);
+        CHECK(pointSet != nullptr) << "PbdObject " << m_name << " only supports PointSet geometries";
+        m_pbdModel->getCurrentState()->setBodyGeometry(*m_pbdBody, pointSet);
+    }
 }
 } // namespace imstk

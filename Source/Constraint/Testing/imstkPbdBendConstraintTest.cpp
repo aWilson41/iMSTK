@@ -33,23 +33,33 @@ TEST(imstkPbdBendConstraintTest, TestConvergence1)
     PbdBendConstraint constraint;
 
     // Straight line upon initialization
-    VecDataArray<double, 3> vertices(3);
+    auto                     verticesPtr = std::make_shared<VecDataArray<double, 3>>(3);
+    VecDataArray<double, 3>& vertices    = *verticesPtr;
     vertices[0] = Vec3d(0.0, 0.0, 0.0);
     vertices[1] = Vec3d(0.5, 0.0, 0.0);
     vertices[2] = Vec3d(1.0, 0.0, 0.0);
-    DataArray<double> invMasses(3);
+    auto               invMassPtr = std::make_shared<DataArray<double>>(3);
+    DataArray<double>& invMasses  = *invMassPtr;;
     invMasses[0] = 1.0;
     invMasses[1] = 0.0; // Center doesn't move
     invMasses[2] = 1.0;
 
-    constraint.initConstraint(vertices, 0, 1, 2, 1e20);
+    constraint.initConstraint(
+        vertices[0], vertices[1], vertices[2],
+        { 0, 0 }, { 0, 1 }, { 0, 2 }, 1e20);
+
+    PbdBody body;
+    body.vertices  = verticesPtr;
+    body.invMasses = invMassPtr;
+    std::vector<PbdBody> bodies;
+    bodies.push_back(body);
 
     // Modify it so the line segments look like \/
     vertices[0][1] = 0.1;
     vertices[2][1] = 0.1;
     for (int i = 0; i < 500; i++)
     {
-        constraint.projectConstraint(invMasses, 0.01, PbdConstraint::SolverType::xPBD, vertices);
+        constraint.projectConstraint(bodies, 0.01, PbdConstraint::SolverType::xPBD);
     }
 
     // Should resolve back to a flat line

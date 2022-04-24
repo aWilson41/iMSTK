@@ -25,13 +25,13 @@
 #include "imstkPbdCollisionConstraint.h"
 #include "imstkPbdFemConstraint.h"
 #include "imstkPbdState.h"
+#include "imstkPbdConstraintFunctor.h"
 
 #include <unordered_map>
 #include <unordered_set>
 
 namespace imstk
 {
-struct PbdConstraintFunctor;
 class PointSet;
 class PbdConstraintContainer;
 class PbdSolver;
@@ -67,7 +67,7 @@ struct PbdModelConfig
         /// \brief Enables a regular constraint (not FEM constraint) with given stiffness
         /// If constraint of that type already exists, sets the stiffness on it
         ///
-        void enableConstraint(ConstraintGenType type, double stiffness);
+        void enableConstraint(ConstraintGenType type, const double stiffness, const int bodyId = 0);
 
         ///
         /// \brief Enables a bend constraint with given stiffness, stride, and flag for 0 rest length
@@ -78,12 +78,12 @@ struct PbdModelConfig
         /// \param When true rest length (and angle) are constrained to 0, useful when mesh initial/resting state
         /// is not 0 angled
         ///
-        void enableBendConstraint(const double stiffness, const int stride, const bool restLength0 = true);
+        void enableBendConstraint(const double stiffness, const int stride, const bool restLength0 = true, const int bodyId = 0);
 
         ///
         /// \brief Enable a Fem constraint with the material provided
         ///
-        void enableFemConstraint(PbdFemConstraint::MaterialType material);
+        void enableFemConstraint(PbdFemConstraint::MaterialType material, const int bodyId = 0);
 
         ///
         /// \brief If lame parameters (mu+lambda) are given in femParams, then youngs modulus and poissons ratio are computed
@@ -93,27 +93,35 @@ struct PbdModelConfig
 
         ///
         /// \brief Adds a functor to generate constraints
-        ///
-        void addPbdConstraintFunctor(std::shared_ptr<PbdConstraintFunctor> functor) { m_functors[ConstraintGenType::Custom].push_back(functor); }
+        /// \tparam Must contain operator(PbdConstraintContainer&), could be a PbdConstraintFunctor
+        /// or std::function<void(PbdConstraintContainer&)>
+        void addPbdConstraintFunctor(std::shared_ptr<PbdConstraintFunctor> functor)
+        {
+            m_functors[ConstraintGenType::Custom].push_back(functor);
+        }
+
+        void addPbdConstraintFunctor(std::function<void(PbdConstraintContainer&)> functor)
+        {
+            m_functors[ConstraintGenType::Custom].push_back(
+                std::make_shared<PbdConstraintFunctorLambda>(functor));
+        }
 
     public:
-        double m_uniformMassValue    = 1.0;       ///< Mass properties, not used if per vertex masses are given in geometry attributes
         double m_viscousDampingCoeff = 0.01;      ///< Viscous damping coefficient [0, 1]
         double m_contactStiffness    = 1.0;       ///< Stiffness for contact
         unsigned int m_iterations    = 10;        ///< Internal constraints pbd solver iterations
         double m_dt = 0.0;                        ///< Time step size
         bool m_doPartitioning = true;             ///< Does graph coloring to solve in parallel
 
-        std::vector<std::size_t> m_fixedNodeIds;  ///< Nodal/vertex IDs of the nodes that are fixed
         Vec3d m_gravity = Vec3d(0.0, -9.81, 0.0); ///< Gravity acceleration
 
         std::shared_ptr<PbdFemConstraintConfig> m_femParams =
             std::make_shared<PbdFemConstraintConfig>(PbdFemConstraintConfig
         {
-            0.0,        // Lame constant, if constraint type is FEM
-            0.0,        // Lame constant, if constraint type is FEM
-            1000.0,     // FEM parameter, if constraint type is FEM
-            0.2         // FEM parameter, if constraint type is FEM
+            0.0,            // Lame constant, if constraint type is FEM
+            0.0,            // Lame constant, if constraint type is FEM
+            1000.0,         // FEM parameter, if constraint type is FEM
+            0.2             // FEM parameter, if constraint type is FEM
             });
 
         PbdConstraint::SolverType m_solverType = PbdConstraint::SolverType::xPBD;
@@ -156,6 +164,11 @@ public:
     void configure(std::shared_ptr<PbdModelConfig> params);
 
     ///
+    /// \brief Add a new PbdBody, return handle to it
+    ///
+    std::shared_ptr<PbdBody> addPbdBody() { return getCurrentState()->addBody(); }
+
+    ///
     /// \brief Get the simulation parameters
     ///
     std::shared_ptr<PbdModelConfig> getConfig() const
@@ -180,39 +193,18 @@ public:
     std::shared_ptr<PbdConstraintContainer> getConstraints() { return m_constraints; }
 
     ///
-    /// \brief Set mass to particular node
-    ///
-    void setParticleMass(const double val, const size_t idx);
-
-    ///
-    /// \brief Set the node as fixed
-    ///
-    void setFixedPoint(const size_t idx);
-
-    ///
-    /// \brief Set the node as unfixed
-    ///
-    void setPointUnfixed(const size_t idx);
-
-    ///
-    /// \brief Get the inverse of mass from a certain node
-    ///
-    double getInvMass(const size_t idx) const { return (*m_invMass)[idx]; }
-
-    ///
-    /// \brief Get the inverse masses
-    ///
-    std::shared_ptr<DataArray<double>> getInvMasses() { return m_invMass; }
-
-    ///
     /// \brief Time integrate the position
-    ///
+    ///@{
     void integratePosition();
+    void integratePosition(const PbdBody& body);
+    ///@}
 
     ///
     /// \brief Time integrate the velocity
-    ///
+    ///@{
     void updateVelocity();
+    void updateVelocity(const PbdBody& body);
+    ///@]
 
     ///
     /// \brief Solve the internal constraints
@@ -222,12 +214,7 @@ public:
     ///
     /// \brief Initialize the PBD model
     ///
-    virtual bool initialize() override;
-
-    ///
-    /// \brief Initialize the PBD State
-    ///
-    void initState();
+    bool initialize() override;
 
     ///
     /// \brief Set the threshold for constraint partitioning
@@ -256,21 +243,19 @@ protected:
     ///
     void initGraphEdges(std::shared_ptr<TaskNode> source, std::shared_ptr<TaskNode> sink) override;
 
-    size_t m_partitionThreshold = 16;                                                 ///< Threshold for constraint partitioning
+    size_t m_partitionThreshold = 16;                      ///< Threshold for constraint partitioning
 
-    std::shared_ptr<PbdSolver> m_pbdSolver       = nullptr;                           ///< PBD solver
-    std::shared_ptr<PointSet>  m_mesh            = nullptr;                           ///< PointSet on which the pbd model operates on
-    std::shared_ptr<DataArray<double>> m_mass    = nullptr;                           ///< Mass of nodes
-    std::shared_ptr<DataArray<double>> m_invMass = nullptr;                           ///< Inverse of mass of nodes
-    std::shared_ptr<std::unordered_map<size_t, double>> m_fixedNodeInvMass = nullptr; ///< Map for archiving fixed nodes' mass.
+    std::shared_ptr<PbdSolver> m_pbdSolver = nullptr;      ///< PBD solver
 
-    std::shared_ptr<PbdModelConfig> m_config = nullptr;                               ///< Model parameters, must be set before simulation
+    std::shared_ptr<PbdModelConfig> m_config = nullptr;    ///< Model parameters, must be set before simulation
 
-    std::shared_ptr<PbdConstraintContainer> m_constraints;                            ///< The set of constraints to update/use
+    std::shared_ptr<PbdConstraintContainer> m_constraints; ///< The set of constraints to update/use
 
-    // Computational Nodes
+    ///< Computational Nodes
+    ///@{
     std::shared_ptr<TaskNode> m_integrationPositionNode = nullptr;
     std::shared_ptr<TaskNode> m_solveConstraintsNode    = nullptr;
     std::shared_ptr<TaskNode> m_updateVelocityNode      = nullptr;
+    ///@}
 };
 } // namespace imstk

@@ -29,9 +29,7 @@ namespace imstk
 {
 PbdSolver::PbdSolver() :
     m_dt(0.0),
-    m_constraints(std::make_shared<PbdConstraintContainer>()),
-    m_positions(std::make_shared<VecDataArray<double, 3>>()),
-    m_invMasses(std::make_shared<DataArray<double>>())
+    m_constraints(std::make_shared<PbdConstraintContainer>())
 {
 }
 
@@ -39,8 +37,8 @@ void
 PbdSolver::solve()
 {
     // Solve the constraints and partitioned constraints
-    VecDataArray<double, 3>& currPositions = *m_positions;
-    const DataArray<double>& invMasses     = *m_invMasses;
+    /* VecDataArray<double, 3>& currPositions = *m_positions;
+     const DataArray<double>& invMasses     = *m_invMasses;*/
 
     const std::vector<std::shared_ptr<PbdConstraint>>&              constraints = m_constraints->getConstraints();
     const std::vector<std::vector<std::shared_ptr<PbdConstraint>>>& partitionedConstraints = m_constraints->getPartitionedConstraints();
@@ -60,12 +58,19 @@ PbdSolver::solve()
             });
     }
 
+    std::vector<PbdBody> bodies;
+    bodies.reserve(m_bodies.size());
+    for (auto i : m_bodies)
+    {
+        bodies.push_back(*i);
+    }
+
     unsigned int i = 0;
     while (i++ < m_iterations)
     {
         for (const auto& constraint : constraints)
         {
-            constraint->projectConstraint(invMasses, m_dt, m_solverType, currPositions);
+            constraint->projectConstraint(bodies, m_dt, m_solverType);
         }
 
         for (const auto& constraintPartition : partitionedConstraints)
@@ -73,7 +78,7 @@ PbdSolver::solve()
             ParallelUtils::parallelFor(constraintPartition.size(),
                 [&](const size_t idx)
                 {
-                    constraintPartition[idx]->projectConstraint(invMasses, m_dt, m_solverType, currPositions);
+                    constraintPartition[idx]->projectConstraint(bodies, m_dt, m_solverType);
                 });
             //// Sequential
             //for (size_t k = 0; k < constraintPartition.size(); k++)

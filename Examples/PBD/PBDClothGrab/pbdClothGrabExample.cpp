@@ -92,7 +92,6 @@ makeClothObj(const std::string& name,
     imstkNew<PbdModelConfig> pbdParams;
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 1.0e2);
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Dihedral, 0.05);
-    pbdParams->m_uniformMassValue = size[0] * size[1] / (dim[0] * dim[1]) * 0.01;
     pbdParams->m_gravity    = Vec3d(0.0, -9.8, 0.0);
     pbdParams->m_dt         = 0.005;
     pbdParams->m_iterations = 10;
@@ -117,6 +116,7 @@ makeClothObj(const std::string& name,
     clothObj->setPhysicsGeometry(clothMesh);
     clothObj->setCollidingGeometry(clothMesh);
     clothObj->setDynamicalModel(pbdModel);
+    clothObj->getPbdBody()->uniformMassValue = size[0] * size[1] / (dim[0] * dim[1]) * 0.01;
 
     return clothObj;
 }
@@ -209,7 +209,7 @@ main()
                 }
             });
         connect<MouseEvent>(viewer->getMouseDevice(), &MouseDeviceClient::mouseMove,
-            [&](MouseEvent* e)
+            [&](MouseEvent*)
             {
                 // Get mouse position (0, 1) with origin at bot left of screen
                 const Vec2d mousePos = viewer->getMouseDevice()->getPos();

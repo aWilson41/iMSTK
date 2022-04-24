@@ -38,30 +38,34 @@ PbdConstantDensityConstraint::initConstraint(const VecDataArray<double, 3>& init
 }
 
 void
-PbdConstantDensityConstraint::projectConstraint(const DataArray<double>& imstkNotUsed(currInvMasses),
-                                                const double imstkNotUsed(dt),
-                                                const PbdConstraint::SolverType& imstkNotUsed(type),
-                                                VecDataArray<double, 3>& currVertexPositions)
+PbdConstantDensityConstraint::projectConstraint(std::vector<PbdBody>&            bodies,
+                                                const double                     imstkNotUsed(dt),
+                                                const PbdConstraint::SolverType& imstkNotUsed(type))
 {
-    const size_t numParticles = currVertexPositions.size();
+    for (int i = 0; i < bodies.size(); i++)
+    {
+        const size_t numParticles = bodies[i].vertices->size();
 
-    // Search neighbor for each particle
-    m_NeighborSearcher->getNeighbors(m_neighborList, currVertexPositions);
+        VecDataArray<double, 3>& vertices = *bodies[i].vertices;
 
-    ParallelUtils::parallelFor(numParticles,
-        [&](const size_t idx) {
-            computeDensity(currVertexPositions[idx], idx, currVertexPositions);
-    });
+        // Search neighbor for each particle
+        m_NeighborSearcher->getNeighbors(m_neighborList, vertices);
 
-    ParallelUtils::parallelFor(numParticles,
-        [&](const size_t idx) {
-            computeLambdaScalingFactor(currVertexPositions[idx], idx, currVertexPositions);
-    });
+        ParallelUtils::parallelFor(numParticles,
+            [&](const size_t idx) {
+                computeDensity(vertices[idx], idx, vertices);
+        });
 
-    ParallelUtils::parallelFor(numParticles,
-        [&](const size_t idx) {
-            updatePositions(currVertexPositions[idx], idx, currVertexPositions);
-    });
+        ParallelUtils::parallelFor(numParticles,
+            [&](const size_t idx) {
+                computeLambdaScalingFactor(vertices[idx], idx, vertices);
+        });
+
+        ParallelUtils::parallelFor(numParticles,
+            [&](const size_t idx) {
+                updatePositions(vertices[idx], idx, vertices);
+        });
+    }
 }
 
 void

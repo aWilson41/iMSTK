@@ -21,8 +21,7 @@
 
 #pragma once
 
-#include "imstkMath.h"
-#include "imstkVecDataArray.h"
+#include "imstkPbdBody.h"
 
 namespace imstk
 {
@@ -34,6 +33,8 @@ namespace imstk
 class PbdConstraint
 {
 public:
+    using BodyVertexId = std::pair<size_t, size_t>;
+
     ///
     /// \brief Type of solvers
     ///
@@ -54,14 +55,14 @@ public:
     /// \param Normalized constraint gradients (per vertex)
     ///
     virtual bool computeValueAndGradient(
-        const VecDataArray<double, 3>& currVertexPositions,
-        double& c,
-        std::vector<Vec3d>& dcdx) const = 0;
+        std::vector<PbdBody>& bodies,
+        double&               c,
+        std::vector<Vec3d>&   dcdx) const = 0;
 
     ///
     /// \brief Get the vertex indices of the constraint
     ///
-    std::vector<size_t>& getVertexIds() { return m_vertexIds; }
+    std::vector<BodyVertexId>& getIds() { return m_bodyVertexIds; }
 
     ///
     /// \brief Set the tolerance used for pbd constraints
@@ -95,15 +96,22 @@ public:
     ///
     /// \brief Update positions by projecting constraints.
     ///
-    virtual void projectConstraint(const DataArray<double>& currInvMasses, const double dt, const SolverType& type, VecDataArray<double, 3>& pos);
+    virtual void projectConstraint(std::vector<PbdBody>& bodies, const double dt, const SolverType& type);
 
 protected:
-    std::vector<size_t> m_vertexIds;   ///< index of points for the constraint
-    double m_epsilon        = 1.0e-16; ///< Tolerance used for the costraints
-    double m_stiffness      = 1.0;     ///< used in PBD, [0, 1]
-    double m_compliance     = 1e-7;    ///< used in xPBD, inverse of Young's Modulus
-    mutable double m_lambda = 0.0;     ///< Lagrange multiplier
+    PbdConstraint(const size_t numParticles)
+    {
+        m_bodyVertexIds.resize(numParticles);
+        m_dcdx.resize(numParticles);
+    }
 
-    std::vector<Vec3d> m_dcdx;         ///< Normalized constraint gradients (per vertex)
+    std::vector<BodyVertexId> m_bodyVertexIds; ///< body and index ids per particle
+
+    double m_epsilon        = 1.0e-16;         ///< Tolerance used for the costraints
+    double m_stiffness      = 1.0;             ///< used in PBD, [0, 1]
+    double m_compliance     = 1e-7;            ///< used in xPBD, inverse of Young's Modulus
+    mutable double m_lambda = 0.0;             ///< Lagrange multiplier
+
+    std::vector<Vec3d> m_dcdx;                 ///< Normalized constraint gradients (per particle)
 };
 } // namespace imstk

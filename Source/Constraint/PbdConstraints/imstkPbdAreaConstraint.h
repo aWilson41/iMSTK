@@ -33,24 +33,20 @@ namespace imstk
 class PbdAreaConstraint : public PbdConstraint
 {
 public:
-    PbdAreaConstraint() : PbdConstraint()
-    {
-        m_vertexIds.resize(3);
-        m_dcdx.resize(3);
-    }
+    PbdAreaConstraint() : PbdConstraint(3) { }
 
     ///
     /// \brief Initializes the area constraint
     ///
     void initConstraint(
-        const VecDataArray<double, 3>& initVertexPositions,
-        const size_t& pIdx1, const size_t& pIdx2, const size_t& pIdx3,
+        const Vec3d& p0, const Vec3d& p1, const Vec3d& p2,
+        const BodyVertexId& pIdx0, const BodyVertexId& pIdx1, const BodyVertexId& pIdx2,
         const double k = 2.5);
 
     bool computeValueAndGradient(
-        const VecDataArray<double, 3>& currVertexPositions,
-        double& c,
-        std::vector<Vec3d>& dcdx) const override;
+        std::vector<PbdBody>& bodies,
+        double&               c,
+        std::vector<Vec3d>&   dcdx) const override;
 
 public:
     double m_restArea = 0.0;  ///< Area at the rest position

@@ -73,8 +73,7 @@ makeTetTissueObj(const std::string& name,
     pbdParams->enableFemConstraint(PbdFemConstraint::MaterialType::StVK);
     /* pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Volume, 0.01);
      pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 0.4);*/
-    pbdParams->m_doPartitioning   = false;
-    pbdParams->m_uniformMassValue = 0.01;
+    pbdParams->m_doPartitioning = false;
     pbdParams->m_gravity    = Vec3d(0.0, -9.8, 0.0);
     pbdParams->m_dt         = 0.001;
     pbdParams->m_iterations = 5;
@@ -108,6 +107,7 @@ makeTetTissueObj(const std::string& name,
     }
     tissueObj->getVisualModel(0)->setRenderMaterial(material);
     tissueObj->setDynamicalModel(pbdModel);
+    tissueObj->getPbdBody()->uniformMassValue = 0.01;
 
     return tissueObj;
 }
@@ -130,7 +130,6 @@ makeTriTissueObj(const std::string& name,
     auto pbdParams = std::make_shared<PbdModelConfig>();
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 0.1);
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Dihedral, 1e-6);
-    pbdParams->m_uniformMassValue = 0.00001;
     pbdParams->m_gravity    = Vec3d(0.0, -9.8, 0.0);
     pbdParams->m_dt         = 0.001;
     pbdParams->m_iterations = 5;
@@ -154,6 +153,7 @@ makeTriTissueObj(const std::string& name,
     tissueObj->setPhysicsGeometry(triMesh);
     tissueObj->setCollidingGeometry(triMesh);
     tissueObj->setDynamicalModel(pbdModel);
+    tissueObj->getPbdBody()->uniformMassValue = 0.00001;
 
     return tissueObj;
 }
@@ -177,7 +177,6 @@ makeLineThreadObj(const std::string& name,
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 0.1);
     //pbdParams->enableBendConstraint(100000.0, 1);
     //pbdParams->enableBendConstraint(100000.0, 2);
-    pbdParams->m_uniformMassValue = 0.00001;
     pbdParams->m_gravity    = Vec3d(0.0, -9.8, 0.0);
     pbdParams->m_dt         = 0.001;
     pbdParams->m_iterations = 5;
@@ -202,6 +201,7 @@ makeLineThreadObj(const std::string& name,
     tissueObj->setPhysicsGeometry(lineMesh);
     tissueObj->setCollidingGeometry(lineMesh);
     tissueObj->setDynamicalModel(pbdModel);
+    tissueObj->getPbdBody()->uniformMassValue = 0.00001;
 
     return tissueObj;
 }

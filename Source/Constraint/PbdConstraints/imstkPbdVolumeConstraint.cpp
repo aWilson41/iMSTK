@@ -24,42 +24,38 @@
 namespace imstk
 {
 void
-PbdVolumeConstraint::initConstraint(const VecDataArray<double, 3>& initVertexPositions,
-                                    const size_t& pIdx0, const size_t& pIdx1,
-                                    const size_t& pIdx2, const size_t& pIdx3,
-                                    const double k)
+PbdVolumeConstraint::initConstraint(
+    const Vec3d& p0, const Vec3d& p1, const Vec3d& p2, const Vec3d& p3,
+    const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
+    const BodyVertexId& pIdx2, const BodyVertexId& pIdx3,
+    const double k)
 {
-    m_vertexIds[0] = pIdx0;
-    m_vertexIds[1] = pIdx1;
-    m_vertexIds[2] = pIdx2;
-    m_vertexIds[3] = pIdx3;
+    m_bodyVertexIds[0] = pIdx0;
+    m_bodyVertexIds[1] = pIdx1;
+    m_bodyVertexIds[2] = pIdx2;
+    m_bodyVertexIds[3] = pIdx3;
 
     m_stiffness  = k;
     m_compliance = 1.0 / k;
-
-    const Vec3d& p0 = initVertexPositions[pIdx0];
-    const Vec3d& p1 = initVertexPositions[pIdx1];
-    const Vec3d& p2 = initVertexPositions[pIdx2];
-    const Vec3d& p3 = initVertexPositions[pIdx3];
 
     m_restVolume = (1.0 / 6.0) * ((p1 - p0).cross(p2 - p0)).dot(p3 - p0);
 }
 
 bool
 PbdVolumeConstraint::computeValueAndGradient(
-    const VecDataArray<double, 3>& currVertexPositions,
-    double& c,
-    std::vector<Vec3d>& dcdx) const
+    std::vector<PbdBody>& bodies,
+    double&               c,
+    std::vector<Vec3d>&   dcdx) const
 {
-    const auto i0 = m_vertexIds[0];
-    const auto i1 = m_vertexIds[1];
-    const auto i2 = m_vertexIds[2];
-    const auto i3 = m_vertexIds[3];
+    const BodyVertexId& i0 = m_bodyVertexIds[0];
+    const BodyVertexId& i1 = m_bodyVertexIds[1];
+    const BodyVertexId& i2 = m_bodyVertexIds[2];
+    const BodyVertexId& i3 = m_bodyVertexIds[3];
 
-    const Vec3d& x0 = currVertexPositions[i0];
-    const Vec3d& x1 = currVertexPositions[i1];
-    const Vec3d& x2 = currVertexPositions[i2];
-    const Vec3d& x3 = currVertexPositions[i3];
+    const Vec3d& x0 = (*bodies[i0.first].vertices)[i0.second];
+    const Vec3d& x1 = (*bodies[i1.first].vertices)[i1.second];
+    const Vec3d& x2 = (*bodies[i2.first].vertices)[i2.second];
+    const Vec3d& x3 = (*bodies[i3.first].vertices)[i3.second];
 
     const double onesixth = 1.0 / 6.0;
 
@@ -69,7 +65,7 @@ PbdVolumeConstraint::computeValueAndGradient(
     dcdx[3] = onesixth * (x1 - x0).cross(x2 - x0);
 
     const double volume = dcdx[3].dot(x3 - x0);
-    c = (volume - m_restVolume);
+    c = volume - m_restVolume;
     return true;
 }
 } // namespace imstk

@@ -95,8 +95,6 @@ static std::shared_ptr<PbdObject>
 makeTissueObj(const std::string& name,
               const Vec3d& size, const Vec3i& dim, const Vec3d& center)
 {
-    imstkNew<PbdObject> clothObj(name);
-
     // Setup the Geometry
     std::shared_ptr<TetrahedralMesh> tissueMesh = GeometryUtils::toTetGrid(center, size, dim);
     std::shared_ptr<SurfaceMesh>     surfMesh   = tissueMesh->extractSurfaceMesh();
@@ -115,8 +113,7 @@ makeTissueObj(const std::string& name,
     //  - Youngs modulus then gives the scaling of the above in pressure
     //    (pascals).
     pbdParams->enableFemConstraint(PbdFemConstraint::MaterialType::StVK);
-    pbdParams->m_doPartitioning   = false;
-    pbdParams->m_uniformMassValue = 100.0;
+    pbdParams->m_doPartitioning = false;
     pbdParams->m_dt = 0.001; // realtime used in update calls later in main
     pbdParams->m_iterations = 5;
 
@@ -128,21 +125,6 @@ makeTissueObj(const std::string& name,
     // and poor/hard to model boundary conditions.
     pbdParams->m_gravity = Vec3d::Zero();
     pbdParams->m_viscousDampingCoeff = 0.03; // Removed from velocity
-
-    // Fix the borders
-    for (int z = 0; z < dim[2]; z++)
-    {
-        for (int y = 0; y < dim[1]; y++)
-        {
-            for (int x = 0; x < dim[0]; x++)
-            {
-                if (x == 0 || /*z == 0 ||*/ x == dim[0] - 1 /*|| z == dim[2] - 1*/)
-                {
-                    pbdParams->m_fixedNodeIds.push_back(x + dim[0] * (y + dim[1] * z));
-                }
-            }
-        }
-    }
 
     // Setup the Model
     imstkNew<PbdModel> pbdModel;
@@ -167,7 +149,6 @@ makeTissueObj(const std::string& name,
     imstkNew<VisualModel> visualModel;
     visualModel->setGeometry(surfMesh);
     visualModel->setRenderMaterial(material);
-    clothObj->addVisualModel(visualModel);
 
     // Add a visual model to render the normals of the surface
     /*imstkNew<VisualModel> normalsVisualModel(surfMesh);
@@ -176,12 +157,29 @@ makeTissueObj(const std::string& name,
     clothObj->addVisualModel(normalsVisualModel);*/
 
     // Setup the Object
-    clothObj->setPhysicsGeometry(tissueMesh);
-    clothObj->setCollidingGeometry(surfMesh);
-    clothObj->setPhysicsToCollidingMap(std::make_shared<PointwiseMap>(tissueMesh, surfMesh));
-    clothObj->setDynamicalModel(pbdModel);
+    imstkNew<PbdObject> tissueObj(name);
+    tissueObj->addVisualModel(visualModel);
+    tissueObj->setPhysicsGeometry(tissueMesh);
+    tissueObj->setCollidingGeometry(surfMesh);
+    tissueObj->setPhysicsToCollidingMap(std::make_shared<PointwiseMap>(tissueMesh, surfMesh));
+    tissueObj->setDynamicalModel(pbdModel);
+    tissueObj->getPbdBody()->uniformMassValue = 100.0;
+    // Fix the borders
+    for (int z = 0; z < dim[2]; z++)
+    {
+        for (int y = 0; y < dim[1]; y++)
+        {
+            for (int x = 0; x < dim[0]; x++)
+            {
+                if (x == 0 || /*z == 0 ||*/ x == dim[0] - 1 /*|| z == dim[2] - 1*/)
+                {
+                    tissueObj->getPbdBody()->fixedNodeIds.push_back(x + dim[0] * (y + dim[1] * z));
+                }
+            }
+        }
+    }
 
-    return clothObj;
+    return tissueObj;
 }
 
 static std::shared_ptr<NeedleObject>

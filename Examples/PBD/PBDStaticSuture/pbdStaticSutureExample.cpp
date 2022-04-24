@@ -105,6 +105,8 @@ makePbdString(
     stringObj->setPhysicsGeometry(stringMesh);
     stringObj->setCollidingGeometry(stringMesh);
     stringObj->setDynamicalModel(pbdModel);
+    stringObj->getPbdBody()->fixedNodeIds     = { 0, 1 };
+    stringObj->getPbdBody()->uniformMassValue = 0.002 / numVerts; // grams
 
     return stringObj;
 }

@@ -126,27 +126,10 @@ makeTissueObj(const std::string& name,
     pbdParams->m_femParams->m_YoungModulus = 50.0;
     pbdParams->m_femParams->m_PoissonRatio = 0.4;
     pbdParams->enableFemConstraint(PbdFemConstraint::MaterialType::StVK);
-    pbdParams->m_doPartitioning   = false;
-    pbdParams->m_uniformMassValue = 0.1;
+    pbdParams->m_doPartitioning = false;
     pbdParams->m_gravity    = Vec3d(0.0, -0.2, 0.0);
     pbdParams->m_dt         = 0.05;
     pbdParams->m_iterations = 5;
-
-    // Fix the borders
-    for (int z = 0; z < dim[2]; z++)
-    {
-        for (int y = 0; y < dim[1]; y++)
-        {
-            for (int x = 0; x < dim[0]; x++)
-            {
-                if (x == 0 || /*z == 0 ||*/ x == dim[0] - 1 /*|| z == dim[2] - 1*/)
-                {
-                    pbdParams->m_fixedNodeIds.push_back(x + dim[0] * (y + dim[1] * z) + 1); // +1 for dummy vertex
-                }
-            }
-        }
-    }
-    pbdParams->m_fixedNodeIds.push_back(0); // Fix dummy vertex
 
     // Setup the Model
     imstkNew<PbdModel> pbdModel;
@@ -165,6 +148,22 @@ makeTissueObj(const std::string& name,
     tissueObj->setVisualGeometry(tissueMesh);
     tissueObj->getVisualModel(0)->setRenderMaterial(material);
     tissueObj->setDynamicalModel(pbdModel);
+    tissueObj->getPbdBody()->uniformMassValue = 0.1;
+    // Fix the borders
+    for (int z = 0; z < dim[2]; z++)
+    {
+        for (int y = 0; y < dim[1]; y++)
+        {
+            for (int x = 0; x < dim[0]; x++)
+            {
+                if (x == 0 || /*z == 0 ||*/ x == dim[0] - 1 /*|| z == dim[2] - 1*/)
+                {
+                    tissueObj->getPbdBody()->fixedNodeIds.push_back(x + dim[0] * (y + dim[1] * z) + 1); // +1 for dummy vertex
+                }
+            }
+        }
+    }
+    tissueObj->getPbdBody()->fixedNodeIds.push_back(0); // Fix dummy vertex
 
     return tissueObj;
 }
@@ -321,11 +320,11 @@ main()
                         // Find and remove the associated constraints
                         for (auto j = constraints.begin(); j != constraints.end(); j++)
                         {
-                            std::vector<size_t>& vertexIds = (*j)->getVertexIds();
+                            const std::vector<PbdConstraint::BodyVertexId>& vertexIds = (*j)->getIds();
                             bool isSameTet = true;
                             for (int k = 0; k < 4; k++)
                             {
-                                if (vertexIds[k] != tet[k])
+                                if (vertexIds[k].second != tet[k])
                                 {
                                     isSameTet = false;
                                     break;

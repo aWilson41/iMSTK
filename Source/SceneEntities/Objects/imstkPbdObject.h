@@ -23,6 +23,7 @@
 
 #include "imstkDynamicObject.h"
 #include "imstkMacros.h"
+#include "imstkPbdConstraint.h"
 
 namespace imstk
 {
@@ -48,11 +49,31 @@ public:
     std::shared_ptr<PbdModel> getPbdModel();
 
     ///
+    /// \brief Returns body in the model.
+    ///
+    std::shared_ptr<PbdBody> getPbdBody()
+    {
+        if (m_pbdBody == nullptr)
+        {
+            LOG(FATAL) << "Set the PbdModel on the PbdObject before trying to acquire the body";
+        }
+        return m_pbdBody;
+    }
+
+    ///
+    /// \brief Sets the model, and creates the body within the model
+    ///
+    void setDynamicalModel(std::shared_ptr<AbstractDynamicalModel> dynaModel) override;
+
+    void setPhysicsGeometry(std::shared_ptr<Geometry> geometry) override;
+
+    ///
     /// \brief Initialize the Pbd scene object
     ///
     bool initialize() override;
 
 protected:
     std::shared_ptr<PbdModel> m_pbdModel = nullptr; ///< Pbd mathematical model
+    std::shared_ptr<PbdBody>  m_pbdBody  = nullptr; ///< Handle to this object in the model/system
 };
 } // namespace imstk

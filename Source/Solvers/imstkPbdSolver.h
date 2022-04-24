@@ -75,14 +75,9 @@ public:
     void setConstraints(std::shared_ptr<PbdConstraintContainer> constraints) { this->m_constraints = constraints; }
 
     ///
-    /// \brief Sets the positions the solver should solve with
+    /// \brief Sets the bodies to solve with
     ///
-    void setPositions(std::shared_ptr<VecDataArray<double, 3>> positions) { this->m_positions = positions; }
-
-    ///
-    /// \brief Sets the invMasses the solver should solve with
-    ///
-    void setInvMasses(std::shared_ptr<DataArray<double>> invMasses) { this->m_invMasses = invMasses; }
+    void setPbdBodies(std::vector<std::shared_ptr<PbdBody>> bodies) { this->m_bodies = bodies; }
 
     ///
     /// \brief Set time step
@@ -110,8 +105,7 @@ private:
 
     std::shared_ptr<PbdConstraintContainer> m_constraints = nullptr; ///< Vector of constraints
 
-    std::shared_ptr<VecDataArray<double, 3>> m_positions = nullptr;
-    std::shared_ptr<DataArray<double>>       m_invMasses = nullptr;
+    std::vector<std::shared_ptr<PbdBody>> m_bodies;
     PbdConstraint::SolverType m_solverType = PbdConstraint::SolverType::xPBD;
 };
 

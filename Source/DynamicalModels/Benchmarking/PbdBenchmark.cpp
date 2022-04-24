@@ -159,32 +159,14 @@ BM_DistanceVolume(benchmark::State& state)
 
     // Setup the Parameters
     std::shared_ptr<PbdModelConfig> pbdParams = std::make_shared<PbdModelConfig>();
-
     // Use volume+distance constraints
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Volume, 1.0);
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 1.0);
-
-    pbdParams->m_doPartitioning   = false;
-    pbdParams->m_uniformMassValue = 0.05;
+    pbdParams->m_doPartitioning = false;
     pbdParams->m_gravity    = Vec3d(0.0, -1.0, 0.0);
     pbdParams->m_dt         = dt;
     pbdParams->m_iterations = state.range(1);
     pbdParams->m_viscousDampingCoeff = 0.03;
-
-    // Fix the borders
-    for (int z = 0; z < state.range(0); z++)
-    {
-        for (int y = 0; y < state.range(0); y++)
-        {
-            for (int x = 0; x < state.range(0); x++)
-            {
-                if (y == state.range(0) - 1)
-                {
-                    pbdParams->m_fixedNodeIds.push_back(x + state.range(0) * (y + state.range(0) * z));
-                }
-            }
-        }
-    }
 
     // Setup the Model
     auto pbdModel = std::make_shared<PbdModel>();
@@ -195,6 +177,21 @@ BM_DistanceVolume(benchmark::State& state)
     // Setup the Object
     prismObj->setPhysicsGeometry(prismMesh);
     prismObj->setDynamicalModel(pbdModel);
+    prismObj->getPbdBody()->uniformMassValue = 0.05;
+    // Fix the borders
+    for (int z = 0; z < state.range(0); z++)
+    {
+        for (int y = 0; y < state.range(0); y++)
+        {
+            for (int x = 0; x < state.range(0); x++)
+            {
+                if (y == state.range(0) - 1)
+                {
+                    prismObj->getPbdBody()->fixedNodeIds.push_back(x + state.range(0) * (y + state.range(0) * z));
+                }
+            }
+        }
+    }
 
     // Create the scene
     scene->addSceneObject(prismObj);
@@ -239,27 +236,14 @@ BM_DistanceDihedral(benchmark::State& state)
 
     // Setup the Parameters
     auto pbdParams = std::make_shared<PbdModelConfig>();
-
     // Use distance+dihedral angle
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Dihedral, 1.0);
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 1.0);
-
-    pbdParams->m_doPartitioning   = false;
-    pbdParams->m_uniformMassValue = 0.05;
+    pbdParams->m_doPartitioning = false;
     pbdParams->m_gravity    = Vec3d(0.0, -8.0, 0.0);
     pbdParams->m_dt         = dt;
     pbdParams->m_iterations = state.range(1);
     pbdParams->m_viscousDampingCoeff = 0.03;
-
-    // Fix the borders
-    for (int vert_id = 0; vert_id < surfMesh->getNumVertices(); vert_id++)
-    {
-        auto position = surfMesh->getVertexPosition(vert_id);
-        if (position.y() == 2.0)
-        {
-            pbdParams->m_fixedNodeIds.push_back(vert_id);
-        }
-    }
 
     // Setup the Model
     auto pbdModel = std::make_shared<PbdModel>();
@@ -270,6 +254,16 @@ BM_DistanceDihedral(benchmark::State& state)
     // Setup the Object
     prismObj->setPhysicsGeometry(surfMesh);
     prismObj->setDynamicalModel(pbdModel);
+    prismObj->getPbdBody()->uniformMassValue = 0.05;
+    // Fix the borders
+    for (int vert_id = 0; vert_id < surfMesh->getNumVertices(); vert_id++)
+    {
+        auto position = surfMesh->getVertexPosition(vert_id);
+        if (position.y() == 2.0)
+        {
+            prismObj->getPbdBody()->fixedNodeIds.push_back(vert_id);
+        }
+    }
 
     scene->addSceneObject(prismObj);
     scene->initialize();
@@ -314,33 +308,15 @@ BM_PbdFem(benchmark::State& state)
 
     // Setup the Parameters
     auto pbdParams = std::make_shared<PbdModelConfig>();
-
     // Use FEM Tet constraints
     pbdParams->m_femParams->m_YoungModulus = 5.0;
     pbdParams->m_femParams->m_PoissonRatio = 0.4;
     pbdParams->enableFemConstraint(PbdFemConstraint::MaterialType::StVK);
-
-    pbdParams->m_doPartitioning   = false;
-    pbdParams->m_uniformMassValue = 0.05;
+    pbdParams->m_doPartitioning = false;
     pbdParams->m_gravity    = Vec3d(0.0, -1.0, 0.0);
     pbdParams->m_dt         = dt;
     pbdParams->m_iterations = state.range(1);
     pbdParams->m_viscousDampingCoeff = 0.03;
-
-    // Fix the borders
-    for (int z = 0; z < state.range(0); z++)
-    {
-        for (int y = 0; y < state.range(0); y++)
-        {
-            for (int x = 0; x < state.range(0); x++)
-            {
-                if (y == state.range(0) - 1)
-                {
-                    pbdParams->m_fixedNodeIds.push_back(x + state.range(0) * (y + state.range(0) * z));
-                }
-            }
-        }
-    }
 
     // Setup the Model
     auto pbdModel = std::make_shared<PbdModel>();
@@ -350,6 +326,21 @@ BM_PbdFem(benchmark::State& state)
     // Setup the Object
     prismObj->setPhysicsGeometry(prismMesh);
     prismObj->setDynamicalModel(pbdModel);
+    prismObj->getPbdBody()->uniformMassValue = 0.05;
+    // Fix the borders
+    for (int z = 0; z < state.range(0); z++)
+    {
+        for (int y = 0; y < state.range(0); y++)
+        {
+            for (int x = 0; x < state.range(0); x++)
+            {
+                if (y == state.range(0) - 1)
+                {
+                    prismObj->getPbdBody()->fixedNodeIds.push_back(x + state.range(0) * (y + state.range(0) * z));
+                }
+            }
+        }
+    }
 
     // Create the scene
     scene->addSceneObject(prismObj);
@@ -404,32 +395,14 @@ BM_PbdContactDistanceVol(benchmark::State& state)
 
     // Setup the Parameters
     auto pbdParams = std::make_shared<PbdModelConfig>();
-
     // Use volume+distance
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Volume, 0.9);
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 0.9);
-
-    pbdParams->m_doPartitioning   = false;
-    pbdParams->m_uniformMassValue = 0.05;
+    pbdParams->m_doPartitioning = false;
     pbdParams->m_gravity    = Vec3d(0.0, -1.0 / (double)state.range(0), 0.0);
     pbdParams->m_dt         = 0.05;
     pbdParams->m_iterations = state.range(1);
     pbdParams->m_viscousDampingCoeff = 0.03;
-
-    // Fix the borders
-    for (int z = 0; z < state.range(0); z++)
-    {
-        for (int y = 0; y < state.range(0); y++)
-        {
-            for (int x = 0; x < state.range(0); x++)
-            {
-                if (y == state.range(0) - 1)
-                {
-                    pbdParams->m_fixedNodeIds.push_back(x + state.range(0) * (y + state.range(0) * z));
-                }
-            }
-        }
-    }
 
     // Setup the Model
     auto pbdModel = std::make_shared<PbdModel>();
@@ -439,6 +412,21 @@ BM_PbdContactDistanceVol(benchmark::State& state)
     // Setup the Object
     prismObj->setPhysicsGeometry(prismMesh);
     prismObj->setDynamicalModel(pbdModel);
+    prismObj->getPbdBody()->uniformMassValue = 0.05;
+    // Fix the borders
+    for (int z = 0; z < state.range(0); z++)
+    {
+        for (int y = 0; y < state.range(0); y++)
+        {
+            for (int x = 0; x < state.range(0); x++)
+            {
+                if (y == state.range(0) - 1)
+                {
+                    prismObj->getPbdBody()->fixedNodeIds.push_back(x + state.range(0) * (y + state.range(0) * z));
+                }
+            }
+        }
+    }
 
     // Add Capsule for collision
     auto capsule = std::make_shared<Capsule>();
@@ -507,29 +495,14 @@ BM_PbdContactDistanceDihedral(benchmark::State& state)
 
     // Setup the Parameters
     auto pbdParams = std::make_shared<PbdModelConfig>();
-
     // Set up distance+dihearal angle constraints
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Dihedral, 0.9);
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 0.9);
-
-    pbdParams->m_doPartitioning   = false;
-    pbdParams->m_uniformMassValue = 0.05;
+    pbdParams->m_doPartitioning = false;
     pbdParams->m_gravity    = Vec3d(0.0, -2.0 / (double)state.range(0), 0.0);
     pbdParams->m_dt         = dt;
     pbdParams->m_iterations = state.range(1);
     pbdParams->m_viscousDampingCoeff = 0.03;
-
-    // Fix the borders
-    for (int vert_id = 0; vert_id < surfMesh->getNumVertices(); vert_id++)
-    {
-        auto position = surfMesh->getVertexPosition(vert_id);
-
-        // Switch to Eigen.isApprox()
-        if (position.y() == 2.0)
-        {
-            pbdParams->m_fixedNodeIds.push_back(vert_id);
-        }
-    }
 
     // Setup the Model
     auto pbdModel = std::make_shared<PbdModel>();
@@ -540,6 +513,18 @@ BM_PbdContactDistanceDihedral(benchmark::State& state)
     // Setup the Object
     prismObj->setPhysicsGeometry(surfMesh);
     prismObj->setDynamicalModel(pbdModel);
+    prismObj->getPbdBody()->uniformMassValue = 0.05;
+    // Fix the borders
+    for (int vert_id = 0; vert_id < surfMesh->getNumVertices(); vert_id++)
+    {
+        auto position = surfMesh->getVertexPosition(vert_id);
+
+        // Switch to Eigen.isApprox()
+        if (position.y() == 2.0)
+        {
+            prismObj->getPbdBody()->fixedNodeIds.push_back(vert_id);
+        }
+    }
 
     // Add Capsule for collision
     auto capsule = std::make_shared<Capsule>();
@@ -616,33 +601,15 @@ BM_PbdFemContact(benchmark::State& state)
 
     // Setup the Parameters
     auto pbdParams = std::make_shared<PbdModelConfig>();
-
     // Use FEMTet constraints
     pbdParams->m_femParams->m_YoungModulus = 5.0;
     pbdParams->m_femParams->m_PoissonRatio = 0.4;
     pbdParams->enableFemConstraint(PbdFemConstraint::MaterialType::StVK);
-
-    pbdParams->m_doPartitioning   = false;
-    pbdParams->m_uniformMassValue = 0.05;
+    pbdParams->m_doPartitioning = false;
     pbdParams->m_gravity    = Vec3d(0.0, -1.0, 0.0);
     pbdParams->m_dt         = dt;
     pbdParams->m_iterations = state.range(1);
     pbdParams->m_viscousDampingCoeff = 0.03;
-
-    // Fix the borders
-    for (int z = 0; z < state.range(0); z++)
-    {
-        for (int y = 0; y < state.range(0); y++)
-        {
-            for (int x = 0; x < state.range(0); x++)
-            {
-                if (y == state.range(0) - 1)
-                {
-                    pbdParams->m_fixedNodeIds.push_back(x + state.range(0) * (y + state.range(0) * z));
-                }
-            }
-        }
-    }
 
     // Setup the Model
     auto pbdModel = std::make_shared<PbdModel>();
@@ -652,6 +619,21 @@ BM_PbdFemContact(benchmark::State& state)
     // Setup the Object
     prismObj->setPhysicsGeometry(prismMesh);
     prismObj->setDynamicalModel(pbdModel);
+    prismObj->getPbdBody()->uniformMassValue = 0.05;
+    // Fix the borders
+    for (int z = 0; z < state.range(0); z++)
+    {
+        for (int y = 0; y < state.range(0); y++)
+        {
+            for (int x = 0; x < state.range(0); x++)
+            {
+                if (y == state.range(0) - 1)
+                {
+                    prismObj->getPbdBody()->fixedNodeIds.push_back(x + state.range(0) * (y + state.range(0) * z));
+                }
+            }
+        }
+    }
 
     // Add Capsule for collision
     auto capsule = std::make_shared<Capsule>();

@@ -41,8 +41,7 @@ InflatableObject::InflatableObject(const std::string& name, const Vec3d& tissueS
 
     // Setup the Parameters
     imstkNew<PbdModelConfig> pbdParams;
-    pbdParams->m_doPartitioning   = false;
-    pbdParams->m_uniformMassValue = 0.1;
+    pbdParams->m_doPartitioning = false;
     pbdParams->m_gravity    = Vec3d(0.0, 0.0, 0.0);
     pbdParams->m_dt         = 0.05;
     pbdParams->m_iterations = 2;
@@ -56,21 +55,6 @@ InflatableObject::InflatableObject(const std::string& name, const Vec3d& tissueS
 
     pbdParams->addPbdConstraintFunctor(distanceFunctor);
     pbdParams->addPbdConstraintFunctor(volumeFunctor);
-
-    // Fix the borders
-    for (int z = 0; z < tissueDim[2]; z++)
-    {
-        for (int y = 0; y < tissueDim[1]; y++)
-        {
-            for (int x = 0; x < tissueDim[0]; x++)
-            {
-                if (x == 0 || z == 0 || x == tissueDim[0] - 1 || z == tissueDim[2] - 1 || y == 0)
-                {
-                    pbdParams->m_fixedNodeIds.push_back(x + tissueDim[0] * (y + tissueDim[1] * z));
-                }
-            }
-        }
-    }
 
     // Setup the Model
     imstkNew<PbdModel> pbdModel;
@@ -98,6 +82,22 @@ InflatableObject::InflatableObject(const std::string& name, const Vec3d& tissueS
     setCollidingGeometry(m_objectSurfMesh);
     setPhysicsToCollidingMap(std::make_shared<PointwiseMap>(m_objectTetMesh, m_objectSurfMesh));
     setDynamicalModel(pbdModel);
+
+    // Fix the borders
+    getPbdBody()->uniformMassValue = 0.1;
+    for (int z = 0; z < tissueDim[2]; z++)
+    {
+        for (int y = 0; y < tissueDim[1]; y++)
+        {
+            for (int x = 0; x < tissueDim[0]; x++)
+            {
+                if (x == 0 || z == 0 || x == tissueDim[0] - 1 || z == tissueDim[2] - 1 || y == 0)
+                {
+                    getPbdBody()->fixedNodeIds.push_back(x + tissueDim[0] * (y + tissueDim[1] * z));
+                }
+            }
+        }
+    }
 }
 
 bool
@@ -155,12 +155,12 @@ InflatableObject::findAffectedConstraint(const Vec3d& toolTip, const double radi
     double              minDistance = LONG_MAX;
     for (auto& c : m_constraintContainer->getConstraints())
     {
-        auto& ids = c->getVertexIds();
+        const std::vector<PbdConstraint::BodyVertexId>& ids = c->getIds();
 
         Vec3d center(0.0, 0.0, 0.0);
         for (auto i : ids)
         {
-            center += (*vertices)[i];
+            center += (*vertices)[i.second];
         }
 
         double distance = (center / ids.size() - toolTip).norm();

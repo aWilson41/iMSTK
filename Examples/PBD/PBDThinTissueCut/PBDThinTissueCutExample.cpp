@@ -62,8 +62,6 @@ makeTissueObj(const std::string& name,
     imstkNew<PbdModelConfig> pbdParams;
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 1.0e3);
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Dihedral, 1.0e3);
-    pbdParams->m_fixedNodeIds     = { 0, static_cast<size_t>(nCols) - 1 };
-    pbdParams->m_uniformMassValue = width * height / static_cast<double>(nRows * nCols);
     pbdParams->m_gravity    = Vec3d(0.0, -9.8, 0.0);
     pbdParams->m_dt         = 0.005;
     pbdParams->m_iterations = 5;
@@ -94,6 +92,8 @@ makeTissueObj(const std::string& name,
     tissueObj->setPhysicsGeometry(clothMesh);
     tissueObj->setCollidingGeometry(clothMesh);
     tissueObj->setDynamicalModel(pbdModel);
+    tissueObj->getPbdBody()->fixedNodeIds     = { 0, nCols - 1 };
+    tissueObj->getPbdBody()->uniformMassValue = width * height / static_cast<double>(nRows * nCols);
 
     return tissueObj;
 }
@@ -125,11 +125,11 @@ main()
     scene->addSceneObject(cutObj);
 
     // Create a pbd cloth object in the scene
-    std::shared_ptr<PbdObject> clothObj = makeTissueObj("Tissue", 50.0, 50.0, 12, 12);
-    scene->addSceneObject(clothObj);
+    std::shared_ptr<PbdObject> tissueObj = makeTissueObj("Tissue", 50.0, 50.0, 12, 12);
+    scene->addSceneObject(tissueObj);
 
     // Add interaction pair for pbd cutting
-    imstkNew<PbdObjectCutting> cuttingInteraction(clothObj, cutObj);
+    imstkNew<PbdObjectCutting> cuttingInteraction(tissueObj, cutObj);
 
     // Device Server
     imstkNew<HapticDeviceManager>       server;

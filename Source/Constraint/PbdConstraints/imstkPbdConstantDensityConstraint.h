@@ -49,15 +49,14 @@ public:
     ///
     /// \brief Solves the constant density constraint
     ///
-    void projectConstraint(const DataArray<double>& currInvMasses,
-                           const double dt,
-                           const PbdConstraint::SolverType& type,
-                           VecDataArray<double, 3>& currVertexPositions) override;
+    void projectConstraint(std::vector<PbdBody>&            bodies,
+                           const double                     dt,
+                           const PbdConstraint::SolverType& type) override;
 
     bool computeValueAndGradient(
-        const VecDataArray<double, 3>& imstkNotUsed(currVertexPositions),
-        double& imstkNotUsed(c),
-        std::vector<Vec3d>& imstkNotUsed(dcdx)) const override
+        std::vector<PbdBody>& imstkNotUsed(bodies),
+        double&               imstkNotUsed(c),
+        std::vector<Vec3d>&   imstkNotUsed(dcdx)) const override
     {
         return true;
     }

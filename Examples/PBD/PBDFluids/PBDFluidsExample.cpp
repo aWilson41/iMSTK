@@ -73,12 +73,7 @@ createPbdFluid(const std::string& tetMeshName)
 
     // Configure model
     imstkNew<PbdModelConfig> pbdParams;
-
-    // Constant density constraint with stiffness
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::ConstantDensity, 1.0);
-
-    // Other parameters
-    pbdParams->m_uniformMassValue = 1.0;
     pbdParams->m_gravity    = Vec3d(0.0, -9.8, 0.0);
     pbdParams->m_dt         = 0.005;
     pbdParams->m_iterations = 2;
@@ -87,6 +82,7 @@ createPbdFluid(const std::string& tetMeshName)
     pbdModel->configure(pbdParams);
     pbdModel->setTimeStepSizeType(TimeSteppingType::Fixed);
     deformableObj->setDynamicalModel(pbdModel);
+    deformableObj->getPbdBody()->uniformMassValue = 1.0;
 
     return deformableObj;
 }

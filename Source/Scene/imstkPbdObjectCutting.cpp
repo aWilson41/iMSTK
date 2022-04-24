@@ -73,15 +73,13 @@ PbdObjectCutting::apply()
     pbdMesh->setInitialVertexPositions(std::make_shared<VecDataArray<double, 3>>(*newPbdMesh->getInitialVertexPositions()));
     pbdMesh->setVertexPositions(std::make_shared<VecDataArray<double, 3>>(*newPbdMesh->getVertexPositions()));
     pbdMesh->setTriangleIndices(std::make_shared<VecDataArray<int, 3>>(*newPbdMesh->getTriangleIndices()));
-    pbdMesh->postModified();
 
     // update pbd states, constraints and solver
-    pbdModel->initState();
+    pbdModel->getCurrentState()->initState(*m_objA->getPbdBody());
     pbdModel->getConstraints()->removeConstraints(m_removeConstraintVertices);
-    // pbdModel->getConstraints()->addConstraintVertices(m_addConstraintVertices);
     pbdModel->addConstraints(m_addConstraintVertices);
-    pbdModel->getSolver()->setInvMasses(pbdModel->getInvMasses());
-    pbdModel->getSolver()->setPositions(pbdModel->getCurrentState()->getPositions());
+
+    pbdMesh->postModified();
 }
 
 void

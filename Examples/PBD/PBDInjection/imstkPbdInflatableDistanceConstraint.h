@@ -37,12 +37,12 @@ public:
     ///
     /// \brief Initializes the inflatable distance constraint
     ///
-    void initConstraint(const VecDataArray<double, 3>& initVertexPositions,
-                        const size_t& pIdx0,
-                        const size_t& pIdx1,
+    void initConstraint(const Vec3d& p0, const Vec3d& p1,
+                        const BodyVertexId& pIdx0,
+                        const BodyVertexId& pIdx1,
                         const double k = 1e5)
     {
-        PbdDistanceConstraint::initConstraint(initVertexPositions, pIdx0, pIdx1, k);
+        PbdDistanceConstraint::initConstraint(p0, p1, pIdx0, pIdx1, k);
         m_initialRestLength = m_restLength;
         m_initialStiffness  = m_stiffness;
     }
@@ -50,10 +50,9 @@ public:
     ///
     /// \brief Apply diffusion and update positions
     ///
-    void projectConstraint(const DataArray<double>& currInvMasses,
-                           const double dt,
-                           const SolverType& type,
-                           VecDataArray<double, 3>& pos) override
+    void projectConstraint(std::vector<PbdBody>& bodies,
+                           const double          dt,
+                           const SolverType&     type) override
     {
         if (isInflated())
         {
@@ -61,7 +60,7 @@ public:
                 m_restLength + m_diffusionRate * dt * (m_initialRestLength - m_restLength);
             m_stiffness = m_stiffness + m_diffusionRate * dt * (m_initialStiffness - m_stiffness);
         }
-        PbdConstraint::projectConstraint(currInvMasses, dt, type, pos);
+        PbdConstraint::projectConstraint(bodies, dt, type);
     }
 
     void setRestLength(const double restLength) { m_restLength = restLength; }
@@ -101,7 +100,8 @@ struct PbdInflatableDistanceConstraintFunctor : public PbdDistanceConstraintFunc
             size_t i1, size_t i2) override
         {
             auto constraint = std::make_shared<PbdInflatableDistanceConstraint>();
-            constraint->initConstraint(vertices, i1, i2, m_stiffness);
+            constraint->initConstraint(vertices[i1], vertices[i2],
+                { m_bodyIndex, i1 }, { m_bodyIndex, i2 }, m_stiffness);
             return constraint;
         }
 };

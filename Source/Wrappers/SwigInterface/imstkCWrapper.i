@@ -101,6 +101,7 @@
 /*
  * Constraints
  */
+#include "imstkPbdBody.h"
 #include "imstkPbdConstraint.h"
 #include "imstkRbdConstraint.h"
 
@@ -227,6 +228,7 @@ namespace std
   %template(VectorSizet) vector<std::size_t>;
   %template(VectorDouble) vector<double>;
   %template(VectorCollisionElement) vector<imstk::CollisionElement>;
+  %template(VectorPbdBody) vector<imstk::PbdBody>;
 }
 
 %include <std_except.i>
@@ -319,6 +321,7 @@ namespace std
 /*
  * Constraint
  */
+%include "../../Constraint/PbdConstraints/imstkPbdBody.h"
 %include "../../Constraint/PbdConstraints/imstkPbdConstraint.h"
 %include "../../Constraint/PbdConstraints/imstkPbdCollisionConstraint.h"
 %include "../../Constraint/PbdConstraints/imstkPbdFemConstraint.h"
