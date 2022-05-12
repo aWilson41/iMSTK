@@ -47,19 +47,17 @@ public:
     IMSTK_TYPE_NAME(PbdObjectCollision)
 
     void setRestitution(const double restitution);
-    const double getRestitution() const;
+    double getRestitution() const;
 
     void setFriction(const double friction);
-    const double getFriction() const;
+    double getFriction() const;
+
+    void setCollisionIterations(const int iterations);
+    int getCollisionIterations() const;
 
     ///
     /// \brief Setup connectivity of task graph
     ///
     void initGraphEdges(std::shared_ptr<TaskNode> source, std::shared_ptr<TaskNode> sink) override;
-
-protected:
-    // Steps introduced in interaction
-    std::shared_ptr<TaskNode> m_collisionSolveNode    = nullptr;
-    std::shared_ptr<TaskNode> m_correctVelocitiesNode = nullptr;
 };
 } // namespace imstk

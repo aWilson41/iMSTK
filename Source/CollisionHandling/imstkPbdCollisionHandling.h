@@ -44,22 +44,12 @@ struct MeshSide;
 class PbdCollisionHandling : public CollisionHandling
 {
 public:
-    PbdCollisionHandling();
-    virtual ~PbdCollisionHandling() override;
+    PbdCollisionHandling() = default;
+    ~PbdCollisionHandling() override;
 
     IMSTK_TYPE_NAME(PbdCollisionHandling)
 
 public:
-    ///
-    /// \brief Return the solver of the collision constraints
-    ///
-    std::shared_ptr<PbdCollisionSolver> getCollisionSolver() const { return m_pbdCollisionSolver; }
-
-    ///
-    /// \brief Corrects for velocity (restitution and friction) after PBD is complete
-    ///
-    void correctVelocities();
-
     void setRestitution(const double restitution) { m_restitution = restitution; }
     const double getRestitution() const { return m_restitution; }
 
@@ -131,8 +121,6 @@ protected:
         double stiffnessA, double stiffnessB);
 
 private:
-    std::shared_ptr<PbdCollisionSolver> m_pbdCollisionSolver = nullptr;
-
     std::vector<PbdCollisionConstraint*> m_PBDConstraints; ///< List of PBD constraints
 
     // Lists important here as the memory locations should not change upon push_back

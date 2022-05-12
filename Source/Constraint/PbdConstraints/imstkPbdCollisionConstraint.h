@@ -67,10 +67,26 @@ public:
     ///@}
 
     ///
-    /// \brief Get stiffness
+    /// \brief Get/Set stiffness A or B
     ///@{
-    const double getStiffnessA() const { return m_stiffnessA; }
-    const double getStiffnessB() const { return m_stiffnessB; }
+    double getStiffnessA() const { return m_stiffnessA; }
+    void setStiffnessA(const double stiffnessA) { m_stiffnessA = stiffnessA; }
+    double getStiffnessB() const { return m_stiffnessB; }
+    void setStiffnessB(const double stiffnessB) { m_stiffnessB = stiffnessB; }
+    ///@}
+
+    ///
+    /// \brief Get/Set resitution
+    ///@{
+    double getRestitution() const { return m_restitution; }
+    void setRestitution(const double restitution) { m_restitution = restitution; }
+    ///@}
+
+    ///
+    /// \brief Get/Set friction
+    ///@{
+    double getFriction() const { return m_friction; }
+    void setFriction(const double friction) { m_friction = friction; }
     ///@}
 
     ///
@@ -91,7 +107,7 @@ public:
     ///
     /// \brief Solve the velocities given to the constraint
     ///
-    virtual void correctVelocity(const double friction, const double restitution);
+    virtual void correctVelocity();
 
 protected:
     std::vector<VertexMassPair> m_bodiesFirst;  ///< index of points for the first object
@@ -99,6 +115,9 @@ protected:
 
     double m_stiffnessA = 1.0;
     double m_stiffnessB = 1.0;
+
+    double m_friction    = 0.0;
+    double m_restitution = 0.0;
 
     std::vector<Vec3d> m_dcdxA; ///< Normalized constraint gradients (per vertex)
     std::vector<Vec3d> m_dcdxB; ///< Normalized constraint gradients (per vertex)

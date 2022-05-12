@@ -33,6 +33,7 @@
 namespace imstk
 {
 class PointSet;
+class PbdCollisionSolver;
 class PbdConstraintContainer;
 class PbdSolver;
 
@@ -107,13 +108,14 @@ struct PbdModelConfig
         }
 
     public:
-        double m_viscousDampingCoeff = 0.01;      ///< Viscous damping coefficient [0, 1]
-        double m_contactStiffness    = 1.0;       ///< Stiffness for contact
-        unsigned int m_iterations    = 10;        ///< Internal constraints pbd solver iterations
-        double m_dt = 0.0;                        ///< Time step size
-        bool m_doPartitioning = true;             ///< Does graph coloring to solve in parallel
+        double m_viscousDampingCoeff       = 0.01; ///< Viscous damping coefficient [0, 1]
+        double m_contactStiffness          = 1.0;  ///< Stiffness for contact
+        unsigned int m_iterations          = 10;   ///< Internal constraints pbd solver iterations
+        unsigned int m_collisionIterations = 1;
+        double m_dt = 0.01;                        ///< Time step size
+        bool m_doPartitioning = true;              ///< Does graph coloring to solve in parallel
 
-        Vec3d m_gravity = Vec3d(0.0, -9.81, 0.0); ///< Gravity acceleration
+        Vec3d m_gravity = Vec3d(0.0, -9.81, 0.0);  ///< Gravity acceleration
 
         std::shared_ptr<PbdFemConstraintConfig> m_femParams =
             std::make_shared<PbdFemConstraintConfig>(PbdFemConstraintConfig
@@ -214,6 +216,11 @@ public:
     void solveConstraints();
 
     ///
+    /// \brief Solve the collision constraints
+    ///
+    void solveCollisionConstraints();
+
+    ///
     /// \brief Initialize the PBD model
     ///
     bool initialize() override;
@@ -227,6 +234,7 @@ public:
     /// \brief Returns the solver used for internal constraints
     ///
     std::shared_ptr<PbdSolver> getSolver() const { return m_pbdSolver; }
+    std::shared_ptr<PbdCollisionSolver> getCollisionSolver() const { return m_pbdCollisionSolver; }
 
     ///
     /// \brief Sets the solver used for internal constraints
@@ -237,6 +245,8 @@ public:
 
     std::shared_ptr<TaskNode> getSolveNode() const { return m_solveConstraintsNode; }
 
+    std::shared_ptr<TaskNode> getCollisionSolveNode() const { return m_collisionSolveConstraintsNode; }
+
     std::shared_ptr<TaskNode> getUpdateVelocityNode() const { return m_updateVelocityNode; }
 
 protected:
@@ -245,19 +255,21 @@ protected:
     ///
     void initGraphEdges(std::shared_ptr<TaskNode> source, std::shared_ptr<TaskNode> sink) override;
 
-    size_t m_partitionThreshold = 16;                      ///< Threshold for constraint partitioning
+    size_t m_partitionThreshold = 16;                                   ///< Threshold for constraint partitioning
 
-    std::shared_ptr<PbdSolver> m_pbdSolver = nullptr;      ///< PBD solver
+    std::shared_ptr<PbdSolver> m_pbdSolver = nullptr;                   ///< PBD solver
+    std::shared_ptr<PbdCollisionSolver> m_pbdCollisionSolver = nullptr; ///< PBD Collision Solver
 
-    std::shared_ptr<PbdModelConfig> m_config = nullptr;    ///< Model parameters, must be set before simulation
+    std::shared_ptr<PbdModelConfig> m_config = nullptr;                 ///< Model parameters, must be set before simulation
 
-    std::shared_ptr<PbdConstraintContainer> m_constraints; ///< The set of constraints to update/use
+    std::shared_ptr<PbdConstraintContainer> m_constraints;              ///< The set of constraints to update/use
 
     ///< Computational Nodes
     ///@{
-    std::shared_ptr<TaskNode> m_integrationPositionNode = nullptr;
-    std::shared_ptr<TaskNode> m_solveConstraintsNode    = nullptr;
-    std::shared_ptr<TaskNode> m_updateVelocityNode      = nullptr;
+    std::shared_ptr<TaskNode> m_integrationPositionNode       = nullptr;
+    std::shared_ptr<TaskNode> m_solveConstraintsNode          = nullptr;
+    std::shared_ptr<TaskNode> m_collisionSolveConstraintsNode = nullptr;
+    std::shared_ptr<TaskNode> m_updateVelocityNode = nullptr;
     ///@}
 };
 } // namespace imstk

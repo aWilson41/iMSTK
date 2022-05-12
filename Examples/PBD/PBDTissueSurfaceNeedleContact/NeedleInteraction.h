@@ -54,7 +54,6 @@ public:
         needlePbdCH->setInputObjectA(tissueObj);
         needlePbdCH->setInputObjectB(needleObj);
         needlePbdCH->setInputCollisionData(getCollisionDetection()->getCollisionData());
-        needlePbdCH->getCollisionSolver()->setCollisionIterations(1);
         setCollisionHandlingA(needlePbdCH);
     }
 

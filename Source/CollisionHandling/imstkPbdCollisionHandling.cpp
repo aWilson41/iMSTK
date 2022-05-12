@@ -206,11 +206,6 @@ getTriangle(const CollisionElement& elem, const MeshSide& side)
     return results;
 }
 
-PbdCollisionHandling::PbdCollisionHandling() :
-    m_pbdCollisionSolver(std::make_shared<PbdCollisionSolver>())
-{
-}
-
 PbdCollisionHandling::~PbdCollisionHandling()
 {
     for (const auto ptr: m_EEConstraintPool)
@@ -291,7 +286,9 @@ PbdCollisionHandling::handle(
         return;
     }
 
-    m_pbdCollisionSolver->addCollisionConstraints(&m_PBDConstraints);
+    // ObjA garunteed to be PbdObject, and to share PbdModel with B if B is a PbdObject
+    std::shared_ptr<PbdObject> pbdObjectA = std::dynamic_pointer_cast<PbdObject>(getInputObjectA());
+    pbdObjectA->getPbdModel()->getCollisionSolver()->addCollisionConstraints(&m_PBDConstraints);
 }
 
 void
@@ -554,15 +551,6 @@ PbdCollisionHandling::generateMeshMeshConstraints(
 }
 
 void
-PbdCollisionHandling::correctVelocities()
-{
-    for (int i = 0; i < m_PBDConstraints.size(); i++)
-    {
-        m_PBDConstraints[i]->correctVelocity(m_friction, m_restitution);
-    }
-}
-
-void
 PbdCollisionHandling::addVTConstraint(
     VertexMassPair ptA,
     VertexMassPair ptB1, VertexMassPair ptB2, VertexMassPair ptB3,
@@ -570,6 +558,8 @@ PbdCollisionHandling::addVTConstraint(
 {
     PbdPointTriangleConstraint* constraint = new PbdPointTriangleConstraint();
     constraint->initConstraint(ptA, ptB1, ptB2, ptB3, stiffnessA, stiffnessB);
+    constraint->setFriction(m_friction);
+    constraint->setRestitution(m_restitution);
     m_VTConstraintPool.push_back(constraint);
 }
 
@@ -581,6 +571,8 @@ PbdCollisionHandling::addEEConstraint(
 {
     PbdEdgeEdgeConstraint* constraint = new PbdEdgeEdgeConstraint();
     constraint->initConstraint(ptA1, ptA2, ptB1, ptB2, stiffnessA, stiffnessB);
+    constraint->setFriction(m_friction);
+    constraint->setRestitution(m_restitution);
     m_EEConstraintPool.push_back(constraint);
 }
 
@@ -608,6 +600,8 @@ PbdCollisionHandling::addPEConstraint(
 {
     PbdPointEdgeConstraint* constraint = new PbdPointEdgeConstraint();
     constraint->initConstraint(ptA1, ptB1, ptB2, stiffnessA, stiffnessB);
+    constraint->setFriction(m_friction);
+    constraint->setRestitution(m_restitution);
     m_PEConstraintPool.push_back(constraint);
 }
 
@@ -618,6 +612,8 @@ PbdCollisionHandling::addPPConstraint(
 {
     PbdPointPointConstraint* constraint = new PbdPointPointConstraint();
     constraint->initConstraint(ptA, ptB, stiffnessA, stiffnessB);
+    constraint->setFriction(m_friction);
+    constraint->setRestitution(m_restitution);
     m_PPConstraintPool.push_back(constraint);
 }
 } // namespace imstk

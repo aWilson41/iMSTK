@@ -165,6 +165,8 @@ PbdModel::PbdModel() : DynamicalModel(DynamicalModelType::PositionBasedDynamics)
         [&]() { integratePosition(); });
     m_solveConstraintsNode = m_taskGraph->addFunction("PbdModel_SolveConstraints",
         [&]() { solveConstraints(); });
+    m_collisionSolveConstraintsNode = m_taskGraph->addFunction("PbdModel_SolveCollisionConstraints",
+        [&]() { solveCollisionConstraints(); });
     m_updateVelocityNode = m_taskGraph->addFunction("PbdModel_UpdateVelocity",
         [&]() { updateVelocity(); });
 }
@@ -236,6 +238,10 @@ PbdModel::initialize()
     {
         m_pbdSolver = std::make_shared<PbdSolver>();
     }
+    if (m_pbdCollisionSolver == nullptr)
+    {
+        m_pbdCollisionSolver = std::make_shared<PbdCollisionSolver>();
+    }
 
     return true;
 }
@@ -246,7 +252,8 @@ PbdModel::initGraphEdges(std::shared_ptr<TaskNode> source, std::shared_ptr<TaskN
     // Setup graph connectivity
     m_taskGraph->addEdge(source, m_integrationPositionNode);
     m_taskGraph->addEdge(m_integrationPositionNode, m_solveConstraintsNode);
-    m_taskGraph->addEdge(m_solveConstraintsNode, m_updateVelocityNode);
+    m_taskGraph->addEdge(m_solveConstraintsNode, m_collisionSolveConstraintsNode);
+    m_taskGraph->addEdge(m_collisionSolveConstraintsNode, m_updateVelocityNode);
     m_taskGraph->addEdge(m_updateVelocityNode, sink);
 }
 
@@ -307,6 +314,17 @@ PbdModel::updateVelocity()
     {
         updateVelocity(*body);
     }
+
+    // Correctly velocities for friction and restitution
+    // Unfortunately the constraint would be clear after a solve
+    for (const auto& colConstraintList : m_pbdCollisionSolver->getCollisionConstraints())
+    {
+        for (auto& colConstraint : *colConstraintList)
+        {
+            colConstraint->correctVelocity();
+        }
+    }
+    m_pbdCollisionSolver->clearConstraints();
 }
 
 void
@@ -346,5 +364,12 @@ PbdModel::solveConstraints()
     m_pbdSolver->setIterations(m_config->m_iterations);
     m_pbdSolver->setSolverType(m_config->m_solverType);
     m_pbdSolver->solve();
+}
+
+void
+PbdModel::solveCollisionConstraints()
+{
+    m_pbdCollisionSolver->setCollisionIterations(m_config->m_collisionIterations);
+    m_pbdCollisionSolver->solve();
 }
 } // namespace imstk

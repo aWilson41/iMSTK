@@ -82,9 +82,9 @@ PbdCollisionConstraint::solvePosition()
 }
 
 void
-PbdCollisionConstraint::correctVelocity(const double friction, const double restitution)
+PbdCollisionConstraint::correctVelocity()
 {
-    const double fricFrac = 1.0 - friction;
+    const double fricFrac = 1.0 - m_friction;
 
     for (size_t i = 0; i < m_bodiesFirst.size(); i++)
     {
@@ -98,7 +98,7 @@ PbdCollisionConstraint::correctVelocity(const double friction, const double rest
             const Vec3d vT = v - vN;
 
             // Put back together fractionally based on defined restitution and frictional coefficients
-            v = vN * restitution + vT * fricFrac;
+            v = vN * m_restitution + vT * fricFrac;
         }
     }
 
@@ -114,7 +114,7 @@ PbdCollisionConstraint::correctVelocity(const double friction, const double rest
             const Vec3d vT = v - vN;
 
             // Put back together fractionally based on defined restitution and frictional coefficients
-            v = vN * restitution + vT * fricFrac;
+            v = vN * m_restitution + vT * fricFrac;
         }
     }
 }

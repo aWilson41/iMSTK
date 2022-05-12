@@ -122,16 +122,26 @@ public:
     ~PbdCollisionSolver() override = default;
 
     ///
-    /// \brief Get CollisionIterations
-    ///
+    /// \brief Get/Set CollisionIterations
+    ///@{
     size_t getCollisionIterations() const { return this->m_collisionIterations; }
-
     void setCollisionIterations(const size_t iterations) { m_collisionIterations = iterations; }
+    ///@}
 
     ///
     /// \brief Add the global collision contraints to this solver
     ///
     void addCollisionConstraints(std::vector<PbdCollisionConstraint*>* constraints);
+
+    ///
+    /// \brief Get all the collision constraints, read only
+    ///
+    const std::list<std::vector<PbdCollisionConstraint*>*>& getCollisionConstraints() const { return *m_collisionConstraints; }
+
+    ///
+    /// \brief Clear all collision constraints
+    ///
+    void clearConstraints() { m_collisionConstraints->clear(); }
 
     ///
     /// \brief Solve the non linear system of equations G(x)=0 using Newton's method.

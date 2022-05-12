@@ -23,6 +23,7 @@
 #include "EmbeddingConstraint.h"
 #include "imstkCollisionUtils.h"
 #include "imstkLineMesh.h"
+#include "imstkPbdModel.h"
 #include "imstkPbdObject.h"
 #include "imstkPbdSolver.h"
 #include "imstkRigidBodyModel2.h"
@@ -33,31 +34,11 @@
 
 using namespace imstk;
 
-NeedleEmbeddedCH::NeedleEmbeddedCH() :
-    m_solver(std::make_shared<PbdCollisionSolver>())
-{
-}
-
 std::shared_ptr<Geometry>
 NeedleEmbeddedCH::getHandlingGeometryA()
 {
     auto tissueObj = std::dynamic_pointer_cast<PbdObject>(getInputObjectA());
     return (tissueObj == nullptr) ? nullptr : tissueObj->getPhysicsGeometry();
-}
-
-void
-NeedleEmbeddedCH::correctVelocities()
-{
-    for (size_t i = 0; i < m_solverConstraints.size(); i++)
-    {
-        m_solverConstraints[i]->correctVelocity(m_friction, 1.0);
-    }
-}
-
-void
-NeedleEmbeddedCH::solve()
-{
-    m_solver->solve();
 }
 
 void
@@ -148,6 +129,8 @@ NeedleEmbeddedCH::handle(
                     { &tissueVertices[v2], tissueInvMasses[v2], &tissueVelocities[v2] },
                     { &tissueVertices[v3], tissueInvMasses[v3], &tissueVelocities[v3] },
                 &needleVertices[0], &needleVertices[1]);
+                constraint->setFriction(m_friction);
+                constraint->setRestitution(1.0);
 
                 // Add the constraint to a map of face->constraint
                 m_faceConstraints[triCell] = constraint;
@@ -246,5 +229,5 @@ NeedleEmbeddedCH::handle(
             i = m_faceConstraints.erase(i);
         }
     }
-    m_solver->addCollisionConstraints(&m_solverConstraints);
+    tissueObj->getPbdModel()->getCollisionSolver()->addCollisionConstraints(&m_solverConstraints);
 }
