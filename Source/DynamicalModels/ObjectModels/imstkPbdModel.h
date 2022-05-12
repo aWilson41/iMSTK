@@ -168,6 +168,8 @@ public:
     ///
     std::shared_ptr<PbdBody> addPbdBody() { return getCurrentState()->addBody(); }
 
+    void removePbdBody(std::shared_ptr<PbdBody> body) { getCurrentState()->removeBody(body); }
+
     ///
     /// \brief Get the simulation parameters
     ///

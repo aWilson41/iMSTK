@@ -54,6 +54,15 @@ PbdObject::setDynamicalModel(std::shared_ptr<AbstractDynamicalModel> dynaModel)
     // todo: If already has another model, should remove the corresponding body?
     m_pbdModel       = std::dynamic_pointer_cast<PbdModel>(dynaModel);
     m_dynamicalModel = dynaModel;
+
+    // If the model already has a pbd body for this PbdObject remove it from
+    // that prior model
+    if (m_pbdBody != nullptr)
+    {
+        CHECK(m_pbdModel != nullptr) <<
+            "PbdObject has a PbdBody but cannot find associated PbdModel?";
+        m_pbdModel->removePbdBody(m_pbdBody);
+    }
     m_pbdBody = m_pbdModel->addPbdBody();
     if (m_physicsGeometry != nullptr)
     {

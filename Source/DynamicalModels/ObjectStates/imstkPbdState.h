@@ -54,6 +54,13 @@ public:
         return body;
     }
 
+    void removeBody(std::shared_ptr<PbdBody> body)
+    {
+        auto iter = std::find(m_bodies.begin(), m_bodies.end(), body);
+        CHECK(iter != m_bodies.end()) << "removeBody called but could not find PbdyBody in PbdState";
+        m_bodies.erase(iter);
+    }
+
     std::shared_ptr<PointSet> getBodyGeometry(const PbdBody& body)
     {
         auto iter = m_bodyGeometries.find(body.bodyHandle);
