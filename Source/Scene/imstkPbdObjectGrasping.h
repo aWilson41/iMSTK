@@ -183,5 +183,8 @@ protected:
 
     std::list<std::tuple<Vec3d, Vec3d, Vec3d>> m_constraintPts;         ///< Position, Relative position, Velocity
     std::vector<std::shared_ptr<PbdCollisionConstraint>> m_constraints; ///< List of PBD constraints
+
+private:
+    std::vector<PbdCollisionConstraint*> m_collisionConstraints;
 };
 } // namespace imstk

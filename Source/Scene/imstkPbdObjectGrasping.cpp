@@ -27,6 +27,7 @@ limitations under the License.
 #include "imstkPbdBaryPointToPointConstraint.h"
 #include "imstkPbdModel.h"
 #include "imstkPbdObject.h"
+#include "imstkPbdSolver.h"
 #include "imstkPointPicker.h"
 #include "imstkPointwiseMap.h"
 #include "imstkSurfaceMesh.h"
@@ -97,7 +98,7 @@ PbdObjectGrasping::PbdObjectGrasping(std::shared_ptr<PbdObject> obj) :
     m_taskGraph->addNode(m_pickingNode);
 
     m_taskGraph->addNode(m_objectToGrasp->getPbdModel()->getSolveNode());
-    m_taskGraph->addNode(m_objectToGrasp->getPbdModel()->getUpdateVelocityNode());
+    m_taskGraph->addNode(m_objectToGrasp->getPbdModel()->getCollisionSolveNode());
 
     m_taskGraph->addNode(m_objectToGrasp->getTaskGraph()->getSource());
     m_taskGraph->addNode(m_objectToGrasp->getTaskGraph()->getSink());
@@ -170,6 +171,7 @@ PbdObjectGrasping::removePickConstraints()
 {
     m_constraints.clear();
     m_constraintPts.clear();
+    m_collisionConstraints.clear();
 }
 
 void
@@ -177,12 +179,12 @@ PbdObjectGrasping::addPickConstraints()
 {
     removePickConstraints();
 
-    std::shared_ptr<PointSet> pbdPhysicsGeom =
+    auto pbdPhysicsGeom =
         std::dynamic_pointer_cast<PointSet>(m_objectToGrasp->getPhysicsGeometry());
 
     // If the point set to pick hasn't been set yet, default it to the physics geometry
     // This would be the case if the user was mapping a geometry to another
-    std::shared_ptr<PointSet> pointSetToPick = std::dynamic_pointer_cast<PointSet>(m_geomToPick);
+    auto pointSetToPick = std::dynamic_pointer_cast<PointSet>(m_geomToPick);
     if (m_geomToPick == nullptr)
     {
         pointSetToPick = pbdPhysicsGeom;
@@ -378,6 +380,12 @@ PbdObjectGrasping::addPickConstraints()
                 m_stiffness, 0.0);
         }
     }
+
+    m_collisionConstraints.reserve(m_constraints.size());
+    for (int i = 0; i < m_constraints.size(); i++)
+    {
+        m_collisionConstraints.push_back(m_constraints[i].get());
+    }
 }
 
 void
@@ -434,10 +442,9 @@ PbdObjectGrasping::updateConstraints()
         }
     }
 
-    // Directly solve here
-    for (const auto& constraint : m_constraints)
+    if (m_collisionConstraints.size() > 0)
     {
-        constraint->solvePosition();
+        m_objectToGrasp->getPbdModel()->getCollisionSolver()->addCollisionConstraints(&m_collisionConstraints);
     }
 }
 
@@ -449,9 +456,9 @@ PbdObjectGrasping::initGraphEdges(std::shared_ptr<TaskNode> source, std::shared_
     m_taskGraph->addEdge(source, m_objectToGrasp->getTaskGraph()->getSource());
     m_taskGraph->addEdge(m_objectToGrasp->getTaskGraph()->getSink(), sink);
 
-    // The ideal location is after the internal positional solve
+    // The ideal location is after the internal positional solve, but before collisions are solved
     m_taskGraph->addEdge(pbdModel->getSolveNode(), m_pickingNode);
-    m_taskGraph->addEdge(m_pickingNode, pbdModel->getUpdateVelocityNode());
+    m_taskGraph->addEdge(m_pickingNode, pbdModel->getCollisionSolveNode());
 }
 
 bool

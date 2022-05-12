@@ -25,6 +25,7 @@ limitations under the License.
 #include "imstkPbdBaryPointToPointConstraint.h"
 #include "imstkPbdModel.h"
 #include "imstkPbdObject.h"
+#include "imstkPbdSolver.h"
 #include "imstkPointPicker.h"
 #include "imstkSurfaceMesh.h"
 #include "imstkTaskGraph.h"
@@ -131,7 +132,7 @@ PbdObjectStitching::PbdObjectStitching(std::shared_ptr<PbdObject> obj) :
     m_taskGraph->addNode(m_stitchingNode);
 
     m_taskGraph->addNode(m_objectToStitch->getPbdModel()->getSolveNode());
-    m_taskGraph->addNode(m_objectToStitch->getPbdModel()->getUpdateVelocityNode());
+    m_taskGraph->addNode(m_objectToStitch->getPbdModel()->getCollisionSolveNode());
 
     m_taskGraph->addNode(m_objectToStitch->getTaskGraph()->getSource());
     m_taskGraph->addNode(m_objectToStitch->getTaskGraph()->getSink());
@@ -152,6 +153,7 @@ void
 PbdObjectStitching::removeStitchConstraints()
 {
     m_constraints.clear();
+    m_collisionConstraints.clear();
 }
 
 void
@@ -341,6 +343,12 @@ PbdObjectStitching::addStitchConstraints()
                 m_stiffness, m_stiffness);
         }
     }
+
+    m_collisionConstraints.reserve(m_constraints.size());
+    for (int i = 0; i < m_constraints.size(); i++)
+    {
+        m_collisionConstraints.push_back(m_constraints[i].get());
+    }
 }
 
 void
@@ -371,16 +379,9 @@ PbdObjectStitching::updateStitching()
         m_performStitch = false;
     }
 
-    updateConstraints();
-}
-
-void
-PbdObjectStitching::updateConstraints()
-{
-    // Directly solve here
-    for (const auto& constraint : m_constraints)
+    if (m_collisionConstraints.size() > 0)
     {
-        constraint->solvePosition();
+        m_objectToStitch->getPbdModel()->getCollisionSolver()->addCollisionConstraints(&m_collisionConstraints);
     }
 }
 
@@ -392,8 +393,8 @@ PbdObjectStitching::initGraphEdges(std::shared_ptr<TaskNode> source, std::shared
     m_taskGraph->addEdge(source, m_objectToStitch->getTaskGraph()->getSource());
     m_taskGraph->addEdge(m_objectToStitch->getTaskGraph()->getSink(), sink);
 
-    // The ideal location is after the internal positional solve
+    // The ideal location is after the internal positional solve, before the collision solve
     m_taskGraph->addEdge(pbdModel->getSolveNode(), m_stitchingNode);
-    m_taskGraph->addEdge(m_stitchingNode, pbdModel->getUpdateVelocityNode());
+    m_taskGraph->addEdge(m_stitchingNode, pbdModel->getCollisionSolveNode());
 }
 } // namespace imstk

@@ -120,11 +120,6 @@ protected:
     ///
     virtual void updateStitching();
 
-    ///
-    /// \brief Update the constraints used for picking
-    ///
-    void updateConstraints();
-
 protected:
     std::shared_ptr<TaskNode> m_stitchingNode = nullptr;
 
@@ -142,6 +137,9 @@ protected:
     double m_stiffness     = 0.1;
     double m_maxStitchDist = -1.0;                                             // Set a maximum distance for which a stitch can be placed
 
-    std::vector<std::shared_ptr<PbdBaryPointToPointConstraint>> m_constraints; ///< List of PBD constraints
+    std::vector<std::shared_ptr<PbdBaryPointToPointConstraint>> m_constraints; ///< Array of PBD constraints
+
+private:
+    std::vector<PbdCollisionConstraint*> m_collisionConstraints;
 };
 } // namespace imstk

@@ -89,6 +89,8 @@ makeTetTissueObj(const std::string& name,
     pbdParams->m_dt         = 0.001;
     pbdParams->m_iterations = 5;
     pbdParams->m_viscousDampingCoeff = 0.05;
+    pbdParams->m_contactStiffness    = 0.3;
+    pbdParams->m_collisionIterations = 4;
 
     // Setup the Model
     auto pbdModel = std::make_shared<PbdModel>();
@@ -150,6 +152,8 @@ makeTriTissueObj(const std::string& name,
     pbdParams->m_dt         = 0.001;
     pbdParams->m_iterations = 5;
     pbdParams->m_viscousDampingCoeff = 0.025;
+    pbdParams->m_contactStiffness    = 0.3;
+    pbdParams->m_collisionIterations = 4;
 
     // Setup the Model
     auto pbdModel = std::make_shared<PbdModel>();
