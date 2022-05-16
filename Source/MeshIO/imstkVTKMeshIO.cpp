@@ -155,7 +155,7 @@ VTKMeshIO::write(const std::shared_ptr<PointSet> imstkMesh, const std::string& f
             return false;
         }
     }
-    else if (auto vMesh = std::dynamic_pointer_cast<VolumetricMesh>(imstkMesh))
+    else if (auto vMesh = std::dynamic_pointer_cast<PointSet>(imstkMesh))
     {
         switch (meshType)
         {
@@ -378,7 +378,7 @@ VTKMeshIO::writeVtkPointSet(const std::shared_ptr<PointSet> imstkMesh, const std
 }
 
 template<typename ReaderType>
-std::shared_ptr<VolumetricMesh>
+std::shared_ptr<PointSet>
 VTKMeshIO::readVtkUnstructuredGrid(const std::string& filePath)
 {
     auto reader = vtkSmartPointer<ReaderType>::New();

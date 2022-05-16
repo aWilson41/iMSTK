@@ -84,7 +84,7 @@ struct PbdInflatableVolumeConstraintFunctor : public PbdVolumeConstraintFunctor
         auto                                     tetMesh     = std::dynamic_pointer_cast<TetrahedralMesh>(m_geom);
         std::shared_ptr<VecDataArray<double, 3>> verticesPtr = m_geom->getVertexPositions();
         const VecDataArray<double, 3>&           vertices    = *verticesPtr;
-        std::shared_ptr<VecDataArray<int, 4>>    elementsPtr = tetMesh->getTetrahedraIndices();
+        std::shared_ptr<VecDataArray<int, 4>>    elementsPtr = tetMesh->getIndices();
         const VecDataArray<int, 4>&              elements    = *elementsPtr;
 
         ParallelUtils::parallelFor(elements.size(),

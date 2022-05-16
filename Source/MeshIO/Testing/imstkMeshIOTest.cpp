@@ -99,5 +99,5 @@ TEST(imstkMeshIOTest, ReadVtkTetrahedron)
     ASSERT_TRUE(tetMesh);
 
     ASSERT_EQ(tetMesh->getNumVertices(), 4);
-    ASSERT_EQ(tetMesh->getNumTetrahedra(), 1);
+    ASSERT_EQ(tetMesh->getNumCells(), 1);
 }

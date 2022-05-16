@@ -87,7 +87,7 @@ NeedleEmbeddedCH::handle(
     needleGeom->updatePostTransformData();
 
     std::shared_ptr<VecDataArray<double, 3>> tissueVerticesPtr = tissueGeom->getVertexPositions();
-    std::shared_ptr<VecDataArray<int, 4>>    tissueIndicesPtr  = tissueGeom->getTetrahedraIndices();
+    std::shared_ptr<VecDataArray<int, 4>>    tissueIndicesPtr  = tissueGeom->getIndices();
 
     auto tissueVelocitiesPtr = std::dynamic_pointer_cast<VecDataArray<double, 3>>(tissueGeom->getVertexAttribute("Velocities"));
     auto tissueInvMassesPtr  = std::dynamic_pointer_cast<DataArray<double>>(tissueGeom->getVertexAttribute("InvMass"));
@@ -98,7 +98,7 @@ NeedleEmbeddedCH::handle(
     const DataArray<double>&    tissueInvMasses  = *tissueInvMassesPtr;
 
     std::shared_ptr<VecDataArray<double, 3>> needleVerticesPtr = needleGeom->getVertexPositions();
-    std::shared_ptr<VecDataArray<int, 2>>    needleIndicesPtr  = needleGeom->getLinesIndices();
+    std::shared_ptr<VecDataArray<int, 2>>    needleIndicesPtr  = needleGeom->getIndices();
     VecDataArray<double, 3>&                 needleVertices    = *needleVerticesPtr;
     const VecDataArray<int, 2>&              needleIndices     = *needleIndicesPtr;
 

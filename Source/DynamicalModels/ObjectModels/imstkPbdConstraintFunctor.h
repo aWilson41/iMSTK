@@ -159,7 +159,7 @@ struct PbdDistanceConstraintFunctor : public PbdBodyConstraintFunctor
 
             if (auto tetMesh = std::dynamic_pointer_cast<TetrahedralMesh>(m_geom))
             {
-                std::shared_ptr<VecDataArray<int, 4>> elementsPtr = tetMesh->getTetrahedraIndices();
+                std::shared_ptr<VecDataArray<int, 4>> elementsPtr = tetMesh->getIndices();
                 const VecDataArray<int, 4>&           elements    = *elementsPtr;
                 const auto                            nV = tetMesh->getNumVertices();
                 std::vector<std::vector<bool>>        E(nV, std::vector<bool>(nV, 1)); // To test for duplicates
@@ -177,7 +177,7 @@ struct PbdDistanceConstraintFunctor : public PbdBodyConstraintFunctor
             }
             else if (auto triMesh = std::dynamic_pointer_cast<SurfaceMesh>(m_geom))
             {
-                std::shared_ptr<VecDataArray<int, 3>> elementsPtr = triMesh->getTriangleIndices();
+                std::shared_ptr<VecDataArray<int, 3>> elementsPtr = triMesh->getIndices();
                 const VecDataArray<int, 3>&           elements    = *elementsPtr;
                 const auto                            nV = triMesh->getNumVertices();
                 std::vector<std::vector<bool>>        E(nV, std::vector<bool>(nV, 1)); // To test for duplicates
@@ -192,7 +192,7 @@ struct PbdDistanceConstraintFunctor : public PbdBodyConstraintFunctor
             }
             else if (auto lineMesh = std::dynamic_pointer_cast<LineMesh>(m_geom))
             {
-                std::shared_ptr<VecDataArray<int, 2>> elementsPtr = lineMesh->getLinesIndices();
+                std::shared_ptr<VecDataArray<int, 2>> elementsPtr = lineMesh->getIndices();
                 const VecDataArray<int, 2>&           elements    = *elementsPtr;
                 const auto&                           nV = lineMesh->getNumVertices();
                 std::vector<std::vector<bool>>        E(nV, std::vector<bool>(nV, 1)); // To test for duplicates
@@ -218,7 +218,7 @@ struct PbdDistanceConstraintFunctor : public PbdBodyConstraintFunctor
 
             auto                                     triMesh = std::dynamic_pointer_cast<SurfaceMesh>(m_geom);
             std::shared_ptr<VecDataArray<double, 3>> initVerticesPtr = m_geom->getInitialVertexPositions();
-            std::shared_ptr<VecDataArray<int, 3>>    elementsPtr     = triMesh->getTriangleIndices();
+            std::shared_ptr<VecDataArray<int, 3>>    elementsPtr     = triMesh->getIndices();
 
             const VecDataArray<double, 3>& initVertices = *initVerticesPtr;
             const VecDataArray<int, 3>&    elements     = *elementsPtr;
@@ -301,7 +301,7 @@ struct PbdFemTetConstraintFunctor : public PbdBodyConstraintFunctor
             auto                                     tetMesh     = std::dynamic_pointer_cast<TetrahedralMesh>(m_geom);
             std::shared_ptr<VecDataArray<double, 3>> verticesPtr = m_geom->getVertexPositions();
             const VecDataArray<double, 3>&           vertices    = *verticesPtr;
-            std::shared_ptr<VecDataArray<int, 4>>    elementsPtr = tetMesh->getTetrahedraIndices();
+            std::shared_ptr<VecDataArray<int, 4>>    elementsPtr = tetMesh->getIndices();
             const VecDataArray<int, 4>&              elements    = *elementsPtr;
 
             ParallelUtils::parallelFor(elements.size(),
@@ -350,7 +350,7 @@ struct PbdVolumeConstraintFunctor : public PbdBodyConstraintFunctor
             auto                                     tetMesh     = std::dynamic_pointer_cast<TetrahedralMesh>(m_geom);
             std::shared_ptr<VecDataArray<double, 3>> verticesPtr = m_geom->getVertexPositions();
             const VecDataArray<double, 3>&           vertices    = *verticesPtr;
-            std::shared_ptr<VecDataArray<int, 4>>    elementsPtr = tetMesh->getTetrahedraIndices();
+            std::shared_ptr<VecDataArray<int, 4>>    elementsPtr = tetMesh->getIndices();
             const VecDataArray<int, 4>&              elements    = *elementsPtr;
 
             ParallelUtils::parallelFor(elements.size(),
@@ -399,7 +399,7 @@ struct PbdAreaConstraintFunctor : public PbdBodyConstraintFunctor
             auto                                     triMesh     = std::dynamic_pointer_cast<SurfaceMesh>(m_geom);
             std::shared_ptr<VecDataArray<double, 3>> verticesPtr = m_geom->getVertexPositions();
             const VecDataArray<double, 3>&           vertices    = *verticesPtr;
-            std::shared_ptr<VecDataArray<int, 3>>    elemenstPtr = triMesh->getTriangleIndices();
+            std::shared_ptr<VecDataArray<int, 3>>    elemenstPtr = triMesh->getIndices();
             const VecDataArray<int, 3>&              elements    = *elemenstPtr;
 
             ParallelUtils::parallelFor(elements.size(),
@@ -423,7 +423,7 @@ struct PbdAreaConstraintFunctor : public PbdBodyConstraintFunctor
 
             auto                                     triMesh = std::dynamic_pointer_cast<SurfaceMesh>(m_geom);
             std::shared_ptr<VecDataArray<double, 3>> initVerticesPtr = m_geom->getInitialVertexPositions();
-            std::shared_ptr<VecDataArray<int, 3>>    elementsPtr     = triMesh->getTriangleIndices();
+            std::shared_ptr<VecDataArray<int, 3>>    elementsPtr     = triMesh->getIndices();
 
             const VecDataArray<double, 3>& initVertices = *initVerticesPtr;
             const VecDataArray<int, 3>&    elements     = *elementsPtr;
@@ -500,7 +500,7 @@ struct PbdBendConstraintFunctor : public PbdBodyConstraintFunctor
             auto                                     lineMesh    = std::dynamic_pointer_cast<LineMesh>(m_geom);
             std::shared_ptr<VecDataArray<double, 3>> verticesPtr = m_geom->getVertexPositions();
             const VecDataArray<double, 3>&           vertices    = *verticesPtr;
-            /*std::shared_ptr< VecDataArray<int, 2>> indicesPtr = lineMesh->getLinesIndices();
+            /*std::shared_ptr< VecDataArray<int, 2>> indicesPtr = lineMesh->getIndices();
             const VecDataArray<int, 2>& indices = *indicesPtr*/
 
             auto addBendConstraint =
@@ -594,7 +594,7 @@ struct PbdDihedralConstraintFunctor : public PbdBodyConstraintFunctor
             auto                                     triMesh     = std::dynamic_pointer_cast<SurfaceMesh>(m_geom);
             std::shared_ptr<VecDataArray<double, 3>> verticesPtr = triMesh->getVertexPositions();
             const VecDataArray<double, 3>&           vertices    = *verticesPtr;
-            std::shared_ptr<VecDataArray<int, 3>>    elementsPtr = triMesh->getTriangleIndices();
+            std::shared_ptr<VecDataArray<int, 3>>    elementsPtr = triMesh->getIndices();
             const VecDataArray<int, 3>&              elements    = *elementsPtr;
             const int                                nV = triMesh->getNumVertices();
             std::vector<std::vector<int>>            vertIdsToTriangleIds(nV);
@@ -684,7 +684,7 @@ struct PbdDihedralConstraintFunctor : public PbdBodyConstraintFunctor
 
             auto                                     triMesh = std::dynamic_pointer_cast<SurfaceMesh>(m_geom);
             std::shared_ptr<VecDataArray<double, 3>> initVerticesPtr = m_geom->getInitialVertexPositions();
-            std::shared_ptr<VecDataArray<int, 3>>    elementsPtr     = triMesh->getTriangleIndices();
+            std::shared_ptr<VecDataArray<int, 3>>    elementsPtr     = triMesh->getIndices();
 
             const VecDataArray<double, 3>& initVertices = *initVerticesPtr;
             const VecDataArray<int, 3>&    elements     = *elementsPtr;

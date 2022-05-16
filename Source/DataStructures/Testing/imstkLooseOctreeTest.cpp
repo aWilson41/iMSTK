@@ -128,7 +128,7 @@ randomizePositions(const std::shared_ptr<SurfaceMesh>& mesh)
             (static_cast<double>(rand()) / static_cast<double>(RAND_MAX) * 2.0 - 1.0) * BOUND,
             (static_cast<double>(rand()) / static_cast<double>(RAND_MAX) * 2.0 - 1.0) * BOUND
             );
-        const Vec3i& face = (*mesh->getTriangleIndices())[i];
+        const Vec3i& face = (*mesh->getIndices())[i];
         for (unsigned int j = 0; j < 3; ++j)
         {
             mesh->setVertexPosition(face[j], mesh->getVertexPosition(face[j]) + translation);
