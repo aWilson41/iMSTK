@@ -38,8 +38,8 @@ public:
     /// \brief Initializes the inflatable distance constraint
     ///
     void initConstraint(const Vec3d& p0, const Vec3d& p1,
-                        const BodyVertexId& pIdx0,
-                        const BodyVertexId& pIdx1,
+                        const PbdParticleId& pIdx0,
+                        const PbdParticleId& pIdx1,
                         const double k = 1e5)
     {
         PbdDistanceConstraint::initConstraint(p0, p1, pIdx0, pIdx1, k);
@@ -50,9 +50,9 @@ public:
     ///
     /// \brief Apply diffusion and update positions
     ///
-    void projectConstraint(std::vector<PbdBody>& bodies,
-                           const double          dt,
-                           const SolverType&     type) override
+    void projectConstraint(PbdState&         bodies,
+                           const double      dt,
+                           const SolverType& type) override
     {
         if (isInflated())
         {
@@ -97,7 +97,7 @@ struct PbdInflatableDistanceConstraintFunctor : public PbdDistanceConstraintFunc
         ///
         std::shared_ptr<PbdDistanceConstraint> makeDistConstraint(
             const VecDataArray<double, 3>& vertices,
-            size_t i1, size_t i2) override
+            int i1, int i2) override
         {
             auto constraint = std::make_shared<PbdInflatableDistanceConstraint>();
             constraint->initConstraint(vertices[i1], vertices[i2],

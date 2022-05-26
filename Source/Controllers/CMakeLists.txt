@@ -10,6 +10,8 @@ imstk_add_library( Controllers
     imstkKeyboardControl.h
     imstkLaparoscopicToolController.h
     imstkMouseControl.h
+    imstkPbdObjectController.h
+    imstkPbdObjectConstraintController.h
     imstkRigidObjectController.h
     imstkSceneObjectController.h
     imstkTrackingDeviceControl.h
@@ -19,6 +21,8 @@ imstk_add_library( Controllers
     imstkKeyboardControl.cpp
     imstkLaparoscopicToolController.cpp
     imstkMouseControl.cpp
+    imstkPbdObjectController.cpp
+    imstkPbdObjectConstraintController.cpp
     imstkRigidObjectController.cpp
     imstkSceneObjectController.cpp
     imstkTrackingDeviceControl.cpp

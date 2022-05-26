@@ -81,7 +81,7 @@
 %shared_ptr(imstk::FemModelConfig)
 %shared_ptr(imstk::FemDeformableBodyModel)
 %shared_ptr(imstk::AbstractDynamicalModel)
-%shared_ptr(imstk::DynamicalModel<imstk::PbdState>)
+%shared_ptr(imstk::DynamicalModel<imstk::PbdStateDummy>)
 %shared_ptr(imstk::DynamicalModel<imstk::FeDeformBodyState>)
 %shared_ptr(imstk::DynamicalModel<imstk::SphState>)
 %shared_ptr(imstk::SphState)
@@ -105,6 +105,7 @@
  * Constraint
  */
 %shared_ptr(imstk::PbdBody)
+%shared_ptr(imstk::PbdState)
 %shared_ptr(imstk::RigidBody)
 
 /* 
@@ -203,6 +204,8 @@
  */
 %shared_ptr(imstk::DeviceClient)
 %shared_ptr(imstk::KeyboardDeviceClient)
+%shared_ptr(imstk::MouseDeviceClient)
+%shared_ptr(imstk::MouseEvent)
 %shared_ptr(imstk::HapticDeviceClient)
 %shared_ptr(imstk::HapticDeviceManager)
 %shared_ptr(imstk::VRPNDeviceClient)

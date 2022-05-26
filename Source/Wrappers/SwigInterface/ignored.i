@@ -6,6 +6,7 @@
 %ignore imstk::PbdModel::getUpdateVelocityNode();
 %ignore imstk::PbdModelConfig::addPbdConstraintFunctor(std::shared_ptr<PbdConstraintFunctor>);
 %ignore imstk::PbdModelConfig::addPbdConstraintFunctor(std::function<void(PbdConstraintContainer&)>);
+%ignore imstk::PbdModelConfig::getFunctors();
 
 %ignore imstk::DataArray::iterator; /* fix the multiple-definition problem. */
 %ignore imstk::DataArray::const_iterator; /* fix the multiple-definition problem. */

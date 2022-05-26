@@ -22,7 +22,7 @@
 #pragma once
 
 #include "imstkMacros.h"
-#include "imstkPbdRigidObjectCollision.h"
+#include "imstkPbdObjectCollision.h"
 
 using namespace imstk;
 
@@ -40,7 +40,7 @@ class TetraToLineMeshCD;
 ///
 /// \brief Defines interaction between NeedleObject and PbdObject
 ///
-class NeedleInteraction : public PbdRigidObjectCollision
+class NeedleInteraction : public PbdObjectCollision
 {
 public:
     NeedleInteraction(std::shared_ptr<PbdObject>    tissueObj,
@@ -55,7 +55,7 @@ public:
     ///
     /// \brief Setup connectivity of task graph
     ///
-    virtual void initGraphEdges(std::shared_ptr<TaskNode> source, std::shared_ptr<TaskNode> sink) override;
+    void initGraphEdges(std::shared_ptr<TaskNode> source, std::shared_ptr<TaskNode> sink) override;
 
 protected:
     std::shared_ptr<TetraToLineMeshCD> tetMeshCD;

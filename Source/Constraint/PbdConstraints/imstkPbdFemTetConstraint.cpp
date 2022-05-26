@@ -26,14 +26,14 @@ namespace imstk
 bool
 PbdFemTetConstraint::initConstraint(
     const Vec3d& p0, const Vec3d& p1, const Vec3d& p2, const Vec3d& p3,
-    const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
-    const BodyVertexId& pIdx2, const BodyVertexId& pIdx3,
+    const PbdParticleId& pIdx0, const PbdParticleId& pIdx1,
+    const PbdParticleId& pIdx2, const PbdParticleId& pIdx3,
     std::shared_ptr<PbdFemConstraintConfig> config)
 {
-    m_bodyVertexIds[0] = pIdx0;
-    m_bodyVertexIds[1] = pIdx1;
-    m_bodyVertexIds[2] = pIdx2;
-    m_bodyVertexIds[3] = pIdx3;
+    m_particles[0] = pIdx0;
+    m_particles[1] = pIdx1;
+    m_particles[2] = pIdx2;
+    m_particles[3] = pIdx3;
 
     m_elementVolume = (1.0 / 6.0) * (p3 - p0).dot((p1 - p0).cross(p2 - p0));
     m_config     = config;
@@ -55,20 +55,13 @@ PbdFemTetConstraint::initConstraint(
 }
 
 bool
-PbdFemTetConstraint::computeValueAndGradient(
-    std::vector<PbdBody>& bodies,
-    double&               cval,
-    std::vector<Vec3d>&   dcdx) const
+PbdFemTetConstraint::computeValueAndGradient(PbdState& bodies,
+                                             double& c, std::vector<Vec3d>& dcdx) const
 {
-    const BodyVertexId& i0 = m_bodyVertexIds[0];
-    const BodyVertexId& i1 = m_bodyVertexIds[1];
-    const BodyVertexId& i2 = m_bodyVertexIds[2];
-    const BodyVertexId& i3 = m_bodyVertexIds[3];
-
-    const Vec3d& p0 = (*bodies[i0.first].vertices)[i0.second];
-    const Vec3d& p1 = (*bodies[i1.first].vertices)[i1.second];
-    const Vec3d& p2 = (*bodies[i2.first].vertices)[i2.second];
-    const Vec3d& p3 = (*bodies[i3.first].vertices)[i3.second];
+    const Vec3d& p0 = bodies.getPosition(m_particles[0]);
+    const Vec3d& p1 = bodies.getPosition(m_particles[1]);
+    const Vec3d& p2 = bodies.getPosition(m_particles[2]);
+    const Vec3d& p3 = bodies.getPosition(m_particles[3]);
 
     Mat3d m;
     m.col(0) = p0 - p3;
@@ -190,8 +183,7 @@ PbdFemTetConstraint::computeValueAndGradient(
     }
 
     Mat3d gradC = m_elementVolume * P * m_invRestMat.transpose();
-    cval    = C;
-    cval   *=  m_elementVolume;
+    c       = C * m_elementVolume;
     dcdx[0] = gradC.col(0);
     dcdx[1] = gradC.col(1);
     dcdx[2] = gradC.col(2);

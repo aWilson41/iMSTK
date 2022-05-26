@@ -21,15 +21,16 @@
 
 #pragma once
 
-#include "imstkPbdObject.h"
-#include "imstkPbdBaryPointToPointConstraint.h"
+#include "NeedlePbdCH.h"
+#include "imstkCollisionUtils.h"
 #include "imstkLineMesh.h"
+#include "imstkPbdBaryPointToPointConstraint.h"
+#include "imstkPbdModel.h"
+#include "imstkPbdObject.h"
+#include "imstkPbdSolver.h"
+#include "imstkPointwiseMap.h"
 #include "imstkSurfaceMesh.h"
 #include "imstkTetrahedralMesh.h"
-#include "imstkCollisionUtils.h"
-#include "imstkPointwiseMap.h"
-
-#include "NeedlePbdCH.h"
 
 #include <cmath>
 
@@ -46,7 +47,7 @@ NeedlePbdCH::init(std::shared_ptr<PbdObject> threadObj)
     m_meshVerticesPtr = physMesh->getVertexPositions();
 
     // Get surface mesh
-    m_surfMesh = std::dynamic_pointer_cast<SurfaceMesh>(m_pbdTissueObj->getCollidingGeometry());
+    m_tissueSurfMesh = std::dynamic_pointer_cast<SurfaceMesh>(m_pbdTissueObj->getCollidingGeometry());
 
     // set up thread mesh
     m_threadObj  = threadObj;
@@ -54,11 +55,11 @@ NeedlePbdCH::init(std::shared_ptr<PbdObject> threadObj)
     m_threadVerticesPtr = m_threadMesh->getVertexPositions();
 
     // Create storage for puncture states
-    m_isNeedlePunctured.resize(m_surfMesh->getNumTriangles());
-    m_isThreadPunctured.resize(m_surfMesh->getNumTriangles());
+    m_isNeedlePunctured.resize(m_tissueSurfMesh->getNumCells());
+    m_isThreadPunctured.resize(m_tissueSurfMesh->getNumCells());
 
     // Initialize to false
-    for (int triangleId = 0; triangleId < m_surfMesh->getNumTriangles(); triangleId++)
+    for (int triangleId = 0; triangleId < m_tissueSurfMesh->getNumCells(); triangleId++)
     {
         m_isNeedlePunctured[triangleId] = false;
         m_isThreadPunctured[triangleId] = false;
@@ -115,7 +116,7 @@ NeedlePbdCH::handle(
 
     // Check to make sure that the mesh size has not changed (no cutting is allowed currently)
 
-    if (m_isNeedlePunctured.size() != m_surfMesh->getNumTriangles())
+    if (m_isNeedlePunctured.size() != m_tissueSurfMesh->getNumCells())
     {
         LOG(FATAL) << "Surface Mesh has changed size";
     }
@@ -126,22 +127,30 @@ NeedlePbdCH::handle(
         PbdCollisionHandling::handle(elementsA, elementsB);     // (PBD Object, Needle Object)
     }
 
+    std::shared_ptr<VecDataArray<int, 2>> needleIndicesPtr = needleMesh->getIndices();
+    const VecDataArray<int, 2>&           needleIndices    = *needleIndicesPtr;
+    std::shared_ptr<VecDataArray<int, 3>> tissueSurfMeshIndicesPtr = m_tissueSurfMesh->getIndices();
+    const VecDataArray<int, 3>&           tissueSurfMeshIndices    = *tissueSurfMeshIndicesPtr;
+    std::shared_ptr<VecDataArray<int, 2>> threadIndcicesPtr = m_threadMesh->getIndices();
+    const VecDataArray<int, 2>&           threadIndices     = *threadIndcicesPtr;
+
     // If inserted, find intersections and constrain to insertion points
+    collisionConstraints.clear();
     if (needleObj->getCollisionState() == NeedleObject::CollisionState::INSERTED)
     {
         // Scope for needle
         {
             // First, find new penetration points using the tip of the needle (needle mesh is reversed)
-            int tipSegmentId = needleMesh->getNumLines() - 1;
+            int tipSegmentId = needleMesh->getNumCells() - 1;
 
-            Vec2i       nodeIds = needleMesh->getLineIndices(tipSegmentId);
+            Vec2i       nodeIds = needleIndices[tipSegmentId];
             const Vec3d tip1    = needleVertices[nodeIds[0]];
             const Vec3d tip2    = needleVertices[nodeIds[1]];
 
             // Loop over all triangles in the surface mesh
-            for (int triangleId = 0; triangleId < m_surfMesh->getNumTriangles(); triangleId++)
+            for (int triangleId = 0; triangleId < m_tissueSurfMesh->getNumCells(); triangleId++)
             {
-                auto surfTriIds = m_surfMesh->getTriangleIndices(triangleId);
+                const Vec3i& surfTriIds = tissueSurfMeshIndices[triangleId];
 
                 // Indices of the vertices on the physics mesh
                 Vec3i physTriIds;
@@ -149,9 +158,9 @@ NeedlePbdCH::handle(
                 physTriIds[1] = one2one->getParentVertexId(surfTriIds[1]);
                 physTriIds[2] = one2one->getParentVertexId(surfTriIds[2]);
 
-                Vec3d a = meshVertices[physTriIds[0]];
-                Vec3d b = meshVertices[physTriIds[1]];
-                Vec3d c = meshVertices[physTriIds[2]];
+                const Vec3d& a = meshVertices[physTriIds[0]];
+                const Vec3d& b = meshVertices[physTriIds[1]];
+                const Vec3d& c = meshVertices[physTriIds[2]];
 
                 // Barycentric coordinates of interseciton point
                 Vec3d uvw = Vec3d::Zero();
@@ -195,16 +204,16 @@ NeedlePbdCH::handle(
                 Vec3d            closestPoint = { maxVal, maxVal, maxVal };
                 double           closestDist  = IMSTK_DOUBLE_MAX;
 
-                Vec3d a = meshVertices[m_needlePData[pPointId].triVertIds[0]];
-                Vec3d b = meshVertices[m_needlePData[pPointId].triVertIds[1]];
-                Vec3d c = meshVertices[m_needlePData[pPointId].triVertIds[2]];
+                const Vec3d& a = meshVertices[m_needlePData[pPointId].triVertIds[0]];
+                const Vec3d& b = meshVertices[m_needlePData[pPointId].triVertIds[1]];
+                const Vec3d& c = meshVertices[m_needlePData[pPointId].triVertIds[2]];
 
                 Vec3d baryPoint  = m_needlePData[pPointId].triBaryPuncturePoint;
                 auto  puncturePt = baryPoint[0] * a + baryPoint[1] * b + baryPoint[2] * c;
 
-                for (int segmentId = 0; segmentId < needleMesh->getNumLines(); segmentId++)
+                for (int segmentId = 0; segmentId < needleMesh->getNumCells(); segmentId++)
                 {
-                    Vec2i       needleSegNodeIds = needleMesh->getLineIndices(segmentId);
+                    Vec2i       needleSegNodeIds = needleIndices[segmentId];
                     const Vec3d x1 = needleVertices[needleSegNodeIds[0]];
                     const Vec3d x2 = needleVertices[needleSegNodeIds[1]];
 
@@ -244,33 +253,17 @@ NeedlePbdCH::handle(
                 // Now that we have the closest point on the needle to this penetration point, we can
                 // generate and solve the constraint
 
-                auto pointTriangleConstraint = std::make_shared<SurfaceInsertionConstraint>();
-
-                VertexMassPair ptB1;
-                VertexMassPair ptB2;
-                VertexMassPair ptB3;
-
-                ptB1.vertex = &meshVertices[m_needlePData[pPointId].triVertIds[0]];
-                ptB2.vertex = &meshVertices[m_needlePData[pPointId].triVertIds[1]];
-                ptB3.vertex = &meshVertices[m_needlePData[pPointId].triVertIds[2]];
-
-                ptB1.invMass = triangleInvMasses[m_needlePData[pPointId].triVertIds[0]];
-                ptB2.invMass = triangleInvMasses[m_needlePData[pPointId].triVertIds[1]];
-                ptB3.invMass = triangleInvMasses[m_needlePData[pPointId].triVertIds[2]];
-
-                ptB1.velocity = &meshVelocity[m_needlePData[pPointId].triVertIds[0]];
-                ptB2.velocity = &meshVelocity[m_needlePData[pPointId].triVertIds[1]];
-                ptB3.velocity = &meshVelocity[m_needlePData[pPointId].triVertIds[2]];
-
-                pointTriangleConstraint->initConstraint(
-                        puncturePt,
-                        ptB1, ptB2, ptB3,
-                        closestPoint,
-                        baryPoint,
-                        0.0, 0.9 // stiffness parameters
+                const int bodyId = m_pbdTissueObj->getPbdBody()->bodyHandle;
+                auto      pointTriangleConstraint = std::make_shared<SurfaceInsertionConstraint>();
+                pointTriangleConstraint->initConstraint(puncturePt,
+                    { bodyId, m_needlePData[pPointId].triVertIds[0] },
+                    { bodyId, m_needlePData[pPointId].triVertIds[1] },
+                    { bodyId, m_needlePData[pPointId].triVertIds[2] },
+                    closestPoint,
+                    baryPoint,
+                    0.0, 0.9 // stiffness parameters
                     );
-
-                pointTriangleConstraint->solvePosition();
+                collisionConstraints.push_back(pointTriangleConstraint.get());
             } // end loop over penetration points
         }     // end scope for needle
 
@@ -282,14 +275,14 @@ NeedlePbdCH::handle(
             Vec3d threadTip = threadVertices[0];
 
             // First, find new penetration points
-            Vec2i       nodeIds    = m_threadMesh->getLineIndices(0);
-            const Vec3d threadTip1 = threadVertices[nodeIds[0]];
-            const Vec3d threadTip2 = threadVertices[nodeIds[1]];
+            const Vec2i& nodeIds    = threadIndices[0];
+            const Vec3d  threadTip1 = threadVertices[nodeIds[0]];
+            const Vec3d  threadTip2 = threadVertices[nodeIds[1]];
 
             // Loop over all triangles in the surface mesh
-            for (int triangleId = 0; triangleId < m_surfMesh->getNumTriangles(); triangleId++)
+            for (int triangleId = 0; triangleId < m_tissueSurfMesh->getNumCells(); triangleId++)
             {
-                auto surfTriIds = m_surfMesh->getTriangleIndices(triangleId);
+                const Vec3i& surfTriIds = tissueSurfMeshIndices[triangleId];
 
                 // Indices of the vertices on the physics mesh
                 Vec3i physTriIds;
@@ -297,9 +290,9 @@ NeedlePbdCH::handle(
                 physTriIds[1] = one2one->getParentVertexId(surfTriIds[1]);
                 physTriIds[2] = one2one->getParentVertexId(surfTriIds[2]);
 
-                Vec3d a = meshVertices[physTriIds[0]];
-                Vec3d b = meshVertices[physTriIds[1]];
-                Vec3d c = meshVertices[physTriIds[2]];
+                const Vec3d& a = meshVertices[physTriIds[0]];
+                const Vec3d& b = meshVertices[physTriIds[1]];
+                const Vec3d& c = meshVertices[physTriIds[2]];
 
                 // Barycentric coordinates of interseciton point
                 Vec3d uvw = Vec3d::Zero();
@@ -366,11 +359,11 @@ NeedlePbdCH::handle(
                 int closestSegmentId = -1;
 
                 // Note: stopping before last segment for visualization
-                for (int segmentId = 0; segmentId < m_threadMesh->getNumLines() - 1; segmentId++)
+                for (int segmentId = 0; segmentId < m_threadMesh->getNumCells() - 1; segmentId++)
                 {
-                    Vec2i       threadSegNodeIds = m_threadMesh->getLineIndices(segmentId);
-                    const Vec3d x1 = threadVertices[threadSegNodeIds[0]];
-                    const Vec3d x2 = threadVertices[threadSegNodeIds[1]];
+                    const Vec2i& threadSegNodeIds = threadIndices[segmentId];
+                    const Vec3d  x1 = threadVertices[threadSegNodeIds[0]];
+                    const Vec3d  x2 = threadVertices[threadSegNodeIds[1]];
 
                     int caseType = -1;
 
@@ -411,55 +404,35 @@ NeedlePbdCH::handle(
                 auto threadTriangleConstraint = std::make_shared<ThreadInsertionConstraint>();
 
                 // Set of VM pairs for thread
-                Vec2i       nearestSegNodeIds = m_threadMesh->getLineIndices(closestSegmentId);
-                const Vec3d p = threadVertices[nearestSegNodeIds[0]];
-                const Vec3d q = threadVertices[nearestSegNodeIds[1]];
-
-                VertexMassPair ptA1;
-                ptA1.vertex   = &threadVertices[nearestSegNodeIds[0]];
-                ptA1.invMass  = 1.0;    // threadInvMasses[nearestSegNodeIds[0]];
-                ptA1.velocity = &threadVelocity[nearestSegNodeIds[0]];
-
-                VertexMassPair ptA2;
-                ptA2.vertex   = &threadVertices[nearestSegNodeIds[1]];
-                ptA2.invMass  = 1.0;    // threadInvMasses[nearestSegNodeIds[1]];
-                ptA2.velocity = &threadVelocity[nearestSegNodeIds[1]];
+                const Vec2i& nearestSegNodeIds = threadIndices[closestSegmentId];
+                const Vec3d  p = threadVertices[nearestSegNodeIds[0]];
+                const Vec3d  q = threadVertices[nearestSegNodeIds[1]];
 
                 // Thread barycentric intersection point
-                Vec2d segBary = baryCentric(closestPoint, p, q);
+                const Vec2d segBary = baryCentric(closestPoint, p, q);
 
-                // Set of VM pairs for triangle
-                VertexMassPair ptB1;
-                VertexMassPair ptB2;
-                VertexMassPair ptB3;
-
-                ptB1.vertex = &meshVertices[m_threadPData[pPointId].triVertIds[0]];
-                ptB2.vertex = &meshVertices[m_threadPData[pPointId].triVertIds[1]];
-                ptB3.vertex = &meshVertices[m_threadPData[pPointId].triVertIds[2]];
-
-                ptB1.invMass = triangleInvMasses[m_threadPData[pPointId].triVertIds[0]];
-                ptB2.invMass = triangleInvMasses[m_threadPData[pPointId].triVertIds[1]];
-                ptB3.invMass = triangleInvMasses[m_threadPData[pPointId].triVertIds[2]];
-
-                ptB1.velocity = &meshVelocity[m_threadPData[pPointId].triVertIds[0]];
-                ptB2.velocity = &meshVelocity[m_threadPData[pPointId].triVertIds[1]];
-                ptB3.velocity = &meshVelocity[m_threadPData[pPointId].triVertIds[2]];
-
+                const int tissueBodyId = m_pbdTissueObj->getPbdBody()->bodyHandle;
+                const int threadBodyId = m_threadObj->getPbdBody()->bodyHandle;
                 threadTriangleConstraint->initConstraint(
-                        ptA1, ptA2, segBary,
-                        ptB1, ptB2, ptB3, m_threadPData[pPointId].triBaryPuncturePoint,
-                        0.2, 0.0);
-
-                threadTriangleConstraint->solvePosition();
+                    m_pbdTissueObj->getPbdModel()->getBodies(),
+                    { threadBodyId, nearestSegNodeIds[0] },
+                    { threadBodyId, nearestSegNodeIds[1] },
+                    segBary,
+                    { tissueBodyId, m_threadPData[pPointId].triVertIds[0] },
+                    { tissueBodyId, m_threadPData[pPointId].triVertIds[1] },
+                    { tissueBodyId, m_threadPData[pPointId].triVertIds[2] },
+                    m_threadPData[pPointId].triBaryPuncturePoint,
+                    0.2, 0.0);
+                collisionConstraints.push_back(threadTriangleConstraint.get());
             }     // end loop over penetration points for thread
-        }         // end scope for thread
+        } // end scope for thread
 
         // Solve stitching constraint
         if (m_stitch)
         {
             for (size_t i = 0; i < m_stitchConstraints.size(); i++)
             {
-                m_stitchConstraints[i]->solvePosition();
+                collisionConstraints.push_back(m_stitchConstraints[i].get());
             }
         }
     }     // end needle state puncture check
@@ -469,6 +442,7 @@ NeedlePbdCH::handle(
     {
         needleObj->setCollisionState(NeedleObject::CollisionState::REMOVED);
     }
+    m_pbdTissueObj->getPbdModel()->getCollisionSolver()->addConstraints(&collisionConstraints);
 }
 
 // Create stitching constraints
@@ -508,43 +482,21 @@ NeedlePbdCH::stitch()
         // Create constraints to pull the puncture points to the center location
         for (int pPointId = 0; pPointId < m_threadPData.size(); pPointId++)
         {
-            VertexMassPair ptA1;
-            VertexMassPair ptA2;
-            VertexMassPair ptA3;
-
-            ptA1.vertex = m_threadPData[pPointId].triVerts[0];
-            ptA2.vertex = m_threadPData[pPointId].triVerts[1];
-            ptA3.vertex = m_threadPData[pPointId].triVerts[2];
-
-            ptA1.invMass = 1.0;              //  triangleInvMasses[m_threadPData[pPointId].triertIds[0]];
-            ptA2.invMass = 1.0;              //  triangleInvMasses[m_threadPData[pPointId].triVertIds[0]];
-            ptA3.invMass = 1.0;              // triangleInvMasses[m_threadPData[pPointId].triVertIds[0]];
-
-            ptA1.velocity = &m_fakeVelocity; //  &meshVelocity[m_threadPData[pPointId].triVertIds[0]];
-            ptA2.velocity = &m_fakeVelocity; //  &meshVelocity[m_threadPData[pPointId].triVertIds[1]];
-            ptA3.velocity = &m_fakeVelocity; //  &meshVelocity[m_threadPData[pPointId].triVertIds[2]];
-
-            std::vector<VertexMassPair> ptsA = { ptA1, ptA2, ptA3 };
-
-            std::vector<double> weightsA = { m_threadPData[pPointId].triBaryPuncturePoint[0],
-                                             m_threadPData[pPointId].triBaryPuncturePoint[1],
-                                             m_threadPData[pPointId].triBaryPuncturePoint[2] };
-
             // Now create values for the central point
-            VertexMassPair centerPt;
+            const PbdParticleId& stitchCenterPt = m_pbdTissueObj->getPbdModel()->addVirtualParticle(m_stitchCenter, 0.0);
 
-            centerPt.vertex  = &m_stitchCenter;
-            centerPt.invMass = 0.0;
-
-            centerPt.velocity = &m_fakeVelocity;
-
-            std::vector<VertexMassPair> ptsB     = { centerPt };
-            std::vector<double>         weightsB = { 1.0 };
+            const int           bodyId = m_pbdTissueObj->getPbdBody()->bodyHandle;
+            const PbdParticleId p0     = { bodyId, m_threadPData[pPointId].triVertIds[0] };
+            const PbdParticleId p1     = { bodyId, m_threadPData[pPointId].triVertIds[1] };
+            const PbdParticleId p2     = { bodyId, m_threadPData[pPointId].triVertIds[2] };
 
             auto constraint = std::make_shared<PbdBaryPointToPointConstraint>();
             constraint->initConstraint(
-                    ptsA, weightsA,
-                    ptsB, weightsB,
+                { p0, p1, p2 },
+                { m_threadPData[pPointId].triBaryPuncturePoint[0],
+                  m_threadPData[pPointId].triBaryPuncturePoint[1],
+                  m_threadPData[pPointId].triBaryPuncturePoint[2] },
+                { stitchCenterPt }, { 1.0 },
                     0.2, 0.0);
 
             // Add to list of constraints to be solved together in the handler
@@ -557,10 +509,9 @@ NeedlePbdCH::stitch()
 /// \brief Add a vertex-triangle constraint
 ///
 void
-NeedlePbdCH::addVTConstraint(
-    VertexMassPair ptA,
-    VertexMassPair ptB1, VertexMassPair ptB2, VertexMassPair ptB3,
-    double stiffnessA, double stiffnessB)
+NeedlePbdCH::V_T(
+    const ColElemSide& sideA,
+    const ColElemSide& sideB)
 {
     auto needleObj = std::dynamic_pointer_cast<NeedleObject>(getInputObjectB());
 
@@ -579,16 +530,18 @@ NeedlePbdCH::addVTConstraint(
 
     // Note: assumes closed mesh
 
-    // Assuming traingle has points a,b,c
-    Vec3d ab = *ptB2.vertex - *ptB1.vertex;
-    Vec3d ac = *ptB3.vertex - *ptB1.vertex;
+    // Assuming triangle has points a,b,c
+    std::array<PbdParticleId, 3> ptsB   = PbdCollisionHandling::getTriangle(*sideB.elem, *sideB.data);
+    const PbdState&              bodies = m_threadObj->getPbdModel()->getBodies();
+    const Vec3d                  ab     = bodies.getPosition(ptsB[1]) - bodies.getPosition(ptsB[0]);
+    const Vec3d                  ac     = bodies.getPosition(ptsB[2]) - bodies.getPosition(ptsB[0]);
 
     // Calculate surface normal
     surfNormal = (ac.cross(ab)).normalized();
 
     // Get vector pointing in direction of needle
     // Use absolute value to ignore direction issues
-    auto dotProduct = fabs(m_needleDirection.dot(surfNormal));
+    double dotProduct = fabs(m_needleDirection.dot(surfNormal));
 
     // Arbitrary threshold
     double threshold = 0.9;
@@ -606,7 +559,7 @@ NeedlePbdCH::addVTConstraint(
 
     if (needleObj->getCollisionState() == NeedleObject::CollisionState::TOUCHING)
     {
-        PbdCollisionHandling::addVTConstraint(ptA, ptB1, ptB2, ptB3, stiffnessA, stiffnessB);
+        PbdCollisionHandling::V_T(sideA, sideB);
     }
 }
 } // namespace imstk

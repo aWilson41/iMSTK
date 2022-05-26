@@ -106,7 +106,7 @@ struct PbdBodyConstraintFunctor : public PbdConstraintFunctor
 
         void setBodyIndex(const int bodyIndex) { m_bodyIndex = bodyIndex; }
 
-        int m_bodyIndex = 0;
+        int m_bodyIndex = 1;
         std::shared_ptr<PointSet> m_geom = nullptr;
 };
 
@@ -127,7 +127,7 @@ struct PbdDistanceConstraintFunctor : public PbdBodyConstraintFunctor
         ///
         virtual std::shared_ptr<PbdDistanceConstraint> makeDistConstraint(
             const VecDataArray<double, 3>& vertices,
-            size_t i1, size_t i2)
+            int i1, int i2)
         {
             auto constraint = std::make_shared<PbdDistanceConstraint>();
             constraint->initConstraint(vertices[i1], vertices[i2],
@@ -141,7 +141,7 @@ struct PbdDistanceConstraintFunctor : public PbdBodyConstraintFunctor
             const VecDataArray<double, 3>&           vertices    = *verticesPtr;
 
             auto addDistConstraint = [&](
-                std::vector<std::vector<bool>>& E, size_t i1, size_t i2)
+                std::vector<std::vector<bool>>& E, int i1, int i2)
                                      {
                                          // Make sure i1 is always smaller than i2 for duplicate testing
                                          if (i1 > i2)
@@ -264,7 +264,8 @@ struct PbdDistanceConstraintFunctor : public PbdBodyConstraintFunctor
             constraints.reserve(constraints.getConstraints().size() + distanceSet.size());
             for (auto& c : distanceSet)
             {
-                auto constraint = makeDistConstraint(initVertices, c.first, c.second);
+                auto constraint = makeDistConstraint(initVertices,
+                    static_cast<int>(c.first), static_cast<int>(c.second));
                 constraints.addConstraint(constraint);
             }
         }
@@ -504,7 +505,7 @@ struct PbdBendConstraintFunctor : public PbdBodyConstraintFunctor
             const VecDataArray<int, 2>& indices = *indicesPtr*/
 
             auto addBendConstraint =
-                [&](const double k, size_t i1, size_t i2, size_t i3)
+                [&](const double k, int i1, int i2, int i3)
                 {
                     // i1 should always come first
                     if (i2 < i1)
@@ -520,13 +521,13 @@ struct PbdBendConstraintFunctor : public PbdBodyConstraintFunctor
                     auto c = std::make_shared<PbdBendConstraint>();
                     if (m_restLengthOverride >= 0.0)
                     {
-                        c->initConstraint(vertices[i1], vertices[i2], vertices[i3],
-                        { m_bodyIndex, i1 }, { m_bodyIndex, i2 }, { m_bodyIndex, i3 }, m_restLengthOverride, k);
+                        c->initConstraint({ m_bodyIndex, i1 }, { m_bodyIndex, i2 }, { m_bodyIndex, i3 },
+                            m_restLengthOverride, k);
                     }
                     else
                     {
                         c->initConstraint(vertices[i1], vertices[i2], vertices[i3],
-                        { m_bodyIndex, i1 }, { m_bodyIndex, i2 }, { m_bodyIndex, i3 }, k);
+                            { m_bodyIndex, i1 }, { m_bodyIndex, i2 }, { m_bodyIndex, i3 }, k);
                     }
                     constraints.addConstraint(c);
                 };
@@ -628,12 +629,12 @@ struct PbdDihedralConstraintFunctor : public PbdBodyConstraintFunctor
                         rs.resize(static_cast<size_t>(it - rs.begin()));
                         if (rs.size() > 1)
                         {
-                            size_t      idx  = (rs[0] == k) ? 1 : 0;
-                            const auto& tri0 = elements[k];
-                            const auto& tri1 = elements[rs[idx]];
-                            size_t      idx0 = 0;
-                            size_t      idx1 = 0;
-                            for (size_t i = 0; i < 3; ++i)
+                            int          idx  = (rs[0] == k) ? 1 : 0;
+                            const Vec3i& tri0 = elements[k];
+                            const Vec3i& tri1 = elements[rs[idx]];
+                            int          idx0 = 0;
+                            int          idx1 = 0;
+                            for (int i = 0; i < 3; i++)
                             {
                                 if (tri0[i] != i1 && tri0[i] != i2)
                                 {
@@ -736,23 +737,23 @@ struct PbdDihedralConstraintFunctor : public PbdBodyConstraintFunctor
                 {
                     const Vec3i& tri0 = elements[t0];
                     const Vec3i& tri1 = elements[t1];
-                    size_t       idx0 = 0;
-                    size_t       idx1 = 0;
-                    for (int i = 0; i < 3; ++i)
+                    int          idx0 = 0;
+                    int          idx1 = 0;
+                    for (int i = 0; i < 3; i++)
                     {
                         if (tri0[i] != i1 && tri0[i] != i2)
                         {
-                            idx0 = static_cast<size_t>(tri0[i]);
+                            idx0 = tri0[i];
                         }
                         if (tri1[i] != i1 && tri1[i] != i2)
                         {
-                            idx1 = static_cast<size_t>(tri1[i]);
+                            idx1 = tri1[i];
                         }
                     }
                     auto c = std::make_shared<PbdDihedralConstraint>();
                     c->initConstraint(initVertices[idx0], initVertices[idx1], initVertices[i1], initVertices[i2],
                         { m_bodyIndex, idx0 }, { m_bodyIndex, idx1 },
-                        { m_bodyIndex, static_cast<size_t>(i1) }, { m_bodyIndex, static_cast<size_t>(i2) },
+                        { m_bodyIndex, i1 }, { m_bodyIndex, i2 },
                         stiffness);
                     constraints.addConstraint(c);
                 };
@@ -797,7 +798,7 @@ struct PbdConstantDensityConstraintFunctor : public PbdBodyConstraintFunctor
                 << "PbdConstantDensityConstraint can only be generated with a PointSet";
 
             auto c = std::make_shared<PbdConstantDensityConstraint>();
-            c->initConstraint(*m_geom->getVertexPositions(), m_stiffness);
+            c->initConstraint(m_geom->getNumVertices(), m_bodyIndex, m_stiffness);
             constraints.addConstraint(c);
         }
 

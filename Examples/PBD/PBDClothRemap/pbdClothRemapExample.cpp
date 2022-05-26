@@ -187,6 +187,7 @@ main()
 
                     // Re-setup the constraints on the object
                     clothObj->initialize();
+                    clothObj->getPbdModel()->initialize();
                 }
         });
 

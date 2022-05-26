@@ -38,8 +38,8 @@ public:
     /// \brief Initializes the inflatable volume constraint
     ///
     void initConstraint(const Vec3d& p0, const Vec3d& p1, const Vec3d& p2, const Vec3d& p3,
-                        const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
-                        const BodyVertexId& pIdx2, const BodyVertexId& pIdx3,
+                        const PbdParticleId& pIdx0, const PbdParticleId& pIdx1,
+                        const PbdParticleId& pIdx2, const PbdParticleId& pIdx3,
                         const double k = 2.0)
     {
         PbdVolumeConstraint::initConstraint(p0, p1, p2, p3, pIdx0, pIdx1, pIdx2, pIdx3, k);
@@ -88,7 +88,7 @@ struct PbdInflatableVolumeConstraintFunctor : public PbdVolumeConstraintFunctor
         const VecDataArray<int, 4>&              elements    = *elementsPtr;
 
         ParallelUtils::parallelFor(elements.size(),
-            [&](const size_t k)
+            [&](const int k)
             {
                 auto& tet = elements[k];
                 auto c    = std::make_shared<PbdInflatableVolumeConstraint>();

@@ -410,7 +410,7 @@ LooseOctree::addTriangleMesh(const std::shared_ptr<SurfaceMesh>& surfMesh)
     const auto geomIdx   = static_cast<uint32_t>(pGeometry->getGlobalId());
     addGeometry(geomIdx);
 
-    const auto numNewPrimitives = static_cast<uint32_t>(surfMesh->getNumTriangles());
+    const auto numNewPrimitives = static_cast<uint32_t>(surfMesh->getNumCells());
     const auto pPrimitiveBlock  = new OctreePrimitive[numNewPrimitives];
     m_pPrimitiveBlocks[type].push_back(pPrimitiveBlock);
 

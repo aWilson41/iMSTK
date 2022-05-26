@@ -36,6 +36,7 @@
 #include "imstkTimer.h"
 #include "imstkTrackingDeviceControl.h"
 #include "imstkVisualModel.h"
+#include "imstkAbstractDynamicalModel.h"
 
 namespace imstk
 {
@@ -62,10 +63,27 @@ Scene::Scene(const std::string& name, std::shared_ptr<SceneConfig> config) :
 bool
 Scene::initialize()
 {
+    // Gather all the systems from the object components
+    // Right now this just includes DynamicalModel's
+    std::unordered_set<std::shared_ptr<AbstractDynamicalModel>> systems;
+    for (const auto& obj : m_sceneObjects)
+    {
+        if (auto dynObj = std::dynamic_pointer_cast<DynamicObject>(obj))
+        {
+            systems.insert(dynObj->getDynamicalModel());
+        }
+    }
+
     // Initialize all the SceneObjects
     for (const auto& obj : m_sceneObjects)
     {
         CHECK(obj->initialize()) << "Error initializing scene object: " << obj->getName();
+    }
+
+    // Initialize all systems
+    for (const auto& system : systems)
+    {
+        CHECK(system->initialize()) << "Error initializing system";
     }
 
     // Build the compute graph

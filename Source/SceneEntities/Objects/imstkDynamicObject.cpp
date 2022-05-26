@@ -84,7 +84,7 @@ DynamicObject::initialize()
             m_physicsToVisualGeomMap->compute();
         }
 
-        return m_dynamicalModel->initialize();
+        return true;
     }
     else
     {

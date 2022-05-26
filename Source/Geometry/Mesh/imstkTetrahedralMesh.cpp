@@ -214,7 +214,7 @@ TetrahedralMesh::extractSurfaceMesh()
 }
 
 Vec4d
-TetrahedralMesh::computeBarycentricWeights(const size_t& tetId, const Vec3d& pos) const
+TetrahedralMesh::computeBarycentricWeights(const int tetId, const Vec3d& pos) const
 {
     const VecDataArray<double, 3>& vertices     = *m_vertexPositions;
     const VecDataArray<int, 4>&    tetraIndices = *m_indices;

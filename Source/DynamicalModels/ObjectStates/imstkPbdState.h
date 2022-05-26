@@ -31,67 +31,25 @@ class PointSet;
 /// \class PbdState
 ///
 /// \brief State of the body governed by PBD mathematical model
+/// Data only
 ///
-/// \todo: Attempt a fixed size state & absbtraction to RigidBodyModel2
-///
-class PbdState
+class PbdStateDummy
 {
 public:
-    PbdState() = default;
-    virtual ~PbdState() = default;
+    PbdStateDummy() { }
+    virtual ~PbdStateDummy() = default;
 
     ///
     /// \brief Set the state to a given one, copies vector values by value instead of references
     ///
-    void setState(std::shared_ptr<PbdState> rhs);
-
-    std::shared_ptr<PbdBody> addBody()
-    {
-        auto body = std::make_shared<PbdBody>(bodyIter);
-        bodyIter++;
-        m_bodies.push_back(body);
-        m_modified = true;
-        return body;
-    }
-
-    void removeBody(std::shared_ptr<PbdBody> body)
-    {
-        auto iter = std::find(m_bodies.begin(), m_bodies.end(), body);
-        CHECK(iter != m_bodies.end()) << "removeBody called but could not find PbdyBody in PbdState";
-        m_bodies.erase(iter);
-    }
-
-    std::shared_ptr<PointSet> getBodyGeometry(const PbdBody& body)
-    {
-        auto iter = m_bodyGeometries.find(body.bodyHandle);
-        if (iter == m_bodyGeometries.end())
-        {
-            LOG(FATAL) << "Tried to get geometry for body that doesn't exist";
-            return nullptr;
-        }
-        return iter->second;
-    }
-
-    void setBodyGeometry(const PbdBody& body, std::shared_ptr<PointSet> geometry)
-    {
-        m_bodyGeometries[body.bodyHandle] = geometry;
-    }
+    void setState(std::shared_ptr<PbdStateDummy> rhs);
 
     ///
     /// \brief Initialize the state of the bodies using geometries
     ///
     void initialize();
 
-    ///
-    /// \brief Initialize an individual body
-    ///
-    void initState(PbdBody& body);
-
 public:
     std::vector<std::shared_ptr<PbdBody>> m_bodies;
-    int bodyIter = 0; ///< Iterative key for bodies
-    ///< The geometries corresponding to each body
-    std::unordered_map<int, std::shared_ptr<PointSet>> m_bodyGeometries;
-    bool m_modified = true;
 };
 } // namespace imstk

@@ -31,8 +31,9 @@ if (iMSTK_USE_RENDERING_VTK)
     NeedleInteraction.h
     NeedleInteraction.cpp
     NeedleObject.h
+    NeedleObject.cpp
     NeedlePbdCH.h
-    NeedleRigidBodyCH.h)
+    )
 
   #-----------------------------------------------------------------------------
   # Add the target to Examples folder

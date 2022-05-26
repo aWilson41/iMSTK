@@ -45,7 +45,7 @@ InflatableObject::InflatableObject(const std::string& name, const Vec3d& tissueS
     pbdParams->m_gravity    = Vec3d(0.0, 0.0, 0.0);
     pbdParams->m_dt         = 0.05;
     pbdParams->m_iterations = 2;
-    pbdParams->m_viscousDampingCoeff = 0.05;
+    pbdParams->m_linearDampingCoeff = 0.05;
 
     // Add custom constraint generation functors
     auto distanceFunctor = std::make_shared<PbdInflatableDistanceConstraintFunctor>();
@@ -155,7 +155,7 @@ InflatableObject::findAffectedConstraint(const Vec3d& toolTip, const double radi
     double              minDistance = LONG_MAX;
     for (auto& c : m_constraintContainer->getConstraints())
     {
-        const std::vector<PbdConstraint::BodyVertexId>& ids = c->getIds();
+        const std::vector<PbdParticleId>& ids = c->getParticles();
 
         Vec3d center(0.0, 0.0, 0.0);
         for (auto i : ids)

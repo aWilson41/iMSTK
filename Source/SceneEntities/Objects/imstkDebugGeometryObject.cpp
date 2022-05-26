@@ -302,12 +302,12 @@ DebugGeometryObject::getNumPoints() const
 int
 DebugGeometryObject::getNumLines() const
 {
-    return m_debugLineMesh->getNumLines();
+    return m_debugLineMesh->getNumCells();
 }
 
 int
 DebugGeometryObject::getNumTriangles() const
 {
-    return m_debugSurfMesh->getNumTriangles();
+    return m_debugSurfMesh->getNumCells();
 }
 } // namespace imstk

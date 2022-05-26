@@ -25,6 +25,8 @@
 
 namespace imstk
 {
+using PbdParticleId = std::pair<int, int>;
+
 ///
 /// \class PbdConstraint
 ///
@@ -33,8 +35,6 @@ namespace imstk
 class PbdConstraint
 {
 public:
-    using BodyVertexId = std::pair<size_t, size_t>;
-
     ///
     /// \brief Type of solvers
     ///
@@ -45,37 +45,45 @@ public:
     };
 
     PbdConstraint() = default;
-
     virtual ~PbdConstraint() = default;
 
     ///
     /// \brief Compute value and gradient of the constraint
-    /// \param Vertex positions of particles
+    /// \param PbdState provides all the bodies
     /// \param Constraint value
     /// \param Normalized constraint gradients (per vertex)
     ///
-    virtual bool computeValueAndGradient(
-        std::vector<PbdBody>& bodies,
-        double&               c,
-        std::vector<Vec3d>&   dcdx) const = 0;
+    virtual bool computeValueAndGradient(PbdState& bodies,
+                                         double& c, std::vector<Vec3d>& dcdx) const = 0;
 
     ///
     /// \brief Get the vertex indices of the constraint
     ///
-    std::vector<BodyVertexId>& getIds() { return m_bodyVertexIds; }
+    std::vector<PbdParticleId>& getParticles() { return m_particles; }
 
     ///
     /// \brief Set the tolerance used for pbd constraints
-    ///
-    void setTolerance(const double eps) { m_epsilon = eps; }
-
-    ///
-    /// \brief Get the tolerance used for pbd constraints
-    ///
+    ///@{
     double getTolerance() const { return m_epsilon; }
+    void setTolerance(const double eps) { m_epsilon = eps; }
+    ///@}
 
     ///
-    /// \brief  Set the stiffness
+    /// \brief Get/Set resitution
+    ///@{
+    double getRestitution() const { return m_restitution; }
+    void setRestitution(const double restitution) { m_restitution = restitution; }
+    ///@}
+
+    ///
+    /// \brief Get/Set friction
+    ///@{
+    double getFriction() const { return m_friction; }
+    void setFriction(const double friction) { m_friction = friction; }
+    ///@}
+
+    ///
+    /// \brief Set the stiffness
     ///
     void setStiffness(const double stiffness)
     {
@@ -89,6 +97,11 @@ public:
     double getStiffness() const { return m_stiffness; }
 
     ///
+    /// \brief Get the force magnitude, valid after solving lambda
+    ///
+    double getForce(const double dt) const { return m_lambda / (dt * dt); }
+
+    ///
     /// \brief Use PBD
     ///
     void zeroOutLambda() { m_lambda = 0.0; }
@@ -96,22 +109,30 @@ public:
     ///
     /// \brief Update positions by projecting constraints.
     ///
-    virtual void projectConstraint(std::vector<PbdBody>& bodies, const double dt, const SolverType& type);
+    virtual void projectConstraint(PbdState& bodies, const double dt, const SolverType& type);
+
+    ///
+    /// \brief Solve the velocities given to the constraint
+    ///
+    virtual void correctVelocity(PbdState& bodies);
 
 protected:
     PbdConstraint(const size_t numParticles)
     {
-        m_bodyVertexIds.resize(numParticles);
+        m_particles.resize(numParticles);
         m_dcdx.resize(numParticles);
     }
 
-    std::vector<BodyVertexId> m_bodyVertexIds; ///< body and index ids per particle
+    std::vector<PbdParticleId> m_particles; ///< body and index ids per particle
 
-    double m_epsilon        = 1.0e-16;         ///< Tolerance used for the costraints
-    double m_stiffness      = 1.0;             ///< used in PBD, [0, 1]
-    double m_compliance     = 1e-7;            ///< used in xPBD, inverse of Young's Modulus
-    mutable double m_lambda = 0.0;             ///< Lagrange multiplier
+    double m_epsilon        = 1.0e-16;      ///< Tolerance used for the costraints
+    double m_stiffness      = 1.0;          ///< used in PBD, [0, 1]
+    double m_compliance     = 1e-7;         ///< used in xPBD, inverse of Young's Modulus
+    mutable double m_lambda = 0.0;          ///< Lagrange multiplier
 
-    std::vector<Vec3d> m_dcdx;                 ///< Normalized constraint gradients (per particle)
+    std::vector<Vec3d> m_dcdx;              ///< Normalized constraint gradients (per particle)
+
+    double m_friction    = 0.0;
+    double m_restitution = 0.0;
 };
 } // namespace imstk

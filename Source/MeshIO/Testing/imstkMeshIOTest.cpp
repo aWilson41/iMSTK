@@ -54,7 +54,7 @@ TEST(imstkMeshIOTest, ReadVtkTriangle)
     ASSERT_TRUE(surfMesh);
 
     ASSERT_EQ(surfMesh->getNumVertices(), 3);
-    ASSERT_EQ(surfMesh->getNumTriangles(), 1);
+    ASSERT_EQ(surfMesh->getNumCells(), 1);
 }
 
 TEST(imstkMeshIOTest, ReadVtkLine)
@@ -68,7 +68,7 @@ TEST(imstkMeshIOTest, ReadVtkLine)
     ASSERT_TRUE(lineMesh);
 
     ASSERT_EQ(lineMesh->getNumVertices(), 2);
-    ASSERT_EQ(lineMesh->getNumLines(), 1);
+    ASSERT_EQ(lineMesh->getNumCells(), 1);
 }
 
 TEST(imstkMeshIOTest, ReadVtkPoints)

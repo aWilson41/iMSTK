@@ -111,14 +111,121 @@ SurfaceMeshToSurfaceMeshCD::computeCollisionDataAB(
     std::shared_ptr<SurfaceMesh>             surfMeshA    = std::dynamic_pointer_cast<SurfaceMesh>(geomA);
     std::shared_ptr<VecDataArray<double, 3>> verticesAPtr = surfMeshA->getVertexPositions();
     VecDataArray<double, 3>&                 verticesA    = *verticesAPtr;
-    std::shared_ptr<VecDataArray<int, 3>>    indicesAPtr  = surfMeshA->getTriangleIndices();
+    std::shared_ptr<VecDataArray<int, 3>>    indicesAPtr  = surfMeshA->getIndices();
     const VecDataArray<int, 3>&              indicesA     = *indicesAPtr;
 
     std::shared_ptr<SurfaceMesh>             surfMeshB    = std::dynamic_pointer_cast<SurfaceMesh>(geomB);
     std::shared_ptr<VecDataArray<double, 3>> verticesBPtr = surfMeshB->getVertexPositions();
     VecDataArray<double, 3>&                 verticesB    = *verticesBPtr;
-    std::shared_ptr<VecDataArray<int, 3>>    indicesBPtr  = surfMeshB->getTriangleIndices();
+    std::shared_ptr<VecDataArray<int, 3>>    indicesBPtr  = surfMeshB->getIndices();
     const VecDataArray<int, 3>&              indicesB     = *indicesBPtr;
+
+    // For every triangle
+    std::vector<std::pair<int, int>> intersectingTriPairs;
+    for (int i = 0; i < indicesA.size(); i++)
+    {
+        // For every other triangle
+        const Vec3i& cellA = indicesA[i];
+        for (int j = 0; j < indicesB.size(); j++)
+        {
+            const Vec3i& cellB = indicesB[j];
+
+            // vtContact needs to be checked both ways but eeContact is symmetric
+            std::pair<Vec2i, Vec2i> eeContact;
+            std::pair<int, Vec3i>   vtContact;
+            std::pair<Vec3i, int>   tvContact;
+            // Check intersection
+            const int contactType = CollisionUtils::triangleToTriangle(cellA, cellB,
+                verticesA[cellA[0]], verticesA[cellA[1]], verticesA[cellA[2]],
+                verticesB[cellB[0]], verticesB[cellB[1]], verticesB[cellB[2]],
+                eeContact, vtContact, tvContact);
+            intersectingTriPairs.push_back(std::pair<int, int>(i, j));
+        }
+    }
+
+    // For every intersection triangle
+    for (auto triPair : intersectingTriPairs)
+    {
+        // Now we perform the tricky operation of clipping to find each elements manifold
+        // This can be used to resolve the intersected elements in hopes you could iteratively
+        // exit the mesh.
+
+        // Clip each triangle with the edge planes of the other triangle
+
+        const Vec3i& cellA = indicesA[triPair.first];
+        const Vec3i& cellB = indicesB[triPair.second];
+
+        Vec3d ptsA[3] =
+        {
+            verticesA[cellA[0]],
+            verticesA[cellA[1]],
+            verticesA[cellA[2]]
+        };
+        Vec3d ptsB[3] =
+        {
+            verticesB[cellB[0]],
+            verticesB[cellB[1]],
+            verticesB[cellB[2]]
+        };
+
+        // Clip tri_i with tri_j edge planes
+        {
+            // Compute triangle j normal
+            const Vec3d n = (ptsB[1] - ptsB[0]).cross(ptsB[2] - ptsB[0]).normalized();
+
+            // Compute edge planes
+            const Vec3d planes[3] =
+            {
+                n.cross(ptsB[1] - ptsB[0]).normalized(),
+                n.cross(ptsB[2] - ptsB[1]).normalized(),
+                n.cross(ptsB[0] - ptsB[2]).normalized()
+            };
+            // Displacement along normal to give plane
+            const double d[3] =
+            {
+                n.dot(ptsB[0]),
+                n.dot(ptsB[1]),
+                n.dot(ptsB[2])
+            };
+
+            // We know they are intersecting, now we compute the intersection points
+            //      /\
+            // o---/--\---0
+            //    /____\
+            //             //
+            // For every vertex of a, determine which are in all planes of b
+            std::array<Vec3d, 3> results;
+            int                  vertexIter = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                const Vec3d& pt = ptsA[i];
+
+                // Check if inside plane b
+                bool inside = true;
+                for (int j = 0; j < 3; j++)
+                {
+                    if (n.dot(pt) - d[i] < 0.0)
+                    {
+                        inside = false;
+                    }
+                }
+                if (inside)
+                {
+                    results[vertexIter] = pt;
+                    vertexIter++;
+                }
+            }
+
+            // Find deepest points
+        }
+
+        // Clip tri_j with tri_i
+        {
+            std::vector<Vec3d> results;
+
+            // Find deepest points
+        }
+    }
 
     std::unordered_set<EdgePair> edges;
     for (int i = 0; i < indicesA.size(); i++)

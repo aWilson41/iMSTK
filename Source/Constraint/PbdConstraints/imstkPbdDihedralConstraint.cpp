@@ -26,17 +26,16 @@ namespace  imstk
 void
 PbdDihedralConstraint::initConstraint(
     const Vec3d& p0, const Vec3d& p1, const Vec3d& p2, const Vec3d& p3,
-    const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
-    const BodyVertexId& pIdx2, const BodyVertexId& pIdx3,
+    const PbdParticleId& pIdx0, const PbdParticleId& pIdx1,
+    const PbdParticleId& pIdx2, const PbdParticleId& pIdx3,
     const double k)
 {
-    m_bodyVertexIds[0] = pIdx0;
-    m_bodyVertexIds[1] = pIdx1;
-    m_bodyVertexIds[2] = pIdx2;
-    m_bodyVertexIds[3] = pIdx3;
+    m_particles[0] = pIdx0;
+    m_particles[1] = pIdx1;
+    m_particles[2] = pIdx2;
+    m_particles[3] = pIdx3;
 
-    m_stiffness  = k;
-    m_compliance = 1.0 / k;
+    setStiffness(k);
 
     const Vec3d n1 = (p2 - p0).cross(p3 - p0).normalized();
     const Vec3d n2 = (p3 - p1).cross(p2 - p1).normalized();
@@ -45,20 +44,13 @@ PbdDihedralConstraint::initConstraint(
 }
 
 bool
-PbdDihedralConstraint::computeValueAndGradient(
-    std::vector<PbdBody>& bodies,
-    double&               c,
-    std::vector<Vec3d>&   dcdx) const
+PbdDihedralConstraint::computeValueAndGradient(PbdState& bodies,
+                                               double& c, std::vector<Vec3d>& dcdx) const
 {
-    const BodyVertexId& i0 = m_bodyVertexIds[0];
-    const BodyVertexId& i1 = m_bodyVertexIds[1];
-    const BodyVertexId& i2 = m_bodyVertexIds[2];
-    const BodyVertexId& i3 = m_bodyVertexIds[3];
-
-    const Vec3d& p0 = (*bodies[i0.first].vertices)[i0.second];
-    const Vec3d& p1 = (*bodies[i1.first].vertices)[i1.second];
-    const Vec3d& p2 = (*bodies[i2.first].vertices)[i2.second];
-    const Vec3d& p3 = (*bodies[i3.first].vertices)[i3.second];
+    const Vec3d& p0 = bodies.getPosition(m_particles[0]);
+    const Vec3d& p1 = bodies.getPosition(m_particles[1]);
+    const Vec3d& p2 = bodies.getPosition(m_particles[2]);
+    const Vec3d& p3 = bodies.getPosition(m_particles[3]);
 
     const Vec3d e  = p3 - p2;
     const Vec3d e1 = p3 - p0;

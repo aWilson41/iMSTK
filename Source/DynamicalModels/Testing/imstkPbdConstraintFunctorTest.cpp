@@ -62,10 +62,10 @@ TEST(imstkPbdConstraintFunctorTest, TestBendingConstraintStride1Generation)
 
     // Check constraint generated between correct elements and with correct values
     EXPECT_EQ(constraint->getStiffness(), 1e20);
-    EXPECT_EQ(constraint->getIds().size(), 3);
-    EXPECT_EQ(constraint->getIds()[0].second, 0);
-    EXPECT_EQ(constraint->getIds()[1].second, 1);
-    EXPECT_EQ(constraint->getIds()[2].second, 2);
+    EXPECT_EQ(constraint->getParticles().size(), 3);
+    EXPECT_EQ(constraint->getParticles()[0].second, 0);
+    EXPECT_EQ(constraint->getParticles()[1].second, 1);
+    EXPECT_EQ(constraint->getParticles()[2].second, 2);
 }
 
 ///
@@ -107,10 +107,10 @@ TEST(imstkPbdConstraintFunctorTest, TestBendingConstraintStride2Generation)
 
     // Check constraint generated between correct elements and with correct values
     EXPECT_EQ(constraint->getStiffness(), 1e20);
-    EXPECT_EQ(constraint->getIds().size(), 3);
-    EXPECT_EQ(constraint->getIds()[0].second, 0);
-    EXPECT_EQ(constraint->getIds()[1].second, 2);
-    EXPECT_EQ(constraint->getIds()[2].second, 4);
+    EXPECT_EQ(constraint->getParticles().size(), 3);
+    EXPECT_EQ(constraint->getParticles()[0].second, 0);
+    EXPECT_EQ(constraint->getParticles()[1].second, 2);
+    EXPECT_EQ(constraint->getParticles()[2].second, 4);
 }
 
 ///
@@ -145,9 +145,9 @@ TEST(imstkPbdConstraintFunctorTest, TestDistanceConstraintGeneration)
 
     // Check constraint generated between correct elements and with correct values
     EXPECT_EQ(constraint->getStiffness(), 1.0e3);
-    EXPECT_EQ(constraint->getIds().size(), 2);
-    EXPECT_EQ(constraint->getIds()[0].second, 0);
-    EXPECT_EQ(constraint->getIds()[1].second, 1);
+    EXPECT_EQ(constraint->getParticles().size(), 2);
+    EXPECT_EQ(constraint->getParticles()[0].second, 0);
+    EXPECT_EQ(constraint->getParticles()[1].second, 1);
 }
 
 ///
@@ -189,11 +189,11 @@ TEST(imstkPbdConstraintFunctorTest, TestFEMTetConstraintGeneration)
     EXPECT_EQ(constraint->m_config->m_lambda, 0.0);
     EXPECT_EQ(constraint->m_config->m_YoungModulus, 1000.0);
     EXPECT_EQ(constraint->m_config->m_PoissonRatio, 0.2);
-    EXPECT_EQ(constraint->getIds().size(), 4);
-    EXPECT_EQ(constraint->getIds()[0].second, 0);
-    EXPECT_EQ(constraint->getIds()[1].second, 1);
-    EXPECT_EQ(constraint->getIds()[2].second, 2);
-    EXPECT_EQ(constraint->getIds()[3].second, 3);
+    EXPECT_EQ(constraint->getParticles().size(), 4);
+    EXPECT_EQ(constraint->getParticles()[0].second, 0);
+    EXPECT_EQ(constraint->getParticles()[1].second, 1);
+    EXPECT_EQ(constraint->getParticles()[2].second, 2);
+    EXPECT_EQ(constraint->getParticles()[3].second, 3);
 }
 
 ///
@@ -229,11 +229,11 @@ TEST(imstkPbdConstraintFunctorTest, TestVolumeConstraintGeneration)
 
     // Check constraint generated between correct elements and with correct values
     EXPECT_EQ(constraint->getStiffness(), 1.0e4);
-    EXPECT_EQ(constraint->getIds().size(), 4);
-    EXPECT_EQ(constraint->getIds()[0].second, 0);
-    EXPECT_EQ(constraint->getIds()[1].second, 1);
-    EXPECT_EQ(constraint->getIds()[2].second, 2);
-    EXPECT_EQ(constraint->getIds()[3].second, 3);
+    EXPECT_EQ(constraint->getParticles().size(), 4);
+    EXPECT_EQ(constraint->getParticles()[0].second, 0);
+    EXPECT_EQ(constraint->getParticles()[1].second, 1);
+    EXPECT_EQ(constraint->getParticles()[2].second, 2);
+    EXPECT_EQ(constraint->getParticles()[3].second, 3);
 }
 
 ///
@@ -269,10 +269,10 @@ TEST(imstkPbdConstraintFunctorTest, TestAreaConstraintGeneration)
 
     // Check constraint generated between correct elements and with correct values
     EXPECT_EQ(constraint->getStiffness(), 1.0e4);
-    EXPECT_EQ(constraint->getIds().size(), 3);
-    EXPECT_EQ(constraint->getIds()[0].second, 0);
-    EXPECT_EQ(constraint->getIds()[1].second, 1);
-    EXPECT_EQ(constraint->getIds()[2].second, 2);
+    EXPECT_EQ(constraint->getParticles().size(), 3);
+    EXPECT_EQ(constraint->getParticles()[0].second, 0);
+    EXPECT_EQ(constraint->getParticles()[1].second, 1);
+    EXPECT_EQ(constraint->getParticles()[2].second, 2);
 }
 
 ///
@@ -305,5 +305,5 @@ TEST(imstkPbdConstraintFunctorTest, TestConstDensityConstraintGeneration)
     EXPECT_NE(constraint, nullptr);
 
     // Check constraint generated between correct elements and with correct values
-    EXPECT_EQ(constraint->getVertexIds().size(), 0);
+    EXPECT_EQ(constraint->getParticles().size(), 0);
 }

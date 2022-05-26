@@ -28,6 +28,7 @@
 namespace imstk
 {
 class PbdModel;
+class PointSet;
 
 ///
 /// \class PbdObject
@@ -65,12 +66,34 @@ public:
     ///
     void setDynamicalModel(std::shared_ptr<AbstractDynamicalModel> dynaModel) override;
 
-    void setPhysicsGeometry(std::shared_ptr<Geometry> geometry) override;
+    ///
+    /// \brief Update physics geometry, overrided to set transform should the
+    /// PbdObject be a rigid body
+    ///
+    void updatePhysicsGeometry() override;
+
+    ///
+    /// \brief Sets the PbdBody representing this object given its geometry
+    ///
+    void setBodyFromGeometry();
 
     ///
     /// \brief Initialize the Pbd scene object
     ///
     bool initialize() override;
+
+protected:
+    ///
+    /// \brief Creates a deformable PbdBody from Geometry
+    ///
+    void setDeformBodyFromGeometry(PbdBody& body, std::shared_ptr<PointSet> geom);
+
+    ///
+    /// \brief Creates a rigid PbdBody from values
+    ///
+    void setRigidBodyFromValues(PbdBody& body,
+                                const Vec3d& pos, const Quatd& orientation,
+                                const Vec3d& velocity, const Vec3d& angularVelocity);
 
 protected:
     std::shared_ptr<PbdModel> m_pbdModel = nullptr; ///< Pbd mathematical model

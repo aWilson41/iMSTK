@@ -19,50 +19,44 @@
 
 =========================================================================*/
 
-#include "gtest/gtest.h"
-
 #include "imstkPbdBendConstraint.h"
+#include "imstkPbdConstraintTest.h"
+
+#include <gtest/gtest.h>
 
 using namespace imstk;
 
 ///
 /// \brief Test that two connecting line segments unfold
 ///
-TEST(imstkPbdBendConstraintTest, TestConvergence1)
+TEST_F(PbdConstraintTest, BendConstraint_TestConvergence1)
 {
-    PbdBendConstraint constraint;
+    setNumParticles(3);
 
     // Straight line upon initialization
-    auto                     verticesPtr = std::make_shared<VecDataArray<double, 3>>(3);
-    VecDataArray<double, 3>& vertices    = *verticesPtr;
-    vertices[0] = Vec3d(0.0, 0.0, 0.0);
-    vertices[1] = Vec3d(0.5, 0.0, 0.0);
-    vertices[2] = Vec3d(1.0, 0.0, 0.0);
-    auto               invMassPtr = std::make_shared<DataArray<double>>(3);
-    DataArray<double>& invMasses  = *invMassPtr;;
-    invMasses[0] = 1.0;
-    invMasses[1] = 0.0; // Center doesn't move
-    invMasses[2] = 1.0;
+    m_vertices[0] = Vec3d(0.0, 0.0, 0.0);
+    m_vertices[1] = Vec3d(0.5, 0.0, 0.0);
+    m_vertices[2] = Vec3d(1.0, 0.0, 0.0);
 
+    m_invMasses[0] = 1.0;
+    m_invMasses[1] = 0.0; // Center doesn't move
+    m_invMasses[2] = 1.0;
+
+    PbdBendConstraint constraint;
+    m_constraint = &constraint;
     constraint.initConstraint(
-        vertices[0], vertices[1], vertices[2],
+        m_vertices[0], m_vertices[1], m_vertices[2],
         { 0, 0 }, { 0, 1 }, { 0, 2 }, 1e20);
 
-    PbdBody body;
-    body.vertices  = verticesPtr;
-    body.invMasses = invMassPtr;
-    std::vector<PbdBody> bodies;
-    bodies.push_back(body);
-
     // Modify it so the line segments look like \/
-    vertices[0][1] = 0.1;
-    vertices[2][1] = 0.1;
+    m_vertices[0][1] = 0.1;
+    m_vertices[2][1] = 0.1;
     for (int i = 0; i < 500; i++)
     {
-        constraint.projectConstraint(bodies, 0.01, PbdConstraint::SolverType::xPBD);
+        solve(0.01, PbdConstraint::SolverType::xPBD);
     }
 
     // Should resolve back to a flat line
-    EXPECT_NEAR(vertices[0][1], 0.0, IMSTK_DOUBLE_EPS);
-    EXPECT_NEAR(vertices[2][1], 0.0, IMSTK_DOUBLE_EPS);
+    EXPECT_NEAR(m_vertices[0][1], 0.0, IMSTK_DOUBLE_EPS);
+    EXPECT_NEAR(m_vertices[2][1], 0.0, IMSTK_DOUBLE_EPS);
 }

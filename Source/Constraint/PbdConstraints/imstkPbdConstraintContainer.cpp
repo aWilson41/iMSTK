@@ -52,7 +52,7 @@ PbdConstraintContainer::removeConstraints(std::shared_ptr<std::unordered_set<siz
     // Remove constraints that contain the given vertices
     auto removeConstraintFunc = [&](std::shared_ptr<PbdConstraint> constraint)
                                 {
-                                    for (auto i : constraint->getIds())
+                                    for (auto i : constraint->getParticles())
                                     {
                                         if (vertices->find(i.second) != vertices->end())
                                         {
@@ -105,7 +105,7 @@ PbdConstraintContainer::partitionConstraints(const int partitionedThreshold)
     for (size_t constrIdx = 0; constrIdx < allConstraints.size(); ++constrIdx)
     {
         const auto& constr = allConstraints[constrIdx];
-        for (const auto& vIds : constr->getIds())
+        for (const auto& vIds : constr->getParticles())
         {
             vertexConstraints[vIds.second].push_back(constrIdx);
         }

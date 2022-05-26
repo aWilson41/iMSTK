@@ -77,7 +77,9 @@ makePbdObjSurface(const std::string& name,
     pbdParams->m_gravity    = Vec3d(0.0, 0.0, 0.0);
     pbdParams->m_dt         = 0.005;
     pbdParams->m_iterations = numIter;
-    pbdParams->m_viscousDampingCoeff = 0.003;
+    pbdParams->m_linearDampingCoeff  = 0.003;
+    pbdParams->m_contactStiffness    = 0.3;
+    pbdParams->m_collisionIterations = 5;
 
     // Setup the Model
     imstkNew<PbdModel> pbdModel;

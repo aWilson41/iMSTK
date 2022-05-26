@@ -26,6 +26,23 @@
 
 #include <unordered_map>
 
+namespace
+{
+template<typename T>
+void
+copyOrAllocate(const std::shared_ptr<T>& src, std::shared_ptr<T>& dest)
+{
+    if (src != nullptr)
+    {
+        if (dest == nullptr)
+        {
+            dest = std::make_shared<T>();
+        }
+        *dest = *src;
+    }
+}
+} // namespace
+
 namespace imstk
 {
 ///
@@ -37,8 +54,24 @@ namespace imstk
 struct PbdBody
 {
     public:
+        enum class Type
+        {
+            DEFORMABLE,
+            DEFORMABLE_ORIENTED,
+            RIGID
+        };
+
+    public:
         PbdBody() : bodyHandle(-1) { }
         PbdBody(const int handle) : bodyHandle(handle) { }
+
+        ///
+        /// \brief The body should have orientations if its DEFORMABLE_ORIENTED or RIGID
+        ///
+        bool getOriented() const
+        {
+            return (bodyType == Type::DEFORMABLE_ORIENTED || bodyType == Type::RIGID);
+        }
 
         ///
         /// \brief Deep copy from src, copying dynamic allocations by value
@@ -48,78 +81,82 @@ struct PbdBody
             fixedNodeInvMass = src.fixedNodeInvMass;
             bodyHandle       = src.bodyHandle;
 
-            if (src.prevVertices != nullptr)
+            copyOrAllocate(src.prevVertices, prevVertices);
+            copyOrAllocate(src.vertices, vertices);
+            copyOrAllocate(src.velocities, velocities);
+            copyOrAllocate(src.accelerations, accelerations);
+            copyOrAllocate(src.masses, masses);
+            copyOrAllocate(src.invMasses, invMasses);
+
+            bodyType = src.bodyType;
+            if (getOriented())
             {
-                if (prevVertices == nullptr)
-                {
-                    prevVertices = std::make_shared<VecDataArray<double, 3>>();
-                }
-                * prevVertices = *src.prevVertices;
-            }
-            if (src.vertices != nullptr)
-            {
-                if (vertices == nullptr)
-                {
-                    vertices = std::make_shared<VecDataArray<double, 3>>();
-                }
-                * vertices = *src.vertices;
-            }
-            if (src.velocities != nullptr)
-            {
-                if (velocities == nullptr)
-                {
-                    velocities = std::make_shared<VecDataArray<double, 3>>();
-                }
-                * velocities = *src.velocities;
-            }
-            if (src.accelerations != nullptr)
-            {
-                if (accelerations == nullptr)
-                {
-                    accelerations = std::make_shared<VecDataArray<double, 3>>();
-                }
-                * accelerations = *src.accelerations;
-            }
-            if (src.masses != nullptr)
-            {
-                if (masses == nullptr)
-                {
-                    masses = std::make_shared<DataArray<double>>();
-                }
-                * masses = *src.masses;
-            }
-            if (src.invMasses != nullptr)
-            {
-                if (invMasses == nullptr)
-                {
-                    invMasses = std::make_shared<DataArray<double>>();
-                }
-                * invMasses = *src.invMasses;
+                copyOrAllocate(src.prevOrientations, prevOrientations);
+                copyOrAllocate(src.orientations, orientations);
+                copyOrAllocate(src.angularVelocities, angularVelocities);
+                copyOrAllocate(src.angularAccel, angularAccel);
+                copyOrAllocate(src.inertias, inertias);
+                copyOrAllocate(src.invInertias, invInertias);
             }
 
             fixedNodeIds     = src.fixedNodeIds;
             uniformMassValue = src.uniformMassValue;
         }
 
-    protected:
-        friend class PbdState;
-
-        ///< Map for archiving fixed nodes' mass.
-        std::unordered_map<int, double> fixedNodeInvMass;
-
     public:
         int bodyHandle; ///< Id in the system
 
+        // For Deformables
         std::shared_ptr<VecDataArray<double, 3>> prevVertices;
         std::shared_ptr<VecDataArray<double, 3>> vertices;
+
         std::shared_ptr<VecDataArray<double, 3>> velocities;
         std::shared_ptr<VecDataArray<double, 3>> accelerations;
+
         std::shared_ptr<DataArray<double>> masses;
         std::shared_ptr<DataArray<double>> invMasses;
+
+        // For orientated pbd and rbd
+        Type bodyType = Type::DEFORMABLE; // Flag to avoid extra allocation
+        std::shared_ptr<StdVectorOfQuatd> prevOrientations;
+        std::shared_ptr<StdVectorOfQuatd> orientations;
+
+        std::shared_ptr<VecDataArray<double, 3>> angularVelocities;
+        std::shared_ptr<VecDataArray<double, 3>> angularAccel;
+
+        std::shared_ptr<StdVectorOfMat3d> inertias;
+        std::shared_ptr<StdVectorOfMat3d> invInertias;
 
         ///< Nodal/vertex IDs of the nodes that are fixed
         std::vector<int> fixedNodeIds;
         ///< Mass properties, not used if per vertex masses are given in geometry attributes
         double uniformMassValue = 1.0;
+
+        Vec3d initPosTest = Vec3d::Zero();
+        Quatd initOrientationTest = Quatd::Identity();
+        Mat3d initInertiaTest     = Mat3d::Identity();
+
+        Vec3d externalForce  = Vec3d::Zero();
+        Vec3d externalTorque = Vec3d::Zero();
+
+        ///< Map for archiving fixed nodes' mass.
+        std::unordered_map<int, double> fixedNodeInvMass;
+};
+
+///
+/// \brief Provides interface for accessing particles from a 2d array of PbdBody,Particles
+///
+struct PbdState
+{
+    public:
+        inline Vec3d& getPosition(const std::pair<int, int>& bodyParticleId) const { return (*m_bodies[bodyParticleId.first]->vertices)[bodyParticleId.second]; }
+        inline Vec3d& getVelocity(const std::pair<int, int>& bodyParticleId) const { return (*m_bodies[bodyParticleId.first]->velocities)[bodyParticleId.second]; }
+        inline Quatd& getOrientation(const std::pair<int, int>& bodyParticleId) const { return (*m_bodies[bodyParticleId.first]->orientations)[bodyParticleId.second]; }
+        inline Vec3d& getAngularVelocity(const std::pair<int, int>& bodyParticleId) const { return (*m_bodies[bodyParticleId.first]->angularVelocities)[bodyParticleId.second]; }
+
+        inline double getInvMass(const std::pair<int, int>& bodyParticleId) const { return (*m_bodies[bodyParticleId.first]->invMasses)[bodyParticleId.second]; }
+        inline Mat3d& getInvInertia(const std::pair<int, int>& bodyParticleId) const { return (*m_bodies[bodyParticleId.first]->invInertias)[bodyParticleId.second]; }
+
+        std::vector<std::shared_ptr<PbdBody>> m_bodies;
 };
 } // namespace imstk

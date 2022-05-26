@@ -1412,11 +1412,11 @@ markPointsInsideAndOut(std::vector<bool>&      isInside,
     std::vector<Vec3d> bBoxMin;
     std::vector<Vec3d> bBoxMax;
 
-    bBoxMin.resize(surfaceMesh.getNumTriangles());
-    bBoxMax.resize(surfaceMesh.getNumTriangles());
+    bBoxMin.resize(surfaceMesh.getNumCells());
+    bBoxMax.resize(surfaceMesh.getNumCells());
 
     const VecDataArray<int, 3>& indices = *surfaceMesh.getIndices();
-    for (int idx = 0; idx < surfaceMesh.getNumTriangles(); ++idx)
+    for (int idx = 0; idx < surfaceMesh.getNumCells(); ++idx)
     {
         const auto& verts = indices[idx];
         const auto& xyz0  = surfaceMesh.getVertexPosition(verts[0]);
@@ -1466,7 +1466,7 @@ markPointsInsideAndOut(std::vector<bool>&      isInside,
                               int         numIntersections = 0;
                               const auto& xyz = *surfaceMesh.getVertexPositions();
 
-                              for (int j = 0; j < surfaceMesh.getNumTriangles(); ++j)
+                              for (int j = 0; j < surfaceMesh.getNumCells(); ++j)
                               {
                                   const Vec3i& verts = indices[j];
 
@@ -1591,8 +1591,8 @@ markPointsInsideAndOut(std::vector<bool>& isInside,
     std::vector<Vec3d> bBoxMin;
     std::vector<Vec3d> bBoxMax;
 
-    bBoxMin.resize(surfaceMesh.getNumTriangles());
-    bBoxMax.resize(surfaceMesh.getNumTriangles());
+    bBoxMin.resize(surfaceMesh.getNumCells());
+    bBoxMax.resize(surfaceMesh.getNumCells());
 
     /// \brief find the bounding boxes of each surface triangle
     const VecDataArray<int, 3>& indices = *surfaceMesh.getIndices();
@@ -1626,7 +1626,7 @@ markPointsInsideAndOut(std::vector<bool>& isInside,
                                                       bBoxMax[idx][2] = std::max(bBoxMax[idx][2], xyz2[2]);
                                                   };
 
-    ParallelUtils::parallelFor(surfaceMesh.getNumTriangles(), findBoundingBox);
+    ParallelUtils::parallelFor(surfaceMesh.getNumCells(), findBoundingBox);
 
     // ray tracing for all points in the x-axis. These points are those start with indices (0,j,k)
     // and jk = j + k*ny
@@ -1652,7 +1652,7 @@ markPointsInsideAndOut(std::vector<bool>& isInside,
                                   double dist    = 0.0;
                                   double distMin = h[0] * (nz + 1);
 
-                                  for (int j = 0; j < surfaceMesh.getNumTriangles(); ++j)
+                                  for (int j = 0; j < surfaceMesh.getNumCells(); ++j)
                                   {
                                       const Vec3i& verts = indices[j];
 
@@ -1900,7 +1900,7 @@ GeometryUtils::createTetrahedralMeshCover(std::shared_ptr<SurfaceMesh> surfMesh,
     }
 
     // enclose some interior points on triangles
-    for (int i = 0; i < surfMesh->getNumTriangles(); ++i)
+    for (int i = 0; i < surfMesh->getNumCells(); ++i)
     {
         labelEnclosingTetOfInteriorPnt(i);
     }

@@ -77,7 +77,7 @@ makeTetTissueObj(const std::string& name,
     pbdParams->m_gravity    = Vec3d(0.0, -9.8, 0.0);
     pbdParams->m_dt         = 0.001;
     pbdParams->m_iterations = 5;
-    pbdParams->m_viscousDampingCoeff = 0.025;
+    pbdParams->m_linearDampingCoeff = 0.025;
 
     // Setup the Model
     auto pbdModel = std::make_shared<PbdModel>();
@@ -133,7 +133,7 @@ makeTriTissueObj(const std::string& name,
     pbdParams->m_gravity    = Vec3d(0.0, -9.8, 0.0);
     pbdParams->m_dt         = 0.001;
     pbdParams->m_iterations = 5;
-    pbdParams->m_viscousDampingCoeff = 0.025;
+    pbdParams->m_linearDampingCoeff = 0.025;
 
     // Setup the Model
     auto pbdModel = std::make_shared<PbdModel>();
@@ -180,7 +180,7 @@ makeLineThreadObj(const std::string& name,
     pbdParams->m_gravity    = Vec3d(0.0, -9.8, 0.0);
     pbdParams->m_dt         = 0.001;
     pbdParams->m_iterations = 5;
-    pbdParams->m_viscousDampingCoeff = 0.025;
+    pbdParams->m_linearDampingCoeff = 0.025;
 
     // Setup the Model
     auto pbdModel = std::make_shared<PbdModel>();

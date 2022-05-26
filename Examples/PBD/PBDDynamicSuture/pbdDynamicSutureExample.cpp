@@ -64,22 +64,11 @@ createTissueHole(std::shared_ptr<TetrahedralMesh> tetMesh)
 
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 5.0);
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Volume, 100.0);
-    pbdParams->m_doPartitioning   = false;
-    pbdParams->m_uniformMassValue = 0.01;
+    pbdParams->m_doPartitioning = false;
     pbdParams->m_gravity    = Vec3d(0.0, 0.0, 0.0);
     pbdParams->m_dt         = 0.01;
     pbdParams->m_iterations = 5;
-    pbdParams->m_viscousDampingCoeff = 0.3;
-
-    // Fix the borders
-    for (int vert_id = 0; vert_id < surfMesh->getNumVertices(); vert_id++)
-    {
-        auto position = tetMesh->getVertexPosition(vert_id);
-        if (std::fabs(1.40984 - std::fabs(position(1))) <= 1E-4)
-        {
-            pbdParams->m_fixedNodeIds.push_back(vert_id);
-        }
-    }
+    pbdParams->m_linearDampingCoeff = 0.3;
 
     tetMesh->rotate(Vec3d(0.0, 0.0, 1.0), -PI_2, Geometry::TransformType::ApplyToData);
     tetMesh->rotate(Vec3d(1.0, 0.0, 0.0), -PI_2 / 1.0, Geometry::TransformType::ApplyToData);
@@ -113,6 +102,16 @@ createTissueHole(std::shared_ptr<TetrahedralMesh> tetMesh)
     pbdObject->setCollidingGeometry(surfMesh);
     pbdObject->setPhysicsToCollidingMap(std::make_shared<PointwiseMap>(tetMesh, surfMesh));
     pbdObject->setDynamicalModel(pbdModel);
+    pbdObject->getPbdBody()->uniformMassValue = 0.01;
+    // Fix the borders
+    for (int vert_id = 0; vert_id < surfMesh->getNumVertices(); vert_id++)
+    {
+        auto position = tetMesh->getVertexPosition(vert_id);
+        if (std::fabs(1.40984 - std::fabs(position(1))) <= 1E-4)
+        {
+            pbdObject->getPbdBody()->fixedNodeIds.push_back(vert_id);
+        }
+    }
 
     return pbdObject;
 }
@@ -156,18 +155,16 @@ makePbdString(
     imstkNew<PbdModelConfig> pbdParams;
     pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 50.0);
     pbdParams->enableBendConstraint(0.2, 1);
-    pbdParams->m_fixedNodeIds     = { 0, 1 };
-    pbdParams->m_uniformMassValue = 0.0001 / numVerts; // 0.002 / numVerts; // grams
     pbdParams->m_gravity = Vec3d(0.0, 0.01, 0.0);
     pbdParams->m_dt      = 0.001;                      // Overwritten for real time
-
+    pbdParams->m_collisionIterations = 100;
     // Very important parameter for stability of solver, keep lower than 1.0:
     pbdParams->m_contactStiffness = 0.01;
 
     // Requires large amounts of iterations the longer, a different
     // solver would help
     pbdParams->m_iterations = 30;
-    pbdParams->m_viscousDampingCoeff = 0.03;
+    pbdParams->m_linearDampingCoeff = 0.03;
 
     // Setup the Model
     imstkNew<PbdModel> pbdModel;
@@ -191,6 +188,8 @@ makePbdString(
     stringObj->setPhysicsGeometry(stringMesh);
     stringObj->setCollidingGeometry(stringMesh);
     stringObj->setDynamicalModel(pbdModel);
+    stringObj->getPbdBody()->fixedNodeIds     = { 0, 1 };
+    stringObj->getPbdBody()->uniformMassValue = 0.0001 / numVerts; // 0.002 / numVerts; // grams
 
     return stringObj;
 }
@@ -243,11 +242,6 @@ main()
 
     // Add thread CCD
     auto interactionCCDThread = std::make_shared<PbdObjectCollision>(sutureThreadObj, sutureThreadObj, "LineMeshToLineMeshCCD");
-    interactionCCDThread->setFriction(0.0);
-    auto colSolver = std::dynamic_pointer_cast<PbdCollisionHandling>(interactionCCDThread->getCollisionHandlingAB())->getCollisionSolver();
-
-    // Set the number of iterations for the CCD solver.
-    colSolver->setCollisionIterations(100);
     scene->addInteraction(interactionCCDThread);
 
     {

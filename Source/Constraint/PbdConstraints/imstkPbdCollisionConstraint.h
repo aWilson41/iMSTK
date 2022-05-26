@@ -22,104 +22,51 @@
 #pragma once
 
 #include "imstkMath.h"
+#include "imstkPbdConstraint.h"
 #include "imstkVecDataArray.h"
 
 namespace imstk
 {
 ///
-/// \struct VertexMassPair
-///
-/// \brief Represents a point in a PBD mesh with a mass & velocity
-///
-struct VertexMassPair
-{
-    Vec3d* vertex   = nullptr;
-    double invMass  = 0.0;
-    Vec3d* velocity = nullptr;
-};
-
-///
 /// \class PbdCollisionConstraint
 ///
-/// \brief Abstract base class for collision constraints. Collision
-/// constraints are non penetration constraints solved with PBD.
-/// They are formulated with a gradient dcdx and scalar c which must
-/// be returned in computeValueAndGradient.
-/// These constraints differ from PbdConstraints in that they do not
-/// support XPBD (as they are meant to be solved completely) & they
-/// are meant to be generated during runtime quickly upon contacts.
+/// \brief The PbdCollisionConstraint implements two sided collision.
+/// This allows the usage of differing stiffness for each side which can
+/// be useful during solve. Due to differences in definition, collisions
+/// do not use XPBD. Only PBD. They are assumed perfectly rigid even though
+/// stiffness is modifiable. Given enough iterations in the solve, it will
+/// converge to perfectly rigid.
 ///
-class PbdCollisionConstraint
+/// The collision constraint also provides a correctVelocity function.
+/// This may be overriden but by default it will correct velocity along
+/// the gradient tangents and normal according to frictional and restitution
+/// coefficients.
+///
+class PbdCollisionConstraint : public PbdConstraint
 {
 public:
-    ///
-    /// \brief Construct with the number of vertices from A and B for each side
-    ///
-    PbdCollisionConstraint(const unsigned int numVertsA, const unsigned int numVertsB);
-    virtual ~PbdCollisionConstraint() = default;
+    ~PbdCollisionConstraint() override = default;
 
 public:
-    ///
-    /// \brief Get vertex, mass, velocities of constrained objects
-    ///@{
-    const std::vector<VertexMassPair>& getVertexIdsFirst() const { return m_bodiesFirst; }
-    const std::vector<VertexMassPair>& getVertexIdsSecond() const { return m_bodiesSecond; }
-    ///@}
-
     ///
     /// \brief Get/Set stiffness A or B
     ///@{
-    double getStiffnessA() const { return m_stiffnessA; }
-    void setStiffnessA(const double stiffnessA) { m_stiffnessA = stiffnessA; }
-    double getStiffnessB() const { return m_stiffnessB; }
-    void setStiffnessB(const double stiffnessB) { m_stiffnessB = stiffnessB; }
+    double getStiffnessA() const { return m_stiffness[0]; }
+    void setStiffnessA(const double stiffnessA) { m_stiffness[0] = stiffnessA; }
+    double getStiffnessB() const { return m_stiffness[1]; }
+    void setStiffnessB(const double stiffnessB) { m_stiffness[1] = stiffnessB; }
     ///@}
 
     ///
-    /// \brief Get/Set resitution
-    ///@{
-    double getRestitution() const { return m_restitution; }
-    void setRestitution(const double restitution) { m_restitution = restitution; }
-    ///@}
-
+    /// \brief Performs the actual positional solve
     ///
-    /// \brief Get/Set friction
-    ///@{
-    double getFriction() const { return m_friction; }
-    void setFriction(const double friction) { m_friction = friction; }
-    ///@}
-
-    ///
-    /// \brief compute value and gradient of constraint function
-    /// \param Constraint value
-    /// \param Normalized constraint gradients of A (per vertex)
-    /// \param Normalized constraint gradients of B (per vertex)
-    ///
-    virtual bool computeValueAndGradient(double&             c,
-                                         std::vector<Vec3d>& dcdxA,
-                                         std::vector<Vec3d>& dcdxB) const = 0;
-
-    ///
-    /// \brief Solve the positions given to the constraint
-    ///
-    virtual void solvePosition();
-
-    ///
-    /// \brief Solve the velocities given to the constraint
-    ///
-    virtual void correctVelocity();
+    void projectConstraint(PbdState& bodies,
+                           const double dt, const SolverType& type) override;
 
 protected:
-    std::vector<VertexMassPair> m_bodiesFirst;  ///< index of points for the first object
-    std::vector<VertexMassPair> m_bodiesSecond; ///< index of points for the second object
+    PbdCollisionConstraint(const int numParticlesA, const int numParticlesB);
 
-    double m_stiffnessA = 1.0;
-    double m_stiffnessB = 1.0;
-
-    double m_friction    = 0.0;
-    double m_restitution = 0.0;
-
-    std::vector<Vec3d> m_dcdxA; ///< Normalized constraint gradients (per vertex)
-    std::vector<Vec3d> m_dcdxB; ///< Normalized constraint gradients (per vertex)
+    std::vector<bool> m_bodiesSides; ///< Stores 0 or 1 to indicate side of particle
+    double m_stiffness[2] = { 1.0, 1.0 };
 };
 } // namespace imstk

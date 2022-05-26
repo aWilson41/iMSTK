@@ -28,18 +28,14 @@
 namespace imstk
 {
 PbdSolver::PbdSolver() :
-    m_dt(0.0),
-    m_constraints(std::make_shared<PbdConstraintContainer>())
+    m_constraints(std::make_shared<PbdConstraintContainer>()),
+    m_constraintLists(std::make_shared<std::list<std::vector<PbdConstraint*>*>>())
 {
 }
 
 void
 PbdSolver::solve()
 {
-    // Solve the constraints and partitioned constraints
-    /* VecDataArray<double, 3>& currPositions = *m_positions;
-     const DataArray<double>& invMasses     = *m_invMasses;*/
-
     const std::vector<std::shared_ptr<PbdConstraint>>&              constraints = m_constraints->getConstraints();
     const std::vector<std::vector<std::shared_ptr<PbdConstraint>>>& partitionedConstraints = m_constraints->getPartitionedConstraints();
 
@@ -58,19 +54,12 @@ PbdSolver::solve()
             });
     }
 
-    std::vector<PbdBody> bodies;
-    bodies.reserve(m_bodies.size());
-    for (auto i : m_bodies)
-    {
-        bodies.push_back(*i);
-    }
-
     unsigned int i = 0;
     while (i++ < m_iterations)
     {
         for (const auto& constraint : constraints)
         {
-            constraint->projectConstraint(bodies, m_dt, m_solverType);
+            constraint->projectConstraint(*m_state, m_dt, m_solverType);
         }
 
         for (const auto& constraintPartition : partitionedConstraints)
@@ -78,7 +67,7 @@ PbdSolver::solve()
             ParallelUtils::parallelFor(constraintPartition.size(),
                 [&](const size_t idx)
                 {
-                    constraintPartition[idx]->projectConstraint(bodies, m_dt, m_solverType);
+                    constraintPartition[idx]->projectConstraint(*m_state, m_dt, m_solverType);
                 });
             //// Sequential
             //for (size_t k = 0; k < constraintPartition.size(); k++)
@@ -86,36 +75,13 @@ PbdSolver::solve()
             //    constraintPartition[k]->projectConstraint(invMasses, m_dt, m_solverType, currPositions);
             //}
         }
-    }
-}
 
-PbdCollisionSolver::PbdCollisionSolver() :
-    m_collisionConstraints(std::make_shared<std::list<std::vector<PbdCollisionConstraint*>*>>())
-{
-}
-
-void
-PbdCollisionSolver::addCollisionConstraints(std::vector<PbdCollisionConstraint*>* constraints)
-{
-    m_collisionConstraints->push_back(constraints);
-}
-
-void
-PbdCollisionSolver::solve()
-{
-    // Solve collision constraints
-    if (m_collisionConstraints->size() > 0)
-    {
-        unsigned int i = 0;
-        while (i++ < m_collisionIterations)
+        for (auto constraintList : *m_constraintLists)
         {
-            for (auto constraintList : *m_collisionConstraints)
+            const std::vector<PbdConstraint*>& constraints = *constraintList;
+            for (size_t j = 0; j < constraints.size(); j++)
             {
-                const std::vector<PbdCollisionConstraint*>& constraints = *constraintList;
-                for (size_t j = 0; j < constraints.size(); j++)
-                {
-                    constraints[j]->solvePosition();
-                }
+                constraints[j]->projectConstraint(*m_state, m_dt, m_solverType);
             }
         }
     }

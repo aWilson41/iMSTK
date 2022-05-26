@@ -88,7 +88,7 @@ makeTetTissueObj(const std::string& name,
     pbdParams->m_gravity    = Vec3d(0.0, 0.0, 0.0);
     pbdParams->m_dt         = 0.001;
     pbdParams->m_iterations = 5;
-    pbdParams->m_viscousDampingCoeff = 0.05;
+    pbdParams->m_linearDampingCoeff  = 0.05;
     pbdParams->m_contactStiffness    = 0.3;
     pbdParams->m_collisionIterations = 4;
 
@@ -151,7 +151,7 @@ makeTriTissueObj(const std::string& name,
     pbdParams->m_gravity    = Vec3d(0.0, 0.0, 0.0);
     pbdParams->m_dt         = 0.001;
     pbdParams->m_iterations = 5;
-    pbdParams->m_viscousDampingCoeff = 0.025;
+    pbdParams->m_linearDampingCoeff  = 0.025;
     pbdParams->m_contactStiffness    = 0.3;
     pbdParams->m_collisionIterations = 4;
 

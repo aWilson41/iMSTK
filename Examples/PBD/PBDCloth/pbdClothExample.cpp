@@ -38,10 +38,6 @@
 #include "imstkVisualModel.h"
 #include "imstkVTKViewer.h"
 
-#include "imstkLineMesh.h"
-#include "imstkPbdDistanceConstraint.h"
-#include "imstkPbdConstraintContainer.h"
-
 using namespace imstk;
 
 static void
@@ -90,10 +86,11 @@ makeClothObj(const std::string& name,
 
     // Setup the Parameters
     imstkNew<PbdModelConfig> pbdParams;
-    pbdParams->m_gravity        = Vec3d(0.0, -9.8, 0.0);
-    pbdParams->m_dt             = 0.005;
-    pbdParams->m_iterations     = 5;
-    pbdParams->m_doPartitioning = false;
+    pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 1.0e2);
+    pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Dihedral, 1.0e1);
+    pbdParams->m_gravity    = Vec3d(0.0, -9.8, 0.0);
+    pbdParams->m_dt         = 0.005;
+    pbdParams->m_iterations = 5;
 
     // Setup the Model
     imstkNew<PbdModel> pbdModel;
@@ -114,54 +111,10 @@ makeClothObj(const std::string& name,
     clothObj->addVisualModel(visualModel);
     clothObj->setPhysicsGeometry(clothMesh);
     clothObj->setDynamicalModel(pbdModel);
-    //clothObj->getPbdBody()->fixedNodeIds = { 0, colCount - 1 };
+    clothObj->getPbdBody()->fixedNodeIds     = { 0, colCount - 1 };
     clothObj->getPbdBody()->uniformMassValue = width * height / (rowCount * colCount);
-    pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 1.0e2,
-        clothObj->getPbdBody()->bodyHandle);
-    /*pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Dihedral, 1.0e1,
-        clothObj->getPbdBody()->bodyHandle);*/
 
     return clothObj;
-}
-
-///
-/// \brief Create pbd string object
-///
-static std::shared_ptr<PbdObject>
-makePbdString(
-    const std::string& name,
-    const Vec3d& pos, const Vec3d& dir, const int numVerts,
-    const double stringLength, std::shared_ptr<PbdModel> model)
-{
-    imstkNew<PbdObject> stringObj(name);
-
-    // Setup the Geometry
-    std::shared_ptr<LineMesh> stringMesh =
-        GeometryUtils::toLineGrid(pos, dir, stringLength, numVerts);
-
-    // Setup the VisualModel
-    imstkNew<RenderMaterial> material;
-    material->setBackFaceCulling(false);
-    material->setColor(Color::Red);
-    material->setLineWidth(2.0);
-    material->setPointSize(6.0);
-    material->setDisplayMode(RenderMaterial::DisplayMode::Wireframe);
-
-    imstkNew<VisualModel> visualModel;
-    visualModel->setGeometry(stringMesh);
-    visualModel->setRenderMaterial(material);
-
-    // Setup the Object
-    stringObj->addVisualModel(visualModel);
-    stringObj->setPhysicsGeometry(stringMesh);
-    stringObj->setCollidingGeometry(stringMesh);
-    stringObj->setDynamicalModel(model);
-    stringObj->getPbdBody()->fixedNodeIds     = { 9 };
-    stringObj->getPbdBody()->uniformMassValue = 100.0;//0.002 / numVerts; // grams
-    model->getConfig()->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 10000.0,
-        stringObj->getPbdBody()->bodyHandle);
-
-    return stringObj;
 }
 
 ///
@@ -183,25 +136,6 @@ main()
     std::shared_ptr<PbdObject> clothObj = makeClothObj("Cloth", 10.0, 10.0, 16, 16);
     scene->addSceneObject(clothObj);
 
-    std::shared_ptr<PbdObject> lineObj = makePbdString("thread",
-        Vec3d(0.0, 0.0, 0.0), Vec3d(1.0, 1.0, 0.0), 10, 5.0, clothObj->getPbdModel());
-    scene->addSceneObject(lineObj);
-
-    // Add a special constraint generator to add a constraint between the two bodies
-    clothObj->getPbdModel()->getConfig()->addPbdConstraintFunctor(
-        [&](PbdConstraintContainer& container)
-        {
-            VecDataArray<double, 3>& vertices1 =
-                *std::dynamic_pointer_cast<PointSet>(clothObj->getPhysicsGeometry())->getVertexPositions();
-            VecDataArray<double, 3>& vertices2 =
-                *std::dynamic_pointer_cast<PointSet>(lineObj->getPhysicsGeometry())->getVertexPositions();
-
-            auto constraint = std::make_shared<PbdDistanceConstraint>();
-            constraint->initConstraint(0.0,
-                { 0, 8 }, { 1, 2 }, 1000.0);
-            container.addConstraint(constraint);
-        });
-
     // Run the simulation
     {
         // Setup a viewer to render
@@ -220,12 +154,12 @@ main()
 
         // Add mouse and keyboard controls to the viewer
         {
-            auto mouseControl = std::make_shared<MouseSceneControl>();
+            imstkNew<MouseSceneControl> mouseControl;
             mouseControl->setDevice(viewer->getMouseDevice());
             mouseControl->setSceneManager(sceneManager);
             viewer->addControl(mouseControl);
 
-            auto keyControl = std::make_shared<KeyboardSceneControl>();
+            imstkNew<KeyboardSceneControl> keyControl;
             keyControl->setDevice(viewer->getKeyboardDevice());
             keyControl->setSceneManager(sceneManager);
             keyControl->setModuleDriver(driver);
@@ -256,7 +190,7 @@ main()
                     }
                     clothObj->getVisualModel(0)->getRenderMaterial()->getTexture(Texture::Type::Diffuse)->postModified();
                 }
-        });
+            });
 
         driver->start();
     }

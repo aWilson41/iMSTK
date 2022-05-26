@@ -75,7 +75,7 @@ PbdObjectCutting::apply()
     pbdMesh->setIndices(std::make_shared<VecDataArray<int, 3>>(*newPbdMesh->getIndices()));
 
     // update pbd states, constraints and solver
-    pbdModel->getCurrentState()->initState(*m_objA->getPbdBody());
+    m_objA->setBodyFromGeometry();
     pbdModel->getConstraints()->removeConstraints(m_removeConstraintVertices);
     pbdModel->addConstraints(m_addConstraintVertices);
 

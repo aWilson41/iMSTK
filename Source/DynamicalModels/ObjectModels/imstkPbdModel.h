@@ -32,7 +32,6 @@
 
 namespace imstk
 {
-class PointSet;
 class PbdCollisionSolver;
 class PbdConstraintContainer;
 class PbdSolver;
@@ -67,8 +66,9 @@ struct PbdModelConfig
         ///
         /// \brief Enables a regular constraint (not FEM constraint) with given stiffness
         /// If constraint of that type already exists, sets the stiffness on it
+        /// Defaults to bodyId=1, the first body, where 0 is the dummy body
         ///
-        void enableConstraint(ConstraintGenType type, const double stiffness, const int bodyId = 0);
+        void enableConstraint(ConstraintGenType type, const double stiffness, const int bodyId = 1);
 
         ///
         /// \brief Enables a bend constraint with given stiffness, stride, and flag for 0 rest length
@@ -79,12 +79,13 @@ struct PbdModelConfig
         /// \param When true rest length (and angle) are constrained to 0, useful when mesh initial/resting state
         /// is not 0 angled
         ///
-        void enableBendConstraint(const double stiffness, const int stride, const bool restLength0 = true, const int bodyId = 0);
+        void enableBendConstraint(const double stiffness, const int stride, const bool restLength0 = true, const int bodyId = 1);
 
         ///
         /// \brief Enable a Fem constraint with the material provided
+        /// Defaults to bodyId=1, the first body, where 0 is the dummy body
         ///
-        void enableFemConstraint(PbdFemConstraint::MaterialType material, const int bodyId = 0);
+        void enableFemConstraint(PbdFemConstraint::MaterialType material, const int bodyId = 1);
 
         ///
         /// \brief If lame parameters (mu+lambda) are given in femParams, then youngs modulus and poissons ratio are computed
@@ -107,8 +108,11 @@ struct PbdModelConfig
                 std::make_shared<PbdConstraintFunctorLambda>(functor));
         }
 
+        std::unordered_map<ConstraintGenType, std::vector<std::shared_ptr<PbdConstraintFunctor>>>& getFunctors() { return m_functors; }
+
     public:
-        double m_viscousDampingCoeff       = 0.01; ///< Viscous damping coefficient [0, 1]
+        double m_linearDampingCoeff        = 0.01; ///< Damping coefficient applied to linear velocity [0, 1]
+        double m_angularDampingCoeff       = 0.01; ///< Damping coefficient applied to angular velcoity [0, 1]
         double m_contactStiffness          = 1.0;  ///< Stiffness for contact
         unsigned int m_iterations          = 10;   ///< Internal constraints pbd solver iterations
         unsigned int m_collisionIterations = 1;
@@ -151,10 +155,12 @@ struct PbdModelConfig
 /// are solved in separate systems afterwards to ensure non-penetration.
 ///
 /// References:
-/// Matthias Muller, Bruno Heidelberger, Marcus Hennix, and John Ratcliff. 2007. Position based dynamics. J. Vis. Comun. Image Represent. 18, 2 (April 2007), 109-118.
-/// Miles Macklin, Matthias Muller, and Nuttapong Chentanez 1. XPBD: position-based simulation of compliant constrained dynamics. In Proc. of Motion in Games. 49-54
+/// Matthias Muller, Bruno Heidelberger, Marcus Hennix, and John Ratcliff. 2007. Position based dynamics.
+/// Miles Macklin, Matthias Muller, and Nuttapong Chentanez 1. XPBD: position-based simulation of compliant constrained dynamics.
+/// Matthias Mullerm, Miles Macklin, Nuttapong Chentanez, Stefan Jeschke, and Tae-Yong Kim. 2020. Detailed Rigid Body Simulation with Extended Position Based Dynamics
+/// Jan Bender, Matthias Muller, Miles Macklin. 2017. A Survey on Position Based Dynamics, 2017.
 ///
-class PbdModel : public DynamicalModel<PbdState>
+class PbdModel : public DynamicalModel<PbdStateDummy>
 {
 public:
     PbdModel();
@@ -166,11 +172,34 @@ public:
     void configure(std::shared_ptr<PbdModelConfig> params);
 
     ///
-    /// \brief Add a new PbdBody, return handle to it
-    ///
-    std::shared_ptr<PbdBody> addPbdBody() { return getCurrentState()->addBody(); }
+    /// \brief Add/remove PbdBody
+    /// @{
+    std::shared_ptr<PbdBody> addBody();
+    void removeBody(std::shared_ptr<PbdBody> body);
+    /// @}
 
-    void removePbdBody(std::shared_ptr<PbdBody> body) { getCurrentState()->removeBody(body); }
+    PbdState& getBodies() { return m_state; }
+
+    PbdParticleId addVirtualParticle(
+        const Vec3d& pos, const Quatd& orientation,
+        const double mass, const Mat3d inertia,
+        const Vec3d velocity     = Vec3d::Zero(), const Vec3d angularVelocity = Vec3d::Zero(),
+        const Vec3d acceleration = Vec3d::Zero(), const Vec3d angularAccel    = Vec3d::Zero());
+
+    PbdParticleId addVirtualParticle(
+        const Vec3d& pos, const double mass,
+        const Vec3d velocity     = Vec3d::Zero(),
+        const Vec3d acceleration = Vec3d::Zero());
+
+    ///
+    /// \brief Resize 0 the virtual particles
+    ///
+    void clearVirtualParticles();
+
+    ///
+    /// \brief Resize the amount of particles for a body
+    ///
+    void resizeBodyParticles(PbdBody& body, const int particleCount);
 
     ///
     /// \brief Get the simulation parameters
@@ -208,7 +237,7 @@ public:
     ///@{
     void updateVelocity();
     void updateVelocity(const PbdBody& body);
-    ///@]
+    ///@}
 
     ///
     /// \brief Solve the internal constraints
@@ -234,7 +263,11 @@ public:
     /// \brief Returns the solver used for internal constraints
     ///
     std::shared_ptr<PbdSolver> getSolver() const { return m_pbdSolver; }
-    std::shared_ptr<PbdCollisionSolver> getCollisionSolver() const { return m_pbdCollisionSolver; }
+
+    ///
+    /// \brief Returns the solver used for collision constraints
+    ///
+    std::shared_ptr<PbdSolver> getCollisionSolver() const { return m_pbdCollisionSolver; }
 
     ///
     /// \brief Sets the solver used for internal constraints
@@ -242,11 +275,8 @@ public:
     void setSolver(std::shared_ptr<PbdSolver> solver) { this->m_pbdSolver = solver; }
 
     std::shared_ptr<TaskNode> getIntegratePositionNode() const { return m_integrationPositionNode; }
-
     std::shared_ptr<TaskNode> getSolveNode() const { return m_solveConstraintsNode; }
-
     std::shared_ptr<TaskNode> getCollisionSolveNode() const { return m_collisionSolveConstraintsNode; }
-
     std::shared_ptr<TaskNode> getUpdateVelocityNode() const { return m_updateVelocityNode; }
 
 protected:
@@ -257,12 +287,16 @@ protected:
 
     size_t m_partitionThreshold = 16;                                   ///< Threshold for constraint partitioning
 
-    std::shared_ptr<PbdSolver> m_pbdSolver = nullptr;                   ///< PBD solver
-    std::shared_ptr<PbdCollisionSolver> m_pbdCollisionSolver = nullptr; ///< PBD Collision Solver
+    bool     m_modified = true;
+    int      m_iterKey  = 0;
+    PbdState m_state;
 
-    std::shared_ptr<PbdModelConfig> m_config = nullptr;                 ///< Model parameters, must be set before simulation
+    std::shared_ptr<PbdSolver> m_pbdSolver = nullptr;          ///< PBD solver
+    std::shared_ptr<PbdSolver> m_pbdCollisionSolver = nullptr; ///< PBD Collision Solver
 
-    std::shared_ptr<PbdConstraintContainer> m_constraints;              ///< The set of constraints to update/use
+    std::shared_ptr<PbdModelConfig> m_config = nullptr;        ///< Model parameters, must be set before simulation
+
+    std::shared_ptr<PbdConstraintContainer> m_constraints;     ///< The set of constraints to update/use
 
     ///< Computational Nodes
     ///@{

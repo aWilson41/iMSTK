@@ -43,9 +43,9 @@ protected:
     ///
     /// \brief Add a vertex-triangle constraint
     ///
-    void addVTConstraint(
-        VertexMassPair ptA,
-        VertexMassPair ptB1, VertexMassPair ptB2, VertexMassPair ptB3,
+    /*void addVTConstraint(
+        const PbdParticleId& ptA,
+        const PbdParticleId& ptB1, const PbdParticleId& ptB2, const PbdParticleId& ptB3,
         double stiffnessA, double stiffnessB) override
     {
         auto needleObj = std::dynamic_pointer_cast<NeedleObject>(getInputObjectB());
@@ -53,14 +53,14 @@ protected:
         {
             PbdCollisionHandling::addVTConstraint(ptA, ptB1, ptB2, ptB3, stiffnessA, stiffnessB);
         }
-    }
+    }*/
 
     ///
     /// \brief Add an edge-edge constraint
     ///
-    void addEEConstraint(
-        VertexMassPair ptA1, VertexMassPair ptA2,
-        VertexMassPair ptB1, VertexMassPair ptB2,
+    /*void addEEConstraint(
+        const PbdParticleId& ptA1, const PbdParticleId& ptA2,
+        const PbdParticleId& ptB1, const PbdParticleId& ptB2,
         double stiffnessA, double stiffnessB) override
     {
         auto needleObj = std::dynamic_pointer_cast<NeedleObject>(getInputObjectB());
@@ -68,14 +68,14 @@ protected:
         {
             PbdCollisionHandling::addEEConstraint(ptA1, ptA2, ptB1, ptB2, stiffnessA, stiffnessB);
         }
-    }
+    }*/
 
     ///
     /// \brief Add a point-edge constraint
     ///
-    void addPEConstraint(
-        VertexMassPair ptA1,
-        VertexMassPair ptB1, VertexMassPair ptB2,
+    /*void addPEConstraint(
+        const PbdParticleId& ptA1,
+        const PbdParticleId& ptB1, const PbdParticleId& ptB2,
         double stiffnessA, double stiffnessB) override
     {
         auto needleObj = std::dynamic_pointer_cast<NeedleObject>(getInputObjectB());
@@ -83,13 +83,13 @@ protected:
         {
             PbdCollisionHandling::addPEConstraint(ptA1, ptB1, ptB2, stiffnessA, stiffnessB);
         }
-    }
+    }*/
 
     ///
     /// \brief Add a point-point constraint
     ///
-    void addPPConstraint(
-        VertexMassPair ptA, VertexMassPair ptB,
+    /*void addPPConstraint(
+        const PbdParticleId& ptA, const PbdParticleId& ptB,
         double stiffnessA, double stiffnessB) override
     {
         auto needleObj = std::dynamic_pointer_cast<NeedleObject>(getInputObjectB());
@@ -97,5 +97,5 @@ protected:
         {
             PbdCollisionHandling::addPPConstraint(ptA, ptB, stiffnessA, stiffnessB);
         }
-    }
+    }*/
 };

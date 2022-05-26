@@ -87,9 +87,9 @@ public:
     /// pt position = weightA_0 * ptsA_0 + weightA_1 * ptsA_1 + ...
     ///
     virtual void addConstraint(
-        const std::vector<VertexMassPair>& ptsA,
+        const std::vector<PbdParticleId>& ptsA,
         const std::vector<double>& weightsA,
-        const std::vector<VertexMassPair>& ptsB,
+        const std::vector<PbdParticleId>& ptsB,
         const std::vector<double>& weightsB,
         const double stiffnessA, const double stiffnessB);
 
@@ -140,6 +140,6 @@ protected:
     std::vector<std::shared_ptr<PbdBaryPointToPointConstraint>> m_constraints; ///< Array of PBD constraints
 
 private:
-    std::vector<PbdCollisionConstraint*> m_collisionConstraints;
+    std::vector<PbdConstraint*> m_collisionConstraints;
 };
 } // namespace imstk

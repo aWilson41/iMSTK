@@ -38,20 +38,21 @@ public:
         PbdFemConstraint(4, mType) { }
 
     ///
-    /// \brief Initialize the tetrahedral FEM constraint
+    /// \brief Initialize the constraint
     ///
     bool initConstraint(
         const Vec3d& p0, const Vec3d& p1, const Vec3d& p2, const Vec3d& p3,
-        const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
-        const BodyVertexId& pIdx2, const BodyVertexId& pIdx3,
+        const PbdParticleId& pIdx0, const PbdParticleId& pIdx1,
+        const PbdParticleId& pIdx2, const PbdParticleId& pIdx3,
         std::shared_ptr<PbdFemConstraintConfig> config);
 
     ///
-    /// \brief Compute the value and gradient of constraint
+    /// \brief Compute value and gradient of constraint function
+    /// \param[inout] set of bodies involved in system
+    /// \param[inout] c constraint value
+    /// \param[inout] dcdx constraint gradient
     ///
-    bool computeValueAndGradient(
-        std::vector<PbdBody>& bodies,
-        double&               c,
-        std::vector<Vec3d>&   dcdx) const override;
+    bool computeValueAndGradient(PbdState& bodies,
+                                 double& c, std::vector<Vec3d>& dcdx) const override;
 };
 } // namespace imstk

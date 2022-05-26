@@ -24,7 +24,7 @@
 namespace imstk
 {
 void
-PbdConstraint::projectConstraint(std::vector<PbdBody>& bodies,
+PbdConstraint::projectConstraint(PbdState& bodies,
                                  const double dt, const SolverType& solverType)
 {
     if (dt == 0.0)
@@ -39,15 +39,13 @@ PbdConstraint::projectConstraint(std::vector<PbdBody>& bodies,
         return;
     }
 
-    double dcMidc = 0.0;
-    double lambda = 0.0;
-    double alpha  = 0.0;
+    double dcMidc  = 0.0;
+    double dlambda = 0.0;
+    double alpha   = 0.0;
 
-    for (size_t i = 0; i < m_bodyVertexIds.size(); i++)
+    for (size_t i = 0; i < m_particles.size(); i++)
     {
-        const size_t& bodyId = m_bodyVertexIds[i].first;
-        const size_t& vertId = m_bodyVertexIds[i].second;
-        dcMidc += (*bodies[bodyId].invMasses)[vertId] * m_dcdx[i].squaredNorm();
+        dcMidc += bodies.getInvMass(m_particles[i]) * m_dcdx[i].squaredNorm();
     }
 
     if (dcMidc < IMSTK_DOUBLE_EPS)
@@ -59,29 +57,49 @@ PbdConstraint::projectConstraint(std::vector<PbdBody>& bodies,
     {
     case (SolverType::xPBD):
         alpha     = m_compliance / (dt * dt);
-        lambda    = -(c + alpha * m_lambda) / (dcMidc + alpha);
-        m_lambda += lambda;
+        dlambda   = -(c + alpha * m_lambda) / (dcMidc + alpha);
+        m_lambda += dlambda;
         break;
     case (SolverType::PBD):
-        lambda = -c * m_stiffness / dcMidc;
+        dlambda = -c * m_stiffness / dcMidc;
         break;
     default:
         alpha     = m_compliance / (dt * dt);
-        lambda    = -(c + alpha * m_lambda) / (dcMidc + alpha);
-        m_lambda += lambda;
+        dlambda   = -(c + alpha * m_lambda) / (dcMidc + alpha);
+        m_lambda += dlambda;
     }
 
-    size_t vertexId = 0;
-    size_t bodyId   = 0;
-    for (size_t i = 0; i < m_bodyVertexIds.size(); i++)
+    for (size_t i = 0; i < m_particles.size(); i++)
     {
-        bodyId   = m_bodyVertexIds[i].first;
-        vertexId = m_bodyVertexIds[i].second;
-
-        const double invMass = (*bodies[bodyId].invMasses)[vertexId];
+        const double invMass = bodies.getInvMass(m_particles[i]);
         if (invMass > 0.0)
         {
-            (*bodies[bodyId].vertices)[vertexId] += invMass * lambda * m_dcdx[i];
+            bodies.getPosition(m_particles[i]) += invMass * dlambda * m_dcdx[i];
+        }
+    }
+}
+
+void
+PbdConstraint::correctVelocity(PbdState& bodies)
+{
+    const double fricFrac = 1.0 - m_friction;
+
+    for (size_t i = 0; i < m_particles.size(); i++)
+    {
+        size_t       vertexId = 0;
+        size_t       bodyId   = 0;
+        const double invMass  = bodies.getInvMass(m_particles[i]);
+        if (invMass > 0.0)
+        {
+            const Vec3d n = m_dcdx[i].normalized();
+            Vec3d&      v = bodies.getVelocity(m_particles[i]);
+
+            // Separate velocity into normal and tangent components
+            const Vec3d vN = n.dot(v) * n;
+            const Vec3d vT = v - vN;
+
+            // Put back together fractionally based on defined restitution and frictional coefficients
+            v = vN * m_restitution + vT * fricFrac;
         }
     }
 }

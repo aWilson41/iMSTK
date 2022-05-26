@@ -83,24 +83,10 @@ public class PbdVolume
         // FEM constraint
         pbdParams.m_femParams.m_YoungModulus = 500.0;
         pbdParams.m_femParams.m_PoissonRatio = 0.3;
-        pbdParams.m_fixedNodeIds = new VectorSizet(13);
-        pbdParams.m_fixedNodeIds.Add(75);
-        pbdParams.m_fixedNodeIds.Add(82);
-        pbdParams.m_fixedNodeIds.Add(84);
-        pbdParams.m_fixedNodeIds.Add(94);
-        pbdParams.m_fixedNodeIds.Add(95);
-        pbdParams.m_fixedNodeIds.Add(105);
-        pbdParams.m_fixedNodeIds.Add(110);
-        pbdParams.m_fixedNodeIds.Add(124);
-        pbdParams.m_fixedNodeIds.Add(139);
-        pbdParams.m_fixedNodeIds.Add(150);
-        pbdParams.m_fixedNodeIds.Add(161);
-        pbdParams.m_fixedNodeIds.Add(171);
-        pbdParams.m_fixedNodeIds.Add(350);
+       
         pbdParams.enableFemConstraint(PbdFemConstraint.MaterialType.StVK);
 
         // Other parameters
-        pbdParams.m_uniformMassValue = 1.0;
         pbdParams.m_gravity    = new Vec3d(0, -9.8, 0);
         pbdParams.m_iterations = 6;
         pbdParams.m_dt = 0.02;
@@ -113,6 +99,23 @@ public class PbdVolume
         deformableObj.addVisualModel(visualModel);
         deformableObj.setPhysicsGeometry(tetMesh);
         deformableObj.setPhysicsToVisualMap(new PointwiseMap(tetMesh, surfMesh));
+
+        VectorSizet fixedNodeIds = new VectorSizet(13);
+        fixedNodeIds.Add(75);
+        fixedNodeIds.Add(82);
+        fixedNodeIds.Add(84);
+        fixedNodeIds.Add(94);
+        fixedNodeIds.Add(95);
+        fixedNodeIds.Add(105);
+        fixedNodeIds.Add(110);
+        fixedNodeIds.Add(124);
+        fixedNodeIds.Add(139);
+        fixedNodeIds.Add(150);
+        fixedNodeIds.Add(161);
+        fixedNodeIds.Add(171);
+        fixedNodeIds.Add(350);
+        deformableObj.getPbdBody().fixedNodeIds = fixedNodeIds;
+        deformableObj.getPbdBody().uniformMassValue = 1.0;
 
         return deformableObj;
     }

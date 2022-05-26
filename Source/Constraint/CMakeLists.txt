@@ -5,6 +5,10 @@
 include(imstkAddLibrary)
 imstk_add_library( Constraints
   H_FILES
+    PbdConstraints/imstkPbdAngularConstraint.h
+    PbdConstraints/imstkPbdHingeJointConstraint.h
+    PbdConstraints/imstkPbdContactConstraint.h
+
     imstkLinearProjectionConstraint.h
     MultiModelConstraints/imstkPbdRigidBaryPointToPointConstraint.h
     PbdConstraints/imstkPbdAreaConstraint.h
@@ -30,6 +34,10 @@ imstk_add_library( Constraints
     RigidBodyConstraints/imstkRbdDistanceConstraint.h
     RigidBodyConstraints/imstkRbdFrictionConstraint.h
   CPP_FILES
+    PbdConstraints/imstkPbdAngularConstraint.cpp
+    PbdConstraints/imstkPbdHingeJointConstraint.cpp
+    PbdConstraints/imstkPbdContactConstraint.cpp
+
     imstkLinearProjectionConstraint.cpp
     MultiModelConstraints/imstkPbdRigidBaryPointToPointConstraint.cpp
     PbdConstraints/imstkPbdAreaConstraint.cpp

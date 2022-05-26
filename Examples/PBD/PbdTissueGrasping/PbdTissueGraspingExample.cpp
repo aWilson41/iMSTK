@@ -106,7 +106,7 @@ makeTissueObj(const std::string& name,
         //    gives complete bulk where its rigid
         //  - Youngs modulus then gives the scaling of the above in pressure
         //    (pascals).
-        pbdParams->enableFemConstraint(PbdFemConstraint::MaterialType::NeoHookean);
+        pbdParams->enableFemConstraint(PbdFemConstraint::MaterialType::StVK);
     }
     else
     {
@@ -124,7 +124,7 @@ makeTissueObj(const std::string& name,
     // Ultimately this is a result of not modelling everything around the tissue.
     // and poor/hard to model boundary conditions.
     pbdParams->m_gravity = Vec3d::Zero();
-    pbdParams->m_viscousDampingCoeff = 0.03; // Removed from velocity
+    pbdParams->m_linearDampingCoeff = 0.03; // Removed from velocity
 
     // Setup the Model
     imstkNew<PbdModel> pbdModel;

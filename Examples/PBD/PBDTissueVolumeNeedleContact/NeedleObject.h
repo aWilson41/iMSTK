@@ -22,11 +22,13 @@
 #pragma once
 
 #include "imstkMacros.h"
-#include "imstkRigidObject2.h"
+#include "imstkPbdObject.h"
+
+#include "imstkGeometry.h"
 
 using namespace imstk;
 
-class NeedleObject : public RigidObject2
+class NeedleObject : public PbdObject
 {
 public:
     enum class CollisionState
@@ -37,8 +39,8 @@ public:
     };
 
 public:
-    NeedleObject(const std::string& name) : RigidObject2(name) { }
-    virtual ~NeedleObject() = default;
+    NeedleObject(const std::string& name);
+    ~NeedleObject() override = default;
 
     IMSTK_TYPE_NAME(NeedleObject)
 

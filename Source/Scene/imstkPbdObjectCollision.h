@@ -52,12 +52,12 @@ public:
     void setFriction(const double friction);
     double getFriction() const;
 
-    void setCollisionIterations(const int iterations);
-    int getCollisionIterations() const;
-
     ///
     /// \brief Setup connectivity of task graph
     ///
     void initGraphEdges(std::shared_ptr<TaskNode> source, std::shared_ptr<TaskNode> sink) override;
+
+protected:
+    std::shared_ptr<TaskNode> m_updatePrevGeometryCCDNode = nullptr;
 };
 } // namespace imstk

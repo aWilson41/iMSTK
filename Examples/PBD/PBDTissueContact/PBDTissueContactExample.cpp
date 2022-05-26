@@ -129,7 +129,7 @@ makeTissueObj(const std::string& name,
     pbdParams->m_gravity    = Vec3d(0.0, 0.0, 0.0);
     pbdParams->m_dt         = 0.05;
     pbdParams->m_iterations = 5;
-    pbdParams->m_viscousDampingCoeff = 0.1;
+    pbdParams->m_linearDampingCoeff = 0.1;
 
     // Setup the Model
     imstkNew<PbdModel> pbdModel;
@@ -187,14 +187,13 @@ makeTissueObj(const std::string& name,
 static std::shared_ptr<RigidObject2>
 makeToolObj()
 {
-    /*imstkNew<LineMesh>                toolGeometry;
+    imstkNew<LineMesh>                toolGeometry;
     imstkNew<VecDataArray<double, 3>> verticesPtr(2);
     (*verticesPtr)[0] = Vec3d(0.0, 0.0, 0.0);
     (*verticesPtr)[1] = Vec3d(0.0, 2.0, 0.0);
     imstkNew<VecDataArray<int, 2>> indicesPtr(1);
     (*indicesPtr)[0] = Vec2i(0, 1);
-    toolGeometry->initialize(verticesPtr, indicesPtr);*/
-    imstkNew<Sphere> toolGeometry(Vec3d(0.0, 0.0, 0.0), 1.0);
+    toolGeometry->initialize(verticesPtr, indicesPtr);
 
     imstkNew<RigidObject2> toolObj("Tool");
     toolObj->setVisualGeometry(toolGeometry);

@@ -21,30 +21,26 @@
 
 #pragma once
 
-#include "imstkPbdCollisionConstraint.h"
-#include "imstkRbdConstraint.h"
+#include "imstkPbdContactConstraint.h"
 
 namespace imstk
 {
 ///
 /// \brief Given a line and a triangle it computes the intersection between
-/// them upon initialation for which it saves the interpolation weights.
+/// them upon initialization for which it saves the interpolation weights.
 ///
 /// This allows us to deform both shapes whilst maintaining a relative
 /// position on that element.
 ///
 /// To then constrain we compute the difference between the two interpolated
 /// positions on each element and pull the line back towards the triangle
-/// via rbd constraint and pull the triangle back towards the line via pbd
+/// and the triangle back towards the line via XPBD
 ///
-/// A compliance term gives the weighting for which to do this. To make more
-/// physically accurate we would need to take an approach like XPBD in solving.
-///
-class EmbeddingConstraint : public PbdCollisionConstraint, public RbdConstraint
+class EmbeddingConstraint : public PbdContactConstraint
 {
 public:
-    EmbeddingConstraint(std::shared_ptr<RigidBody> obj1) :
-        PbdCollisionConstraint(1, 3), RbdConstraint(obj1, nullptr, RbdConstraint::Side::A)
+    EmbeddingConstraint() : PbdContactConstraint(4,
+                                                 { ContactType::DEFORM, ContactType::DEFORM, ContactType::DEFORM, ContactType::RIGID })
     {
     }
 
@@ -53,9 +49,18 @@ public:
 public:
     ///
     /// \brief Initializes both PBD and RBD constraint
+    /// \param bodies
+    /// \param rigid body particle
+    /// \param triangle particle b1
+    /// \param triangle particle b2
+    /// \param triangle particle b3
+    /// \param p/start of line
+    /// \param q/end of line
     ///
     void initConstraint(
-        VertexMassPair ptB1, VertexMassPair ptB2, VertexMassPair ptB3,
+        PbdState& bodies,
+        const PbdParticleId& ptA1,
+        const PbdParticleId& ptB1, const PbdParticleId& ptB2, const PbdParticleId& ptB3,
         Vec3d* p, Vec3d* q);
 
 public:
@@ -63,21 +68,16 @@ public:
     /// \brief Given two interpolants on the two elements, compute the difference
     /// between them and use for resolution
     ///
-    Vec3d computeInterpolantDifference() const;
+    Vec3d computeInterpolantDifference(const PbdState& bodies) const;
 
 public:
     ///
     /// \brief Update the pbd constraint
     ///
-    bool computeValueAndGradient(double&             c,
-                                 std::vector<Vec3d>& dcdxA,
-                                 std::vector<Vec3d>& dcdxB) const override;
-
-public:
-    ///
-    /// \brief Update the rbd constraint
-    ///
-    void compute(double dt) override;
+    bool computeValueAndGradient(PbdState&           bodies,
+                                 double&             c,
+                                 std::vector<Vec3d>& n,
+                                 std::vector<Vec3d>& r) const override;
 
 protected:
     // Intersection point via interpolants on triangle
@@ -99,12 +99,6 @@ protected:
     Vec3d m_iPtVel;
 
 protected:
-    // Ratio between the two models (ie: how much rbd tool is moved vs how much pbd tissue is)
-    //
-    // If 0.0, rbd tool is completely resolved and PBD tissue does not move
-    // If 1.0, pbd tissue completely moves and rbd tool feels no resistance
-    double m_compliance = 0.5;
-
     //// Ratio between the two models. This gives how much the rbd tool is moved vs how much pbd tissue is
     //// in the normal direction
     //double m_normalCompliance = 0.5;

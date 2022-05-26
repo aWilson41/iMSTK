@@ -27,36 +27,42 @@ namespace imstk
 {
 void
 PbdEdgeEdgeCCDConstraint::initConstraint(
-    VertexMassPair prev_ptA1, VertexMassPair prev_ptA2, VertexMassPair prev_ptB1, VertexMassPair prev_ptB2,
-    VertexMassPair ptA1, VertexMassPair ptA2, VertexMassPair ptB1, VertexMassPair ptB2,
+    const PbdParticleId& prevPtA0, const PbdParticleId& prevPtA1,
+    const PbdParticleId& prevPtB0, const PbdParticleId& prevPtB1,
+    const PbdParticleId& ptA0, const PbdParticleId& ptA1,
+    const PbdParticleId& ptB0, const PbdParticleId& ptB1,
     double stiffnessA, double stiffnessB)
 {
-    m_stiffnessA = stiffnessA;
-    m_stiffnessB = stiffnessB;
+    m_particles[0] = prevPtA0;
+    m_particles[1] = prevPtA1;
+    m_particles[2] = ptA0;
+    m_particles[3] = ptA1;
 
-    m_bodiesFirst[0] = prev_ptA1;
-    m_bodiesFirst[1] = prev_ptA2;
-    m_bodiesFirst[2] = ptA1;
-    m_bodiesFirst[3] = ptA2;
+    m_particles[4] = prevPtB0;
+    m_particles[5] = prevPtB1;
+    m_particles[6] = ptB0;
+    m_particles[7] = ptB1;
 
-    m_bodiesSecond[0] = prev_ptB1;
-    m_bodiesSecond[1] = prev_ptB2;
-    m_bodiesSecond[2] = ptB1;
-    m_bodiesSecond[3] = ptB2;
+    m_stiffness[0] = stiffnessA;
+    m_stiffness[1] = stiffnessB;
 }
 
 bool
-PbdEdgeEdgeCCDConstraint::computeValueAndGradient(double&             c,
-                                                  std::vector<Vec3d>& dcdxA,
-                                                  std::vector<Vec3d>& dcdxB) const
+PbdEdgeEdgeCCDConstraint::computeValueAndGradient(PbdState& bodies,
+                                                  double& c, std::vector<Vec3d>& dcdx) const
 {
-    EdgeEdgeCCDState prevState(
-        *m_bodiesFirst[0].vertex, *m_bodiesFirst[1].vertex,
-        *m_bodiesSecond[0].vertex, *m_bodiesSecond[1].vertex);
+    const Vec3d& currPt0 = bodies.getPosition(m_particles[2]);
+    const Vec3d& currPt1 = bodies.getPosition(m_particles[3]);
+    const Vec3d& currPt2 = bodies.getPosition(m_particles[6]);
+    const Vec3d& currPt3 = bodies.getPosition(m_particles[7]);
 
-    EdgeEdgeCCDState currState(
-        *m_bodiesFirst[2].vertex, *m_bodiesFirst[3].vertex,
-        *m_bodiesSecond[2].vertex, *m_bodiesSecond[3].vertex);
+    const Vec3d& prevPt0 = bodies.getPosition(m_particles[0]);
+    const Vec3d& prevPt1 = bodies.getPosition(m_particles[1]);
+    const Vec3d& prevPt2 = bodies.getPosition(m_particles[4]);
+    const Vec3d& prevPt3 = bodies.getPosition(m_particles[5]);
+
+    EdgeEdgeCCDState prevState(prevPt0, prevPt1, prevPt2, prevPt3);
+    EdgeEdgeCCDState currState(currPt0, currPt1, currPt2, currPt3);
 
     double timeOfImpact  = 0.0;
     int    collisionType = EdgeEdgeCCDState::testCollision(prevState, currState, timeOfImpact);
@@ -90,16 +96,16 @@ PbdEdgeEdgeCCDConstraint::computeValueAndGradient(double&             c,
 
     // keep the prev values static by assigning zero vector as solution gradient.
     // This can also be done by assigning invMass as zero for prev timestep vertices.
-    dcdxA[0] = Vec3d::Zero();
-    dcdxA[1] = Vec3d::Zero();
-    dcdxB[0] = Vec3d::Zero();
-    dcdxB[1] = Vec3d::Zero();
+    dcdx[0] = Vec3d::Zero();
+    dcdx[1] = Vec3d::Zero();
+    dcdx[4] = Vec3d::Zero();
+    dcdx[5] = Vec3d::Zero();
 
-    dcdxA[2] = (1 - s) * n;
-    dcdxA[3] = s * n;
+    dcdx[2] = (1 - s) * n;
+    dcdx[3] = s * n;
 
-    dcdxB[2] = -(1 - t) * n;
-    dcdxB[3] = -t * n;
+    dcdx[6] = -(1 - t) * n;
+    dcdx[7] = -t * n;
 
     if (crossing)
     {

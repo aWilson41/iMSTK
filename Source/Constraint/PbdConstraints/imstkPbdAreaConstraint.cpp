@@ -26,32 +26,24 @@ namespace imstk
 void
 PbdAreaConstraint::initConstraint(
     const Vec3d& p0, const Vec3d& p1, const Vec3d& p2,
-    const BodyVertexId& pIdx0, const BodyVertexId& pIdx1, const BodyVertexId& pIdx2,
+    const PbdParticleId& pIdx0, const PbdParticleId& pIdx1, const PbdParticleId& pIdx2,
     const double k)
 {
-    m_bodyVertexIds[0] = pIdx0;
-    m_bodyVertexIds[1] = pIdx1;
-    m_bodyVertexIds[2] = pIdx2;
-
-    this->m_stiffness  = k;
-    this->m_compliance = 1.0 / k;
+    m_particles[0] = pIdx0;
+    m_particles[1] = pIdx1;
+    m_particles[2] = pIdx2;
+    setStiffness(k);
 
     m_restArea = 0.5 * (p1 - p0).cross(p2 - p0).norm();
 }
 
 bool
-PbdAreaConstraint::computeValueAndGradient(
-    std::vector<PbdBody>& bodies,
-    double&               c,
-    std::vector<Vec3d>&   dcdx) const
+PbdAreaConstraint::computeValueAndGradient(PbdState& bodies,
+                                           double& c, std::vector<Vec3d>& dcdx) const
 {
-    const BodyVertexId& i0 = m_bodyVertexIds[0];
-    const BodyVertexId& i1 = m_bodyVertexIds[1];
-    const BodyVertexId& i2 = m_bodyVertexIds[2];
-
-    const Vec3d& p0 = (*bodies[i0.first].vertices)[i0.second];
-    const Vec3d& p1 = (*bodies[i1.first].vertices)[i1.second];
-    const Vec3d& p2 = (*bodies[i2.first].vertices)[i2.second];
+    const Vec3d& p0 = bodies.getPosition(m_particles[0]);
+    const Vec3d& p1 = bodies.getPosition(m_particles[1]);
+    const Vec3d& p2 = bodies.getPosition(m_particles[2]);
 
     const Vec3d e0 = p0 - p1;
     const Vec3d e1 = p1 - p2;
@@ -65,7 +57,7 @@ PbdAreaConstraint::computeValueAndGradient(
         return false;
     }
 
-    n /= 2 * c;
+    n /= 2.0 * c;
     c -= m_restArea;
 
     dcdx[0] = e1.cross(n);

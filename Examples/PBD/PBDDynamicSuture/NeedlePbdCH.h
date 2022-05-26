@@ -46,57 +46,6 @@ class TetrahedralMesh;
 ///
 class NeedlePbdCH : public PbdCollisionHandling
 {
-protected:
-
-    // Stores data for penetration points, both for the needle and the thread
-    struct SuturePenetrationData
-    {
-        // Triangle ID
-        int triId = -1;
-
-        // Triangle vertices
-        Vec3d* triVerts[3] = { nullptr, nullptr, nullptr };
-        Vec3i triVertIds   = { -1, -1, -1 };
-
-        // Puncture barycentric coordinate on triangle
-        Vec3d triBaryPuncturePoint = { 0.0, 0.0, 0.0 };
-    };
-
-    Vec3d m_needleDirection = Vec3d::Zero();
-
-    // Flags for which entity is puncturing a triangle
-    std::vector<bool> m_isNeedlePunctured;
-    std::vector<bool> m_isThreadPunctured;
-
-    // Vector of needle-triangle constraints (one sided, force triangle to follow needle)
-    std::vector<std::shared_ptr<SurfaceInsertionConstraint>> pointTriangleConstraints;
-
-    // Vector of thread-triangle constraints (one sided, force thread to follow triangle)
-    std::vector<std::shared_ptr<PbdBaryPointToPointConstraint>> m_stitchConstraints;
-
-    // Center of puncture points for stitching constraint
-    Vec3d m_stitchCenter = Vec3d::Zero();
-
-    // Storage for penetration data for both the needle and the thread
-    std::vector<SuturePenetrationData> m_needlePData;
-    std::vector<SuturePenetrationData> m_threadPData;
-
-    // Bool to activate stitching constraint
-    bool m_stitch = false;
-
-    // Thread Data
-    std::shared_ptr<PbdObject> m_threadObj;
-    std::shared_ptr<LineMesh>  m_threadMesh;
-    std::shared_ptr<VecDataArray<double, 3>> m_threadVerticesPtr;
-
-    // PBD Tissue Mesh Data
-    std::shared_ptr<PbdObject>   m_pbdTissueObj;
-    std::shared_ptr<SurfaceMesh> m_surfMesh;
-    std::shared_ptr<VecDataArray<double, 3>> m_meshVerticesPtr;
-
-    // Fake velocity for stitch constraint
-    Vec3d m_fakeVelocity = Vec3d::Zero();
-
 public:
     NeedlePbdCH() = default;
     ~NeedlePbdCH() override = default;
@@ -123,9 +72,60 @@ public:
     ///
     /// \brief Add a vertex-triangle constraint
     ///
-    void addVTConstraint(
-        VertexMassPair ptA,
-        VertexMassPair ptB1, VertexMassPair ptB2, VertexMassPair ptB3,
-        double stiffnessA, double stiffnessB) override;
+    void V_T(const ColElemSide& sideA,
+             const ColElemSide& sideB) override;
+
+protected:
+    // Stores data for penetration points, both for the needle and the thread
+    struct SuturePenetrationData
+    {
+        // Triangle ID
+        int triId = -1;
+
+        // Triangle vertices
+        Vec3d* triVerts[3] = { nullptr, nullptr, nullptr };
+        Vec3i triVertIds   = { -1, -1, -1 };
+
+        // Puncture barycentric coordinate on triangle
+        Vec3d triBaryPuncturePoint = { 0.0, 0.0, 0.0 };
+    };
+
+    Vec3d m_needleDirection = Vec3d::Zero();
+
+    // Flags for which entity is puncturing a triangle
+    std::vector<bool> m_isNeedlePunctured;
+    std::vector<bool> m_isThreadPunctured;
+
+    // Vector of needle-triangle constraints (one sided, force triangle to follow needle)
+    std::vector<std::shared_ptr<SurfaceInsertionConstraint>> pointTriangleConstraints;
+
+    // Vector of thread-triangle constraints (one sided, force thread to follow triangle)
+    std::vector<std::shared_ptr<PbdBaryPointToPointConstraint>> m_stitchConstraints;
+
+    // All constraints
+    std::vector<PbdConstraint*> collisionConstraints;
+
+    // Center of puncture points for stitching constraint
+    Vec3d m_stitchCenter = Vec3d::Zero();
+
+    // Storage for penetration data for both the needle and the thread
+    std::vector<SuturePenetrationData> m_needlePData;
+    std::vector<SuturePenetrationData> m_threadPData;
+
+    // Bool to activate stitching constraint
+    bool m_stitch = false;
+
+    // Thread Data
+    std::shared_ptr<PbdObject> m_threadObj;
+    std::shared_ptr<LineMesh>  m_threadMesh;
+    std::shared_ptr<VecDataArray<double, 3>> m_threadVerticesPtr;
+
+    // PBD Tissue Mesh Data
+    std::shared_ptr<PbdObject>   m_pbdTissueObj;
+    std::shared_ptr<SurfaceMesh> m_tissueSurfMesh;
+    std::shared_ptr<VecDataArray<double, 3>> m_meshVerticesPtr;
+
+    // Fake velocity for stitch constraint
+    Vec3d m_fakeVelocity = Vec3d::Zero();
 };
 } // end iMSTK namespace

@@ -36,21 +36,26 @@ public:
     PbdDistanceConstraint() : PbdConstraint(2) { }
 
     ///
-    /// \brief Initializes the distance constraint
-    ///@{
+    /// \brief Initialize the constraint with resting length
+    /// as the length between the two points
+    ///
     void initConstraint(
         const Vec3d& p0, const Vec3d& p1,
-        const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
-        const double k = 1e5);
-    void initConstraint(const double restLength,
-                        const BodyVertexId& pIdx0, const BodyVertexId& pIdx1,
-                        const double k = 1e5);
-    ///@}
+        const PbdParticleId& pIdx0, const PbdParticleId& pIdx1,
+        const double k = 1e5)
+    {
+        initConstraint((p0 - p1).norm(), pIdx0, pIdx1, k);
+    }
 
-    bool computeValueAndGradient(
-        std::vector<PbdBody>& bodies,
-        double&               c,
-        std::vector<Vec3d>&   dcdx) const override;
+    ///
+    /// \brief Initialize the constraint with provided resting length
+    ///
+    void initConstraint(const double restLength,
+                        const PbdParticleId& pIdx0, const PbdParticleId& pIdx1,
+                        const double k = 1e5);
+
+    bool computeValueAndGradient(PbdState& bodies,
+                                 double& c, std::vector<Vec3d>& dcdx) const override;
 
 public:
     double m_restLength = 0.0; ///< Rest length between the nodes

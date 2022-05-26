@@ -124,6 +124,15 @@ public:
     }
 
     ///
+    /// \brief compute the barycentric weights of a given point in 3D space for a given the cell
+    ///
+    virtual Eigen::Vector<double, N> computeBarycentricWeights(const int    imstkNotUsed(cellId),
+                                                               const Vec3d& imstkNotUsed(pos)) const
+    {
+        return Eigen::Vector<double, N>::Zero();
+    }
+
+    ///
     /// \brief Returns true if the geometry is a mesh, else returns false
     ///
     bool isMesh() const override { return true; }

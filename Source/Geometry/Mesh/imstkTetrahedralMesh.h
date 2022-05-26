@@ -61,7 +61,7 @@ public:
     ///
     /// \brief compute the barycentric weights of a given point in 3D space for a given the tetrahedra
     ///
-    Vec4d computeBarycentricWeights(const size_t& tetId, const Vec3d& pos) const;
+    Vec4d computeBarycentricWeights(const int tetId, const Vec3d& pos) const override;
 
     ///
     /// \brief Compute the bounding box of a given tetrahedron

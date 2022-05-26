@@ -28,12 +28,11 @@
 #include "imstkTetraToLineMeshCD.h"
 #include "NeedleEmbeddedCH.h"
 #include "NeedlePbdCH.h"
-#include "NeedleRigidBodyCH.h"
 
 using namespace imstk;
 
 NeedleInteraction::NeedleInteraction(std::shared_ptr<PbdObject>    tissueObj,
-                                     std::shared_ptr<NeedleObject> needleObj) : PbdRigidObjectCollision(tissueObj, needleObj)
+                                     std::shared_ptr<NeedleObject> needleObj) : PbdObjectCollision(tissueObj, needleObj)
 {
     if (std::dynamic_pointer_cast<LineMesh>(needleObj->getCollidingGeometry()) == nullptr)
     {
@@ -43,24 +42,23 @@ NeedleInteraction::NeedleInteraction(std::shared_ptr<PbdObject>    tissueObj,
     {
         LOG(WARNING) << "NeedleInteraction only works with TetrahedralMesh physics geometry on pbd tissueObj";
     }
+    CHECK(tissueObj->getPbdModel() == needleObj->getPbdModel()) << "PbdObject's must share a model";
 
     // This handler consumes collision data to resolve the tool from the tissue
     // except when the needle is inserted
-    auto needleRbdCH = std::make_shared<NeedleRigidBodyCH>();
-    needleRbdCH->setInputRigidObjectA(needleObj);
-    needleRbdCH->setInputCollidingObjectB(tissueObj);
-    needleRbdCH->setInputCollisionData(getCollisionDetection()->getCollisionData());
-    needleRbdCH->setBaumgarteStabilization(0.001);
-    setCollisionHandlingB(needleRbdCH);
+    auto needlePbdCH1 = std::make_shared<NeedlePbdCH>();
+    needlePbdCH1->setInputObjectA(tissueObj);
+    needlePbdCH1->setInputObjectB(needleObj);
+    needlePbdCH1->setInputCollisionData(getCollisionDetection()->getCollisionData());
+    setCollisionHandlingB(needlePbdCH1);
 
     // This handler consumes the collision data to resolve the tissue from the tool
     // except when the needle is inserted
-    auto needlePbdCH = std::make_shared<NeedlePbdCH>();
-    needlePbdCH->setInputObjectA(tissueObj);
-    needlePbdCH->setInputObjectB(needleObj);
-    needlePbdCH->setInputCollisionData(getCollisionDetection()->getCollisionData());
-    //needlePbdCH->getCollisionSolver()->setCollisionIterations(1);
-    setCollisionHandlingA(needlePbdCH);
+    auto needlePbdCH2 = std::make_shared<NeedlePbdCH>();
+    needlePbdCH2->setInputObjectA(tissueObj);
+    needlePbdCH2->setInputObjectB(needleObj);
+    needlePbdCH2->setInputCollisionData(getCollisionDetection()->getCollisionData());
+    setCollisionHandlingA(needlePbdCH2);
 
     // Then add a separate scheme for when the needle is embedded
 
@@ -86,13 +84,10 @@ NeedleInteraction::NeedleInteraction(std::shared_ptr<PbdObject>    tissueObj,
 void
 NeedleInteraction::initGraphEdges(std::shared_ptr<TaskNode> source, std::shared_ptr<TaskNode> sink)
 {
-    PbdRigidObjectCollision::initGraphEdges(source, sink);
+    PbdObjectCollision::initGraphEdges(source, sink);
 
     auto                               pbdObj = std::dynamic_pointer_cast<PbdObject>(m_objA);
     std::shared_ptr<CollisionHandling> pbdCH  = m_colHandlingA;
-
-    auto                               rbdObj = std::dynamic_pointer_cast<RigidObject2>(m_objB);
-    std::shared_ptr<CollisionHandling> rbdCH  = m_colHandlingB;
 
     {
         // PBD CH -> EmbeddedCD -> EmbeddedCH -> Collision Solve
@@ -100,6 +95,5 @@ NeedleInteraction::initGraphEdges(std::shared_ptr<TaskNode> source, std::shared_
         m_taskGraph->addEdge(m_collisionHandleBNode, embeddingCDNode);
         m_taskGraph->addEdge(embeddingCDNode, embeddingCHNode);
         m_taskGraph->addEdge(embeddingCHNode, pbdObj->getPbdModel()->getCollisionSolveNode());
-        m_taskGraph->addEdge(embeddingCHNode, rbdObj->getRigidBodyModel2()->getSolveNode());
     }
 }

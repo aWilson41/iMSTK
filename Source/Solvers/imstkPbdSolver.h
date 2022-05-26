@@ -26,29 +26,7 @@
 
 namespace imstk
 {
-class PbdCollisionConstraint;
 class PbdConstraintContainer;
-
-///
-/// \struct CollisionConstraintData
-///
-/// \brief Stores positions and masses of two colliding objects
-///
-struct CollisionConstraintData
-{
-    CollisionConstraintData(std::shared_ptr<VecDataArray<double, 3>> posA,
-                            std::shared_ptr<DataArray<double>> invMassA,
-                            std::shared_ptr<VecDataArray<double, 3>> posB,
-                            std::shared_ptr<DataArray<double>> invMassB) :
-        m_posA(posA), m_invMassA(invMassA), m_posB(posB), m_invMassB(invMassB)
-    {
-    }
-
-    std::shared_ptr<VecDataArray<double, 3>> m_posA = nullptr;
-    std::shared_ptr<DataArray<double>> m_invMassA   = nullptr;
-    std::shared_ptr<VecDataArray<double, 3>> m_posB = nullptr;
-    std::shared_ptr<DataArray<double>> m_invMassB   = nullptr;
-};
 
 ///
 /// \class PbdSolver
@@ -75,9 +53,18 @@ public:
     void setConstraints(std::shared_ptr<PbdConstraintContainer> constraints) { this->m_constraints = constraints; }
 
     ///
+    /// \brief Add a constraint list to this solver to be solved, for quick addition/removal
+    /// particularly collision.
+    ///
+    void addConstraints(std::vector<PbdConstraint*>* constraints)
+    {
+        m_constraintLists->push_back(constraints);
+    }
+
+    ///
     /// \brief Sets the bodies to solve with
     ///
-    void setPbdBodies(std::vector<std::shared_ptr<PbdBody>> bodies) { this->m_bodies = bodies; }
+    void setPbdBodies(PbdState* state) { this->m_state = state; }
 
     ///
     /// \brief Set time step
@@ -99,58 +86,26 @@ public:
     ///
     void solve() override;
 
-private:
-    size_t m_iterations = 20;                                        ///< Number of NL Gauss-Seidel iterations for regular constraints
-    double m_dt;                                                     ///< time step
-
-    std::shared_ptr<PbdConstraintContainer> m_constraints = nullptr; ///< Vector of constraints
-
-    std::vector<std::shared_ptr<PbdBody>> m_bodies;
-    PbdConstraint::SolverType m_solverType = PbdConstraint::SolverType::xPBD;
-};
-
-///
-/// \class PbdCollisionSolver
-///
-/// \brief Position Based Dynamics collision solver
-/// This solver can sequentially solve constraints in a list
-///
-class PbdCollisionSolver : SolverBase
-{
-public:
-    PbdCollisionSolver();
-    ~PbdCollisionSolver() override = default;
-
-    ///
-    /// \brief Get/Set CollisionIterations
-    ///@{
-    size_t getCollisionIterations() const { return this->m_collisionIterations; }
-    void setCollisionIterations(const size_t iterations) { m_collisionIterations = iterations; }
-    ///@}
-
-    ///
-    /// \brief Add the global collision contraints to this solver
-    ///
-    void addCollisionConstraints(std::vector<PbdCollisionConstraint*>* constraints);
-
     ///
     /// \brief Get all the collision constraints, read only
     ///
-    const std::list<std::vector<PbdCollisionConstraint*>*>& getCollisionConstraints() const { return *m_collisionConstraints; }
+    const std::list<std::vector<PbdConstraint*>*>& getConstraintLists() const { return *m_constraintLists; }
 
     ///
     /// \brief Clear all collision constraints
     ///
-    void clearConstraints() { m_collisionConstraints->clear(); }
-
-    ///
-    /// \brief Solve the non linear system of equations G(x)=0 using Newton's method.
-    ///
-    void solve() override;
+    void clearConstraintLists() { m_constraintLists->clear(); }
 
 private:
-    size_t m_collisionIterations = 5;                                                                   ///< Number of NL Gauss-Seidel iterations for collision constraints
+    size_t m_iterations = 20;                                        ///< Number of NL Gauss-Seidel iterations for regular constraints
+    double m_dt = 0.0;                                               ///< time step
 
-    std::shared_ptr<std::list<std::vector<PbdCollisionConstraint*>*>> m_collisionConstraints = nullptr; ///< Collision contraints charged to this solver
+    std::shared_ptr<PbdConstraintContainer> m_constraints = nullptr; ///< Vector of constraints
+
+    ///< For quick addition
+    std::shared_ptr<std::list<std::vector<PbdConstraint*>*>> m_constraintLists = nullptr;
+
+    PbdState* m_state = nullptr;
+    PbdConstraint::SolverType m_solverType = PbdConstraint::SolverType::xPBD;
 };
 } // namespace imstk

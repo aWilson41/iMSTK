@@ -54,7 +54,7 @@ NeedleEmbeddedCH::handle(
     {
         // Get force along the needle axes
         const Vec3d  needleAxes = needleObj->getNeedleAxes();
-        const double fN = std::max(needleAxes.dot(needleObj->getRigidBody()->getForce()), 0.0);
+        const double fN = std::max(needleAxes.dot(needleObj->getPbdBody()->externalForce), 0.0);
 
         // If the normal force exceeds the threshold, mark needle as inserted
         if (fN > needleObj->getForceThreshold())
@@ -88,14 +88,8 @@ NeedleEmbeddedCH::handle(
 
     std::shared_ptr<VecDataArray<double, 3>> tissueVerticesPtr = tissueGeom->getVertexPositions();
     std::shared_ptr<VecDataArray<int, 4>>    tissueIndicesPtr  = tissueGeom->getIndices();
-
-    auto tissueVelocitiesPtr = std::dynamic_pointer_cast<VecDataArray<double, 3>>(tissueGeom->getVertexAttribute("Velocities"));
-    auto tissueInvMassesPtr  = std::dynamic_pointer_cast<DataArray<double>>(tissueGeom->getVertexAttribute("InvMass"));
-
-    VecDataArray<double, 3>&    tissueVertices   = *tissueVerticesPtr;
-    const VecDataArray<int, 4>& tissueIndices    = *tissueIndicesPtr;
-    VecDataArray<double, 3>&    tissueVelocities = *tissueVelocitiesPtr;
-    const DataArray<double>&    tissueInvMasses  = *tissueInvMassesPtr;
+    VecDataArray<double, 3>&                 tissueVertices    = *tissueVerticesPtr;
+    const VecDataArray<int, 4>&              tissueIndices     = *tissueIndicesPtr;
 
     std::shared_ptr<VecDataArray<double, 3>> needleVerticesPtr = needleGeom->getVertexPositions();
     std::shared_ptr<VecDataArray<int, 2>>    needleIndicesPtr  = needleGeom->getIndices();
@@ -106,29 +100,31 @@ NeedleEmbeddedCH::handle(
     // in m_faceConstraints so we can find the set that are no longer present
     std::unordered_set<std::shared_ptr<EmbeddingConstraint>> m_constraintEnabled;
 
+    const int bodyId = tissueObj->getPbdBody()->bodyHandle;
+
     // Constrain the triangle to the intersection point
     // If constraint for triangle already exists, update existing intersection point
-    m_debugEmbeddingPoints.clear();
-    m_debugEmbeddedTriangles.clear();
+    /* m_debugEmbeddingPoints.clear();
+     m_debugEmbeddedTriangles.clear();*/
     auto addConstraint =
         [&](int v1, int v2, int v3, const Vec3d& iPt)
         {
             // Hashable triangle (to resolve shared triangles, any order of v1,v2,v3 maps to same constraint)
             TriCell triCell(v1, v2, v3);
 
-            m_debugEmbeddingPoints.push_back(iPt);
-            m_debugEmbeddedTriangles.push_back(Vec3i(v1, v2, v3));
+            /* m_debugEmbeddingPoints.push_back(iPt);
+             m_debugEmbeddedTriangles.push_back(Vec3i(v1, v2, v3));*/
 
             // If constraint doesn't already exist for this triangle
             if (m_faceConstraints.count(triCell) == 0)
             {
-                auto constraint = std::make_shared<EmbeddingConstraint>(needleObj->getRigidBody());
+                auto constraint = std::make_shared<EmbeddingConstraint>();
 
                 constraint->initConstraint(
-                    { &tissueVertices[v1], tissueInvMasses[v1], &tissueVelocities[v1] },
-                    { &tissueVertices[v2], tissueInvMasses[v2], &tissueVelocities[v2] },
-                    { &tissueVertices[v3], tissueInvMasses[v3], &tissueVelocities[v3] },
-                &needleVertices[0], &needleVertices[1]);
+                    tissueObj->getPbdModel()->getBodies(),
+                    { bodyId, v1 }, { bodyId, v2 }, { bodyId, v3 },
+                    { needleObj->getPbdBody()->bodyHandle, 0 },
+                    &needleVertices[0], &needleVertices[1]);
                 constraint->setFriction(m_friction);
                 constraint->setRestitution(1.0);
 
@@ -219,15 +215,13 @@ NeedleEmbeddedCH::handle(
     {
         if (m_constraintEnabled.count(i->second) != 0)
         {
-            // Add pbd and rbd constraint
+            // Add pbd constraint
             m_solverConstraints.push_back(i->second.get());
-            i->second->compute(needleObj->getRigidBodyModel2()->getTimeStep());
-            needleObj->getRigidBodyModel2()->addConstraint(i->second);
         }
         else
         {
             i = m_faceConstraints.erase(i);
         }
     }
-    tissueObj->getPbdModel()->getCollisionSolver()->addCollisionConstraints(&m_solverConstraints);
+    tissueObj->getPbdModel()->getCollisionSolver()->addConstraints(&m_solverConstraints);
 }

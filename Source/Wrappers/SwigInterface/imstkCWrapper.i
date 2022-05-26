@@ -202,6 +202,7 @@
  */
 #include "imstkDeviceClient.h"
 #include "imstkKeyboardDeviceClient.h"
+#include "imstkMouseDeviceClient.h"
 
 #ifdef iMSTK_USE_OpenHaptics
 #include "imstkHapticDeviceManager.h"
@@ -335,7 +336,7 @@ namespace std
 %include "../../DynamicalModels/ObjectModels/imstkAbstractDynamicalModel.h"
 %include "../../DynamicalModels/ObjectModels/imstkDynamicalModel.h"
 /* Instantiation of base class should be put before the derived class */
-%template(DynamicalModelPbdState) imstk::DynamicalModel<imstk::PbdState>;
+%template(DynamicalModelPbdStateDummy) imstk::DynamicalModel<imstk::PbdStateDummy>;
 %include "../../DynamicalModels/ObjectModels/imstkPbdModel.h"
 %template(DynamicalModelFeDeformBodyState) imstk::DynamicalModel<imstk::FeDeformBodyState>;
 %include "../../DynamicalModels/InternalForceModel/imstkInternalForceModelTypes.h"
@@ -452,6 +453,7 @@ namespace std
  */
 %include "../../Devices/imstkDeviceClient.h"
 %include "../../Devices/imstkKeyboardDeviceClient.h"
+%include "../../Devices/imstkMouseDeviceClient.h"
 
 #ifdef iMSTK_USE_OpenHaptics
 	#define HDCALLBACK

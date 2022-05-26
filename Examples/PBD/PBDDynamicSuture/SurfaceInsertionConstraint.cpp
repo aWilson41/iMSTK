@@ -27,30 +27,31 @@ using namespace imstk;
 
 void
 SurfaceInsertionConstraint::initConstraint(
-    Vec3d          insertionPoint,
-    VertexMassPair ptB1,
-    VertexMassPair ptB2,
-    VertexMassPair ptB3,
-    Vec3d          contactPt,
-    Vec3d          barycentricPt,
-    double         stiffnessA,
-    double         stiffnessB)
+    const Vec3d&         insertionPoint,
+    const PbdParticleId& ptB1,
+    const PbdParticleId& ptB2,
+    const PbdParticleId& ptB3,
+    const Vec3d&         contactPt,
+    const Vec3d&         barycentricPt,
+    double               stiffnessA,
+    double               stiffnessB)
 {
-    m_insertionPoint  = insertionPoint;
-    m_contactPt       = contactPt;
-    m_barycentricPt   = barycentricPt;
-    m_bodiesSecond[0] = ptB1;
-    m_bodiesSecond[1] = ptB2;
-    m_bodiesSecond[2] = ptB3;
-    m_stiffnessA      = stiffnessA;
-    m_stiffnessB      = stiffnessB;
+    m_insertionPoint = insertionPoint;
+    m_contactPt      = contactPt;
+    m_barycentricPt  = barycentricPt;
+
+    m_particles[0] = { -1, 0 }; // Doesn't matter
+    m_particles[1] = ptB1;
+    m_particles[2] = ptB2;
+    m_particles[3] = ptB3;
+
+    m_stiffness[0] = stiffnessA;
+    m_stiffness[1] = stiffnessB;
 }
 
 bool
-SurfaceInsertionConstraint::computeValueAndGradient(
-    double&             c,
-    std::vector<Vec3d>& dcdxA,
-    std::vector<Vec3d>& dcdxB) const
+SurfaceInsertionConstraint::computeValueAndGradient(PbdState& bodies,
+                                                    double& c, std::vector<Vec3d>& dcdx) const
 {
     // Get current position of puncture point
     // Move triangle to match motion of needle
@@ -67,13 +68,13 @@ SurfaceInsertionConstraint::computeValueAndGradient(
 
     diff.normalize();// gradient dcdx
 
-    // Weight by berycentric coordinates
-    dcdxB[0] = diff * m_barycentricPt[0];
-    dcdxB[1] = diff * m_barycentricPt[1];
-    dcdxB[2] = diff * m_barycentricPt[2];
-
     // Dont adjust position of needle, force mesh to follow needle
-    dcdxA[0] = Vec3d::Zero();
+    dcdx[0] = Vec3d::Zero();
+
+    // Weight by berycentric coordinates
+    dcdx[1] = diff * m_barycentricPt[0];
+    dcdx[2] = diff * m_barycentricPt[1];
+    dcdx[3] = diff * m_barycentricPt[2];
 
     return true;
 }

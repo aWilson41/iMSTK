@@ -44,8 +44,14 @@
 #include "imstkSurfaceMesh.h"
 #include "imstkVisualModel.h"
 #include "imstkVTKViewer.h"
+#include "imstkSphere.h"
+#include "imstkVertexLabelVisualModel.h"
+
+#include "imstkPbdObjectConstraintController.h"
 
 using namespace imstk;
+
+std::shared_ptr<PbdModel> pbdModel = nullptr;
 
 ///
 /// \brief Creates tissue object
@@ -62,21 +68,6 @@ makeTissueObj(const std::string& name,
         GeometryUtils::toTriangleGrid(Vec3d::Zero(),
             Vec2d(width, height), Vec2i(rowCount, colCount),
             Quatd::Identity(), 2.0);
-
-    // Setup the Parameters
-    imstkNew<PbdModelConfig> pbdParams;
-    pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 10000.0);
-    pbdParams->enableConstraint(PbdModelConfig::ConstraintGenType::Dihedral, 0.1);
-    pbdParams->m_gravity    = Vec3d(0.0, -0.01, 0.0);
-    pbdParams->m_dt         = 0.005;
-    pbdParams->m_iterations = 4;
-    pbdParams->m_viscousDampingCoeff = 0.01;
-    pbdParams->m_contactStiffness    = 0.2;
-
-    // Setup the Model
-    imstkNew<PbdModel> pbdModel;
-    pbdModel->setModelGeometry(mesh);
-    pbdModel->configure(pbdParams);
 
     // Setup the VisualModel
     imstkNew<RenderMaterial> material;
@@ -107,9 +98,58 @@ makeTissueObj(const std::string& name,
             }
         }
     }
-    tissueObj->getPbdBody()->uniformMassValue = 1.0;
+    tissueObj->getPbdBody()->uniformMassValue = 0.1;
+
+    pbdModel->getConfig()->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 1000.0,
+        tissueObj->getPbdBody()->bodyHandle);
+    pbdModel->getConfig()->enableConstraint(PbdModelConfig::ConstraintGenType::Dihedral, 1.0,
+        tissueObj->getPbdBody()->bodyHandle);
+
+    /*imstkNew<VertexLabelVisualModel> model;
+    model->setGeometry(mesh);
+    tissueObj->addVisualModel(model);*/
 
     return tissueObj;
+}
+
+static std::shared_ptr<PbdObject>
+makeRbdObj(std::string name, Vec3d pos)
+{
+    // Setup the tool to press the tissue
+    /* auto toolGeom = std::make_shared<LineMesh>();
+     VecDataArray<double, 3> vertices(2);
+     vertices[0] = Vec3d(0.0, 0.0, 0.0);
+     vertices[1] = Vec3d(0.0, 2.0, 0.0);
+     VecDataArray<int, 2> indices(1);
+     indices[0] = Vec2i(0, 1);
+     toolGeom->initialize(
+         std::make_shared<VecDataArray<double, 3>>(vertices),
+         std::make_shared<VecDataArray<int, 2>>(indices));
+ #ifndef iMSTK_USE_OPENHAPTICS
+     toolGeometry->translate(Vec3d(0.5, 2.0, 0.5));
+ #endif*/
+    auto toolGeom = std::make_shared<Sphere>(Vec3d(0.0, 0.0, 0.0), 0.02);
+    //auto toolGeom = std::make_shared<Capsule>(Vec3d(0.0, 0.0, 0.0), 1.0, 2.0);
+
+    auto toolObj = std::make_shared<PbdObject>(name);
+    toolObj->setDynamicalModel(pbdModel);
+    toolObj->setVisualGeometry(toolGeom);
+    toolObj->setPhysicsGeometry(toolGeom);
+    toolObj->setCollidingGeometry(toolGeom);
+    toolObj->getVisualModel(0)->getRenderMaterial()->setIsDynamicMesh(false);
+    toolObj->getVisualModel(0)->getRenderMaterial()->setRecomputeVertexNormals(false);
+    toolObj->getVisualModel(0)->getRenderMaterial()->setBackFaceCulling(false);
+
+    toolObj->getPbdBody()->uniformMassValue = 0.05;
+    toolObj->getPbdBody()->bodyType    = PbdBody::Type::RIGID;
+    toolObj->getPbdBody()->initPosTest = pos;
+
+    /*auto labelModel = std::make_shared<VertexLabelVisualModel>();
+    labelModel->setGeometry(toolGeom);
+    labelModel->setRenderMaterial(toolObj->getVisualModel(0)->getRenderMaterial());
+    toolObj->addVisualModel(labelModel);*/
+
+    return toolObj;
 }
 
 ///
@@ -124,11 +164,30 @@ main()
 
     // Scene
     imstkNew<Scene> scene("PbdThinTissueGraspingExample");
-    scene->getActiveCamera()->setPosition(0.001, 0.05, 0.15);
+    scene->getActiveCamera()->setPosition(0.001, 0.07, 0.25);
     scene->getActiveCamera()->setFocalPoint(0.0, 0.0, 0.0);
     scene->getActiveCamera()->setViewUp(0.0, 0.96, -0.28);
 
-    imstkNew<Capsule> geomShaft;
+    // Setup the Parameters
+    imstkNew<PbdModelConfig> pbdParams;
+    //pbdParams->m_gravity = Vec3d(0.0, -8.0, 0.0);
+    pbdParams->m_gravity    = Vec3d(0.0, 0.0, 0.0);
+    pbdParams->m_dt         = 0.005;
+    pbdParams->m_iterations = 8;
+    pbdParams->m_collisionIterations = 10;
+    pbdParams->m_angularDampingCoeff = 0.1;
+    pbdParams->m_linearDampingCoeff  = 0.1;
+    pbdParams->m_contactStiffness    = 0.1;
+
+    // Setup the Model
+    pbdModel = std::make_shared<PbdModel>();
+    //pbdModel->setModelGeometry(mesh);
+    pbdModel->configure(pbdParams);
+
+    std::shared_ptr<PbdObject> rbdObj = makeRbdObj("whateve", Vec3d(0.0, 0.1, 0.0));
+    scene->addSceneObject(rbdObj);
+
+    /*imstkNew<Capsule> geomShaft;
     geomShaft->setLength(1.0);
     geomShaft->setRadius(0.005);
     geomShaft->setOrientation(Quatd(Rotd(PI_2, Vec3d(1.0, 0.0, 0.0))));
@@ -162,7 +221,7 @@ main()
     pickGeom->setLength(0.05);
     pickGeom->setTranslation(Vec3d(0.0, 0.0, -0.016));
     pickGeom->setRadius(0.006);
-    pickGeom->setOrientation(Quatd(Rotd(PI_2, Vec3d(1.0, 0.0, 0.0))));
+    pickGeom->setOrientation(Quatd(Rotd(PI_2, Vec3d(1.0, 0.0, 0.0))));*/
 
     // 300mm x 300mm patch of tissue
     std::shared_ptr<PbdObject> tissueObj = makeTissueObj("Tissue", 0.1, 0.1, 16, 16);
@@ -173,22 +232,38 @@ main()
     std::shared_ptr<HapticDeviceClient> client = deviceManager->makeDeviceClient();
 
     // Create and add virtual coupling object controller in the scene
-    imstkNew<LaparoscopicToolController> controller;
+    /*imstkNew<LaparoscopicToolController> controller;
     controller->setParts(objShaft, objUpperJaw, objLowerJaw, pickGeom);
     controller->setDevice(client);
     controller->setJawAngleChange(1.0);
     controller->setTranslationScaling(0.001);
-    scene->addController(controller);
+    scene->addController(controller);*/
+
+    auto rbdGhost    = std::make_shared<SceneObject>("ghost");
+    auto ghostSphere = std::make_shared<Sphere>(Vec3d(0.0, 0.0, 0.0), 0.02);
+    rbdGhost->setVisualGeometry(ghostSphere);
+    rbdGhost->getVisualModel(0)->getRenderMaterial()->setColor(Color::Red);
+    rbdGhost->getVisualModel(0)->getRenderMaterial()->setOpacity(0.5);
+    scene->addSceneObject(rbdGhost);
+
+    // Create and add virtual coupling object controller in the scene
+    /*imstkNew<LaparoscopicToolController> controller(objShaft, objUpperJaw, objLowerJaw, pickGeom, client);
+    controller->setJawAngleChange(1.0);
+    controller->setTranslationScaling(0.001);
+    scene->addController(controller);*/
 
     // Add collision for both jaws of the tool
-    auto upperJawCollision = std::make_shared<PbdObjectCollision>(tissueObj, objUpperJaw, "SurfaceMeshToCapsuleCD");
+    /*auto upperJawCollision = std::make_shared<PbdObjectCollision>(tissueObj, objUpperJaw, "SurfaceMeshToCapsuleCD");
     auto lowerJawCollision = std::make_shared<PbdObjectCollision>(tissueObj, objLowerJaw, "SurfaceMeshToCapsuleCD");
     scene->addInteraction(upperJawCollision);
-    scene->addInteraction(lowerJawCollision);
+    scene->addInteraction(lowerJawCollision);*/
 
     // Add picking interaction for both jaws of the tool
     auto jawPicking = std::make_shared<PbdObjectGrasping>(tissueObj);
     scene->addInteraction(jawPicking);
+
+    // Add a collision interaction between the tools
+    //scene->addInteraction(std::make_shared<PbdObjectCollision>(rbdObj, tissueObj, "SurfaceMeshToSphereCD"));
 
     // Light
     imstkNew<DirectionalLight> light;
@@ -234,25 +309,36 @@ main()
                 // Simulate the cloth in real time
                 tissueObj->getPbdModel()->getConfig()->m_dt = sceneManager->getDt();
             });
+        //connect<Event>(sceneManager, &SceneManager::postUpdate,
+        //    [&](Event*)
+        //    {
+        //        //ghostMat->setOpacity(std::min(1.0, controller->getDeviceForce().norm() / 15.0));
 
-        connect<Event>(controller, &LaparoscopicToolController::JawClosed,
-            [&](Event*)
-            {
-                LOG(INFO) << "Jaw Closed!";
+        //        // Also apply controller transform to ghost geometry
+        //        ghostSphere->setTranslation(controller->getPosition());
+        //        ghostSphere->setRotation(controller->getOrientation());
+        //        ghostSphere->updatePostTransformData();
+        //        ghostSphere->postModified();
+        //    });
 
-                upperJawCollision->setEnabled(false);
-                lowerJawCollision->setEnabled(false);
-                jawPicking->beginCellGrasp(pickGeom, "SurfaceMeshToCapsuleCD");
-            });
-        connect<Event>(controller, &LaparoscopicToolController::JawOpened,
-            [&](Event*)
-            {
-                LOG(INFO) << "Jaw Opened!";
+        //connect<Event>(controller, &LaparoscopicToolController::JawClosed,
+        //    [&](Event*)
+        //    {
+        //        LOG(INFO) << "Jaw Closed!";
 
-                upperJawCollision->setEnabled(true);
-                lowerJawCollision->setEnabled(true);
-                jawPicking->endGrasp();
-            });
+        //       /* upperJawCollision->setEnabled(false);
+        //        lowerJawCollision->setEnabled(false);*/
+        //        jawPicking->beginCellGrasp(pickGeom, "SurfaceMeshToCapsuleCD");
+        //    });
+        //connect<Event>(controller, &LaparoscopicToolController::JawOpened,
+        //    [&](Event*)
+        //    {
+        //        LOG(INFO) << "Jaw Opened!";
+
+        //        /*upperJawCollision->setEnabled(true);
+        //        lowerJawCollision->setEnabled(true);*/
+        //        jawPicking->endGrasp();
+        //    });
 
         driver->start();
     }

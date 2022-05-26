@@ -31,7 +31,14 @@ class SurfaceMesh;
 ///
 /// \class SurfaceMeshToSurfaceMeshCD
 ///
-/// \brief Collision detection for surface meshes
+/// \brief Collision detection for surface meshes.
+/// Unlike ClosedSurfaceMeshToMeshCD, this only produces contact data for
+/// intersecting elements. Meaning if a triangle is deep inside a mesh, no
+/// contacts are produced. Through contact resolution you should be able
+/// to iteratively resolve over multiple iterations.
+///
+/// This uses a brute force intersection method and then computes the manifold
+/// through the clipping method. \todo ref
 ///
 class SurfaceMeshToSurfaceMeshCD : public CollisionDetectionAlgorithm
 {

@@ -320,7 +320,7 @@ main()
                         // Find and remove the associated constraints
                         for (auto j = constraints.begin(); j != constraints.end(); j++)
                         {
-                            const std::vector<PbdConstraint::BodyVertexId>& vertexIds = (*j)->getIds();
+                            const std::vector<PbdParticleId>& vertexIds = (*j)->getParticles();
                             bool isSameTet = true;
                             for (int k = 0; k < 4; k++)
                             {

@@ -26,7 +26,7 @@ namespace imstk
 void
 PbdBendConstraint::initConstraint(
     const Vec3d& p0, const Vec3d& p1, const Vec3d& p2,
-    const BodyVertexId& pIdx0, const BodyVertexId& pIdx1, const BodyVertexId& pIdx2,
+    const PbdParticleId& pIdx0, const PbdParticleId& pIdx1, const PbdParticleId& pIdx2,
     const double k)
 {
     // Instead of using the angle between the segments we can use the distance
@@ -38,13 +38,13 @@ PbdBendConstraint::initConstraint(
 
 void
 PbdBendConstraint::initConstraint(
-    const BodyVertexId& pIdx0, const BodyVertexId& pIdx1, const BodyVertexId& pIdx2,
+    const PbdParticleId& pIdx0, const PbdParticleId& pIdx1, const PbdParticleId& pIdx2,
     const double restLength,
     const double k)
 {
-    m_bodyVertexIds[0] = pIdx0;
-    m_bodyVertexIds[1] = pIdx1;
-    m_bodyVertexIds[2] = pIdx2;
+    m_particles[0] = pIdx0;
+    m_particles[1] = pIdx1;
+    m_particles[2] = pIdx2;
 
     setStiffness(k);
 
@@ -52,18 +52,12 @@ PbdBendConstraint::initConstraint(
 }
 
 bool
-PbdBendConstraint::computeValueAndGradient(
-    std::vector<PbdBody>& bodies,
-    double&               c,
-    std::vector<Vec3d>&   dcdx) const
+PbdBendConstraint::computeValueAndGradient(PbdState& bodies,
+                                           double& c, std::vector<Vec3d>& dcdx) const
 {
-    const BodyVertexId& i0 = m_bodyVertexIds[0];
-    const BodyVertexId& i1 = m_bodyVertexIds[1];
-    const BodyVertexId& i2 = m_bodyVertexIds[2];
-
-    const Vec3d& p0 = (*bodies[i0.first].vertices)[i0.second];
-    const Vec3d& p1 = (*bodies[i1.first].vertices)[i1.second];
-    const Vec3d& p2 = (*bodies[i2.first].vertices)[i2.second];
+    const Vec3d& p0 = bodies.getPosition(m_particles[0]);
+    const Vec3d& p1 = bodies.getPosition(m_particles[1]);
+    const Vec3d& p2 = bodies.getPosition(m_particles[2]);
 
     // Move towards triangle center
     const Vec3d& center = (p0 + p1 + p2) / 3.0;

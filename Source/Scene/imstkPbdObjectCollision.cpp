@@ -50,6 +50,17 @@ PbdObjectCollision::PbdObjectCollision(std::shared_ptr<PbdObject> obj1, std::sha
     ch->setInputObjectB(obj2);
     ch->setInputCollisionData(cd->getCollisionData());
 
+    m_updatePrevGeometryCCDNode = std::make_shared<TaskNode>([&]()
+        {
+            // Confirm if the collision detection algorithm is a CCD algorithm,
+            // and update the cached geometry accordingly.
+            if (auto pbdCCD = std::dynamic_pointer_cast<CCDAlgorithm>(getCollisionDetection()))
+            {
+                pbdCCD->updatePreviousTimestepGeometry(pbdCCD->getInput(0), pbdCCD->getInput(1));
+            }
+        });
+    m_taskGraph->addNode(m_updatePrevGeometryCCDNode);
+
     setCollisionHandlingAB(ch);
 
     m_taskGraph->addNode(obj1->getTaskGraph()->getSource());
@@ -59,6 +70,7 @@ PbdObjectCollision::PbdObjectCollision(std::shared_ptr<PbdObject> obj1, std::sha
 
     m_taskGraph->addNode(pbdModel1->getSolveNode());
     m_taskGraph->addNode(pbdModel1->getCollisionSolveNode());
+    m_taskGraph->addNode(pbdModel1->getUpdateVelocityNode());
 
     if (auto pbdObj2 = std::dynamic_pointer_cast<PbdObject>(obj2))
     {
@@ -112,13 +124,16 @@ PbdObjectCollision::initGraphEdges(std::shared_ptr<TaskNode> source, std::shared
 
     // -------------------------------------------------------------------------
     // Internal Constraint Solve -> Collision Geometry Update -> Collision Detection ->
-    // PbdHandlerAB -> Collision Constraint Solve -> Update Pbd Velocity -> Correct
-    // Velocities for Collision (restitution+friction) -> Pbd Sink
+    // PbdHandlerAB -> Collision Constraint Solve -> CCD Update Prev Geometry ->
+    // Update Pbd Velocity -> Correct Velocities for Collision (restitution+friction)
     // -------------------------------------------------------------------------
     m_taskGraph->addEdge(pbdObj1->getPbdModel()->getSolveNode(), m_collisionGeometryUpdateNode);
     m_taskGraph->addEdge(m_collisionGeometryUpdateNode, m_collisionDetectionNode);
     m_taskGraph->addEdge(m_collisionDetectionNode, chNodeAB); // A=AB=B
     m_taskGraph->addEdge(chNodeAB, pbdObj1->getPbdModel()->getCollisionSolveNode());
+
+    m_taskGraph->addEdge(pbdObj1->getPbdModel()->getCollisionSolveNode(), m_updatePrevGeometryCCDNode);
+    m_taskGraph->addEdge(m_updatePrevGeometryCCDNode, pbdObj1->getPbdModel()->getUpdateVelocityNode());
 
     if (std::dynamic_pointer_cast<PbdObject>(obj2) == nullptr)
     {

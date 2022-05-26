@@ -260,12 +260,12 @@ VTKMeshIO::readVtkGenericFormatData(const std::string& filePath)
     {
         // Try to convert to surface mesh, if no elements exist try reading as a line mesh
         std::shared_ptr<SurfaceMesh> surfMesh = GeometryUtils::copyToSurfaceMesh(vtkMesh);
-        if (surfMesh->getNumTriangles() > 0)
+        if (surfMesh->getNumCells() > 0)
         {
             return surfMesh;
         }
         std::shared_ptr<LineMesh> lineMesh = GeometryUtils::copyToLineMesh(vtkMesh);
-        if (lineMesh->getNumLines() > 0)
+        if (lineMesh->getNumCells() > 0)
         {
             return lineMesh;
         }
