@@ -184,6 +184,16 @@ if (NOT ${PROJECT_NAME}_USE_RENDERING_VTK AND ${PROJECT_NAME}_BUILD_VISUAL_TESTI
   message(FATAL_ERROR "Setting ${PROJECT_NAME}_BUILD_VISUAL_TESTING ON is only supported when ${PROJECT_NAME}_USE_RENDERING_VTK is ON")
 endif()
 
+option(${PROJECT_NAME}_USE_RENDERING_VR "Build with/out VR support" ON)
+mark_as_superbuild(${PROJECT_NAME}_USE_RENDERING_VR:BOOL)
+# If we request to not have rendering, also turn off VR
+if(NOT ${PROJECT_NAME}_USE_RENDERING_VTK)
+  if (${PROJECT_NAME}_USE_RENDERING_VR)
+    message(WARNING "${PROJECT_NAME}_USE_RENDERING_VR set to ON but turned off because ${PROJECT_NAME}_USE_RENDERING_VTK is OFF")
+  endif()
+  set(${PROJECT_NAME}_USE_RENDERING_VR OFF CACHE BOOL "Build with/out VR support" FORCE)
+endif()
+
 option(${PROJECT_NAME}_USE_OpenHaptics "Use OpenHaptic Support." OFF)
 mark_as_superbuild(${PROJECT_NAME}_USE_OpenHaptics:BOOL)
 if(NOT WIN32 AND ${PROJECT_NAME}_USE_OpenHaptics)
@@ -227,7 +237,7 @@ if(${PROJECT_NAME}_SUPERBUILD)
   imstk_define_dependency(Assimp)
   imstk_define_dependency(Eigen3)
   imstk_define_dependency(g3log)
-  if (${PROJECT_NAME}_USE_RENDERING_VTK)
+  if (${PROJECT_NAME}_USE_RENDERING_VR)
     imstk_define_dependency(OpenVR)
   endif()
   imstk_define_dependency(TBB)
@@ -313,7 +323,7 @@ if (${PROJECT_NAME}_USE_VRPN)
   find_package( Libusb REQUIRED)
 endif()
 
-if (${PROJECT_NAME}_USE_RENDERING_VTK)
+if (${PROJECT_NAME}_USE_RENDERING_VR)
   # OpenVR
   find_package( OpenVR REQUIRED )
 endif()
@@ -353,8 +363,10 @@ find_package(VTK REQUIRED CONFIG)
 # modules are linked via `VTK::CommonCore`
 # vtk_module_autoinit is needed
 
-if (${PROJECT_NAME}_USE_RENDERING_VTK)
+if (${PROJECT_NAME}_USE_RENDERING_VR)
   find_package(vtkRenderingOpenVR QUIET)
+endif()
+if (${PROJECT_NAME}_USE_RENDERING_VTK)
   find_package(vtkRenderingExternal QUIET)
 endif()
 
@@ -384,10 +396,15 @@ if (${PROJECT_NAME}_USE_RENDERING_VTK)
     RenderingCore
     RenderingExternal
     RenderingOpenGL2
-    RenderingOpenVR
     RenderingVolume
     RenderingVolumeOpenGL2
-    ViewsContext2D)
+    ViewsContext2D
+    )
+endif()
+if (${PROJECT_NAME}_USE_RENDERING_VR)
+list(APPEND iMSTK_VTK_DEPENDENCIES
+    RenderingOpenVR
+    )
 endif()
 find_package(VTK COMPONENTS ${iMSTK_VTK_DEPENDENCIES} REQUIRED)
 if(${PROJECT_NAME}_USE_VTK_OSMESA)
@@ -490,6 +507,9 @@ add_subdirectory(Source/SimulationManager)
 add_subdirectory(Source/ViewerCore)
 if (${PROJECT_NAME}_USE_RENDERING_VTK)
   add_subdirectory(Source/ViewerVTK)
+  if (${PROJECT_NAME}_USE_RENDERING_VR)
+    add_subdirectory(Source/ViewerVTKVR)
+  endif()
 endif()
 if( ${PROJECT_NAME}_BUILD_TESTING )
   add_subdirectory(Source/Testing)
@@ -599,7 +619,7 @@ if(WIN32 AND ${PROJECT_NAME}_USE_VRPN)
   set(CONFIG_CODE "${CONFIG_CODE}set(Libusb_LIB_DIR \"${Libusb_LIB_DIR}\")\n")
 endif()
 
-if (${PROJECT_NAME}_USE_RENDERING_VTK)
+if (${PROJECT_NAME}_USE_RENDERING_VR)
   set(CONFIG_CODE "${CONFIG_CODE}# Add variables to CACHE to workaround issue related to use of\n")
   set(CONFIG_CODE "${CONFIG_CODE}# mark_as_advanced command in FindOpenVR and described in CMP0102\n")
   set(CONFIG_CODE "${CONFIG_CODE}# See https://cmake.org/cmake/help/latest/policy/CMP0102.html\n")
@@ -613,8 +633,10 @@ set(CONFIG_CODE "${CONFIG_CODE}set(TBB_DIR \"${TBB_DIR}\")\n")
 
 set(CONFIG_CODE "${CONFIG_CODE}set(VegaFEM_DIR \"${VegaFEM_DIR}\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(VTK_DIR \"${VTK_DIR}\")\n")
-if (${PROJECT_NAME}_USE_RENDERING_VTK)
+if (${PROJECT_NAME}_USE_RENDERING_VR)
   set(CONFIG_CODE "${CONFIG_CODE}set(vtkRenderingOpenVR_DIR \"${vtkRenderingOpenVR_DIR}\")\n")
+endif()
+if (${PROJECT_NAME}_USE_RENDERING_VTK)
   set(CONFIG_CODE "${CONFIG_CODE}set(vtkRenderingExternal_DIR \"${vtkRenderingExternal_DIR}\")\n")
 endif()
 
@@ -645,7 +667,7 @@ set(CONFIG_CODE "${CONFIG_CODE}set(TBB_DIR \"${TBB_DIR}\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(VegaFEM_DIR \"${VegaFEM_DIR}\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(VTK_DIR \"${VTK_DIR}\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(benchmark_DIR \"${benchmark_DIR}\")\n")
-if (${PROJECT_NAME}_USE_RENDERING_VTK)
+if (${PROJECT_NAME}_USE_RENDERING_VR)
   set(CONFIG_CODE "${CONFIG_CODE}# Add variables to CACHE to workaround issue related to use of\n")
   set(CONFIG_CODE "${CONFIG_CODE}# mark_as_advanced command in FindOpenVR and described in CMP0102\n")
   set(CONFIG_CODE "${CONFIG_CODE}# See https://cmake.org/cmake/help/latest/policy/CMP0102.html\n")

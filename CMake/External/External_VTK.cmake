@@ -2,7 +2,7 @@
 # Dependencies
 #-----------------------------------------------------------------------------
 
-if (${PROJECT_NAME}_USE_RENDERING_VTK)
+if (${PROJECT_NAME}_USE_RENDERING_VR)
   set(VTK_DEPENDENCIES "OpenVR")
 endif()
 
@@ -43,9 +43,13 @@ if (${PROJECT_NAME}_USE_RENDERING_VTK)
     -DVTK_MODULE_ENABLE_VTK_RenderingContextOpenGL2:STRING=YES
     -DVTK_MODULE_ENABLE_VTK_RenderingExternal:STRING=YES
     -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2:STRING=YES
-    -DVTK_MODULE_ENABLE_VTK_RenderingOpenVR:STRING=YES
     -DVTK_MODULE_ENABLE_VTK_RenderingVolumeOpenGL2:STRING=YES
     -DVTK_MODULE_ENABLE_VTK_ViewsContext2D:STRING=YES
+    )
+endif()
+if (${PROJECT_NAME}_USE_RENDERING_VR)
+  list(APPEND VTK_MODULE_SETTINGS
+    -DVTK_MODULE_ENABLE_VTK_RenderingOpenVR:STRING=YES
     )
 endif()
 if (${PROJECT_NAME}_USE_VTK_OSMESA)

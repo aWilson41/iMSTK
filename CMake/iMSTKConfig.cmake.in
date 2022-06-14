@@ -58,7 +58,6 @@ endif()
 
 # Libusb
 if (iMSTK_USE_VRPN)
- 
   find_dependency( Libusb )
 endif()
 
@@ -93,8 +92,10 @@ endif()
 # VTK
 find_dependency(VTK CONFIG)
 if (iMSTK_USE_RENDERING_VTK)
-  find_package(vtkRenderingOpenVR QUIET)
   find_package(vtkRenderingExternal QUIET)
+  if (iMSTK_USE_RENDERING_VR)
+    find_package(vtkRenderingOpenVR QUIET)
+  endif()
 endif()
 find_dependency(VTK COMPONENTS ${iMSTK_VTK_DEPENDENCIES})
 
