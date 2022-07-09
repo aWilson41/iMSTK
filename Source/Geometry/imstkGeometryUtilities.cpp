@@ -703,7 +703,7 @@ GeometryUtils::copyToVtkPolyData(std::shared_ptr<LineMesh> imstkMesh)
 {
     vtkSmartPointer<vtkPoints> points = copyToVtkPoints(imstkMesh->getVertexPositions());
 
-    vtkSmartPointer<vtkCellArray> polys = copyToVtkCellArray<2>(imstkMesh->getIndices());
+    vtkSmartPointer<vtkCellArray> polys = copyToVtkCellArray<2>(imstkMesh->getCells());
 
     auto polydata = vtkSmartPointer<vtkPolyData>::New();
     polydata->SetPoints(points);
@@ -742,7 +742,7 @@ vtkSmartPointer<vtkPolyData>
 GeometryUtils::copyToVtkPolyData(std::shared_ptr<SurfaceMesh> imstkMesh)
 {
     vtkSmartPointer<vtkPoints>    points = copyToVtkPoints(imstkMesh->getVertexPositions());
-    vtkSmartPointer<vtkCellArray> polys  = copyToVtkCellArray<3>(imstkMesh->getIndices());
+    vtkSmartPointer<vtkCellArray> polys  = copyToVtkCellArray<3>(imstkMesh->getCells());
 
     auto polydata = vtkSmartPointer<vtkPolyData>::New();;
     polydata->SetPoints(points);
@@ -789,7 +789,7 @@ vtkSmartPointer<vtkUnstructuredGrid>
 GeometryUtils::copyToVtkUnstructuredGrid(std::shared_ptr<TetrahedralMesh> imstkMesh)
 {
     vtkSmartPointer<vtkPoints>    points = copyToVtkPoints(imstkMesh->getVertexPositions());
-    vtkSmartPointer<vtkCellArray> tetras = copyToVtkCellArray<4>(imstkMesh->getIndices());
+    vtkSmartPointer<vtkCellArray> tetras = copyToVtkCellArray<4>(imstkMesh->getCells());
 
     auto ug = vtkSmartPointer<vtkUnstructuredGrid>::New();
     ug->SetPoints(points);
@@ -822,7 +822,7 @@ vtkSmartPointer<vtkUnstructuredGrid>
 GeometryUtils::copyToVtkUnstructuredGrid(std::shared_ptr<HexahedralMesh> imstkMesh)
 {
     vtkSmartPointer<vtkPoints>    points = copyToVtkPoints(imstkMesh->getVertexPositions());
-    vtkSmartPointer<vtkCellArray> bricks = copyToVtkCellArray<8>(imstkMesh->getIndices());
+    vtkSmartPointer<vtkCellArray> bricks = copyToVtkCellArray<8>(imstkMesh->getCells());
 
     auto ug = vtkSmartPointer<vtkUnstructuredGrid>::New();
     ug->SetPoints(points);
@@ -1415,7 +1415,7 @@ markPointsInsideAndOut(std::vector<bool>&      isInside,
     bBoxMin.resize(surfaceMesh.getNumCells());
     bBoxMax.resize(surfaceMesh.getNumCells());
 
-    const VecDataArray<int, 3>& indices = *surfaceMesh.getIndices();
+    const VecDataArray<int, 3>& indices = *surfaceMesh.getCells();
     for (int idx = 0; idx < surfaceMesh.getNumCells(); ++idx)
     {
         const auto& verts = indices[idx];
@@ -1595,7 +1595,7 @@ markPointsInsideAndOut(std::vector<bool>& isInside,
     bBoxMax.resize(surfaceMesh.getNumCells());
 
     /// \brief find the bounding boxes of each surface triangle
-    const VecDataArray<int, 3>& indices = *surfaceMesh.getIndices();
+    const VecDataArray<int, 3>& indices = *surfaceMesh.getCells();
     auto                        findBoundingBox = [&](const size_t idx)
                                                   {
                                                       const auto& verts   = indices[idx];
@@ -1854,7 +1854,7 @@ GeometryUtils::createTetrahedralMeshCover(std::shared_ptr<SurfaceMesh> surfMesh,
 
     for (size_t i = 0; i < validTet.size(); ++i)
     {
-        const Vec4i& verts = (*uniformMesh->getIndices())[i];
+        const Vec4i& verts = (*uniformMesh->getCells())[i];
         if (insideSurfMesh[verts[0]]
             || insideSurfMesh[verts[1]]
             || insideSurfMesh[verts[2]]
@@ -1865,7 +1865,7 @@ GeometryUtils::createTetrahedralMeshCover(std::shared_ptr<SurfaceMesh> surfMesh,
     }
 
     // find the enclosing tets of a group of points on a surface triangle
-    const VecDataArray<int, 3>& indices = *surfMesh->getIndices();
+    const VecDataArray<int, 3>& indices = *surfMesh->getCells();
     auto                        labelEnclosingTetOfInteriorPnt = [&](const int fid)
                                                                  {
                                                                      auto               verts = indices[fid];
@@ -1908,7 +1908,7 @@ GeometryUtils::createTetrahedralMeshCover(std::shared_ptr<SurfaceMesh> surfMesh,
     int numElems = 0;
     for (size_t i = 0; i < validTet.size(); ++i)
     {
-        const Vec4i& verts = (*uniformMesh->getIndices())[i];
+        const Vec4i& verts = (*uniformMesh->getCells())[i];
         if (validTet[i])
         {
             validVtx[verts[0]] = true;
@@ -1952,7 +1952,7 @@ GeometryUtils::createTetrahedralMeshCover(std::shared_ptr<SurfaceMesh> surfMesh,
     {
         if (validTet[i])
         {
-            const Vec4i& oldIndices = (*uniformMesh->getIndices())[i];
+            const Vec4i& oldIndices = (*uniformMesh->getCells())[i];
 
             newIndices[cnt][0] = oldToNew[oldIndices[0]];
             newIndices[cnt][1] = oldToNew[oldIndices[1]];

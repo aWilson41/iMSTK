@@ -35,6 +35,7 @@ imstk_add_library( Geometry
     Analytic/imstkSphere.cpp
     Implicit/imstkCompositeImplicitGeometry.cpp
     Implicit/imstkSignedDistanceField.cpp
+    Mesh/imstkCellMesh.cpp
     Mesh/imstkHexahedralMesh.cpp
     Mesh/imstkImageData.cpp
     Mesh/imstkLineMesh.cpp

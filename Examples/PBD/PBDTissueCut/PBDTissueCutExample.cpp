@@ -70,7 +70,7 @@ addDummyVertex(std::shared_ptr<SurfaceMesh> surfMesh)
     addDummyVertexPointSet(surfMesh);
 
     // Then shift all indices by 1
-    std::shared_ptr<VecDataArray<int, 3>> indicesPtr = surfMesh->getIndices();
+    std::shared_ptr<VecDataArray<int, 3>> indicesPtr = surfMesh->getCells();
     VecDataArray<int, 3>&                 indices    = *indicesPtr;
     for (int i = 0; i < indices.size(); i++)
     {
@@ -86,7 +86,7 @@ addDummyVertex(std::shared_ptr<TetrahedralMesh> tetMesh)
     addDummyVertexPointSet(tetMesh);
 
     // Then shift all indices by 1
-    std::shared_ptr<VecDataArray<int, 4>> tissueIndicesPtr = tetMesh->getIndices();
+    std::shared_ptr<VecDataArray<int, 4>> tissueIndicesPtr = tetMesh->getCells();
     VecDataArray<int, 4>&                 tissueIndices    = *tissueIndicesPtr;
     for (int i = 0; i < tissueIndices.size(); i++)
     {
@@ -286,7 +286,7 @@ main()
                     const double planeHalfWidth = toolPlaneGeom->getWidth() * 0.5;
 
                     std::shared_ptr<VecDataArray<double, 3>> tissueVerticesPtr = tissueMesh->getVertexPositions();
-                    std::shared_ptr<VecDataArray<int, 4>> tissueIndicesPtr     = tissueMesh->getIndices();
+                    std::shared_ptr<VecDataArray<int, 4>> tissueIndicesPtr     = tissueMesh->getCells();
                     VecDataArray<double, 3>& tissueVertices = *tissueVerticesPtr;
                     VecDataArray<int, 4>& tissueIndices     = *tissueIndicesPtr;
 

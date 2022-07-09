@@ -162,16 +162,6 @@ public:
                     const bool computeDerivedData = false);
 
     ///
-    /// \brief Clear all the mesh data
-    ///
-    void clear() override;
-
-    ///
-    /// \brief Print the surface mesh
-    ///
-    void print() const override;
-
-    ///
     /// \brief Compute the normals of all the triangles
     ///
     void computeTrianglesNormals();
@@ -220,45 +210,12 @@ public:
     ///
     void deepCopy(std::shared_ptr<SurfaceMesh> srcMesh);
 
-// Accessors
     ///
     /// \brief Get the volume enclosed by the surface mesh
     ///
     double getVolume() override;
 
-// Attributes
-    ///
-    /// \brief Get/Set the active scalars
-    ///@{
-    void setCellScalars(const std::string& arrayName, std::shared_ptr<AbstractDataArray> scalars);
-    void setCellScalars(const std::string& arrayName);
-    std::string getActiveCellScalars() const { return m_activeCellScalars; }
-    std::shared_ptr<AbstractDataArray> getCellScalars() const;
-    ///@}
-
-    ///
-    /// \brief Get/Set the active normals
-    ///@{
-    void setCellNormals(const std::string& arrayName, std::shared_ptr<VecDataArray<double, 3>> normals);
-    void setCellNormals(const std::string& arrayName);
-    std::string getActiveCellNormals() const { return m_activeCellNormals; }
-    std::shared_ptr<VecDataArray<double, 3>> getCellNormals() const;
-    ///@}
-
-    ///
-    /// \brief Get/Set the active tangents
-    ///@{
-    void setCellTangents(const std::string& arrayName, std::shared_ptr<VecDataArray<double, 3>> tangents);
-    void setCellTangents(const std::string& arrayName);
-    std::string getActiveCellTangents() const { return m_activeCellTangents; }
-    std::shared_ptr<VecDataArray<double, 3>> getCellTangents() const;
-///@}
-
 protected:
     std::map<NormalGroup, std::shared_ptr<std::vector<size_t>>> m_UVSeamVertexGroups;
-
-    std::string m_activeCellNormals  = "";
-    std::string m_activeCellTangents = "";
-    std::string m_activeCellScalars  = "";
 };
 } // namespace imstk

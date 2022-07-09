@@ -112,7 +112,7 @@ PointToTetMap::requestUpdate()
     auto tetMesh  = std::dynamic_pointer_cast<TetrahedralMesh>(getParentGeometry());
     auto pointSet = std::dynamic_pointer_cast<PointSet>(getChildGeometry());
 
-    std::shared_ptr<VecDataArray<int, 4>>    parentIndicesPtr = tetMesh->getIndices();
+    std::shared_ptr<VecDataArray<int, 4>>    parentIndicesPtr = tetMesh->getCells();
     const VecDataArray<int, 4>&              parentIndices    = *parentIndicesPtr;
     std::shared_ptr<VecDataArray<double, 3>> parentVertsPtr   = tetMesh->getVertexPositions();
     const VecDataArray<double, 3>&           parentVerts      = *parentVertsPtr;
@@ -148,7 +148,7 @@ PointToTetMap::findClosestTetrahedron(const Vec3d& pos) const
     for (int tetId = 0; tetId < tetMesh->getNumCells(); tetId++)
     {
         center = Vec3d::Zero();
-        const Vec4i& vert = (*tetMesh->getIndices())[tetId];
+        const Vec4i& vert = (*tetMesh->getCells())[tetId];
         for (int i = 0; i < 4; i++)
         {
             center += tetMesh->getInitialVertexPosition(vert[i]);

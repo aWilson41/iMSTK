@@ -62,26 +62,6 @@ SurfaceMesh::initialize(std::shared_ptr<VecDataArray<double, 3>> vertices,
     }
 }
 
-void
-SurfaceMesh::clear()
-{
-    CellMesh::clear();
-
-    m_activeCellNormals  = "";
-    m_activeCellTangents = "";
-    m_activeCellScalars  = "";
-}
-
-void
-SurfaceMesh::print() const
-{
-    CellMesh::print();
-
-    LOG(INFO) << "Active Cell Normals: " << m_activeCellNormals;
-    LOG(INFO) << "Active Cell Tangents: " << m_activeCellTangents;
-    LOG(INFO) << "Active Cell Scalars: " << m_activeCellScalars;
-}
-
 double
 SurfaceMesh::getVolume()
 {
@@ -589,92 +569,5 @@ SurfaceMesh::deepCopy(std::shared_ptr<SurfaceMesh> srcMesh)
     // Geometry members
     this->m_transformApplied = srcMesh->m_transformApplied;
     this->m_transform = srcMesh->m_transform;
-}
-
-void
-SurfaceMesh::setCellScalars(const std::string& arrayName, std::shared_ptr<AbstractDataArray> scalars)
-{
-    m_activeCellScalars = arrayName;
-    m_cellAttributes[arrayName] = scalars;
-}
-
-void
-SurfaceMesh::setCellScalars(const std::string& arrayName)
-{
-    if (hasCellAttribute(arrayName))
-    {
-        m_activeCellScalars = arrayName;
-    }
-}
-
-std::shared_ptr<AbstractDataArray>
-SurfaceMesh::getCellScalars() const
-{
-    if (hasCellAttribute(m_activeCellScalars))
-    {
-        return m_cellAttributes.at(m_activeCellScalars);
-    }
-    else
-    {
-        return nullptr;
-    }
-}
-
-void
-SurfaceMesh::setCellNormals(const std::string& arrayName, std::shared_ptr<VecDataArray<double, 3>> normals)
-{
-    m_activeCellNormals = arrayName;
-    m_cellAttributes[arrayName] = normals;
-}
-
-void
-SurfaceMesh::setCellNormals(const std::string& arrayName)
-{
-    if (hasCellAttribute(arrayName))
-    {
-        setCellActiveAttribute(m_activeCellNormals, arrayName, 3, IMSTK_DOUBLE);
-    }
-}
-
-std::shared_ptr<VecDataArray<double, 3>>
-SurfaceMesh::getCellNormals() const
-{
-    if (hasCellAttribute(m_activeCellNormals))
-    {
-        return std::dynamic_pointer_cast<VecDataArray<double, 3>>(m_cellAttributes.at(m_activeCellNormals));
-    }
-    else
-    {
-        return nullptr;
-    }
-}
-
-void
-SurfaceMesh::setCellTangents(const std::string& arrayName, std::shared_ptr<VecDataArray<double, 3>> tangents)
-{
-    m_activeCellTangents = arrayName;
-    m_cellAttributes[arrayName] = tangents;
-}
-
-void
-SurfaceMesh::setCellTangents(const std::string& arrayName)
-{
-    if (hasCellAttribute(arrayName))
-    {
-        setCellActiveAttribute(m_activeCellTangents, arrayName, 3, IMSTK_DOUBLE);
-    }
-}
-
-std::shared_ptr<VecDataArray<double, 3>>
-SurfaceMesh::getCellTangents() const
-{
-    if (hasCellAttribute(m_activeCellTangents))
-    {
-        return std::dynamic_pointer_cast<VecDataArray<double, 3>>(m_cellAttributes.at(m_activeCellTangents));
-    }
-    else
-    {
-        return nullptr;
-    }
 }
 } // namespace imstk

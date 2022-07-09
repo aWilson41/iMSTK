@@ -22,15 +22,9 @@
 #pragma once
 
 #include "imstkCellMesh.h"
-#include "imstkMacros.h"
-
-#include <array>
-#include <unordered_set>
 
 namespace imstk
 {
-struct Color;
-
 ///
 /// \class LineMesh
 ///
@@ -43,28 +37,5 @@ public:
     ~LineMesh() override = default;
 
     IMSTK_TYPE_NAME(LineMesh)
-
-    ///
-    /// \brief
-    ///
-    void clear() override;
-
-    ///
-    /// \brief
-    ///
-    void print() const override;
-
-// Attributes
-    ///
-    /// \brief Get/Set the active scalars
-    ///@{
-    void setCellScalars(const std::string& arrayName, std::shared_ptr<AbstractDataArray> scalars);
-    void setCellScalars(const std::string& arrayName);
-    std::string getActiveCellScalars() const { return m_activeCellScalars; }
-    std::shared_ptr<AbstractDataArray> getCellScalars() const;
-///@}
-
-protected:
-    std::string m_activeCellScalars = "";
 };
 } // namespace imstk

@@ -42,13 +42,13 @@ TEST(imstkMshMeshIOTest, ReadMsh_Ascii_LineMesh)
 
     // Check the sizes
     ASSERT_EQ(2, lineMesh->getVertexPositions()->size());
-    ASSERT_EQ(1, lineMesh->getIndices()->size());
+    ASSERT_EQ(1, lineMesh->getCells()->size());
 
     // Check contents
     const VecDataArray<double, 3>& vertices = *lineMesh->getVertexPositions();
     ASSERT_EQ(Vec3d(-0.5, 0.0, 0.0), vertices[0]);
     ASSERT_EQ(Vec3d(0.5, 0.0, 0.0), vertices[1]);
-    const VecDataArray<int, 2>& indices = *lineMesh->getIndices();
+    const VecDataArray<int, 2>& indices = *lineMesh->getCells();
     ASSERT_EQ(0, indices[0][0]);
     ASSERT_EQ(1, indices[0][1]);
 }
@@ -70,7 +70,7 @@ TEST(imstkMshMeshIOTest, ReadMsh_Binary_LineMesh)
     const VecDataArray<double, 3>& vertices = *lineMesh->getVertexPositions();
     ASSERT_EQ(Vec3d(-0.5, 0.0, 0.0), vertices[0]);
     ASSERT_EQ(Vec3d(0.5, 0.0, 0.0), vertices[1]);
-    const VecDataArray<int, 2>& indices = *lineMesh->getIndices();
+    const VecDataArray<int, 2>& indices = *lineMesh->getCells();
     ASSERT_EQ(0, indices[0][0]);
     ASSERT_EQ(1, indices[0][1]);
 }
@@ -94,7 +94,7 @@ TEST(imstkMshMeshIOTest, ReadMsh_Ascii_SurfaceMesh)
     ASSERT_EQ(Vec3d(-0.5, 0.0, 0.0), vertices[0]);
     ASSERT_EQ(Vec3d(0.5, 0.0, 0.0), vertices[1]);
     ASSERT_EQ(Vec3d(0.0, 0.5, 0.0), vertices[2]);
-    const VecDataArray<int, 3>& indices = *surfMesh->getIndices();
+    const VecDataArray<int, 3>& indices = *surfMesh->getCells();
     ASSERT_EQ(0, indices[0][0]);
     ASSERT_EQ(1, indices[0][1]);
     ASSERT_EQ(2, indices[0][2]);
@@ -118,7 +118,7 @@ TEST(imstkMshMeshIOTest, ReadMsh_Binary_SurfaceMesh)
     ASSERT_EQ(Vec3d(-0.5, 0.0, 0.0), vertices[0]);
     ASSERT_EQ(Vec3d(0.5, 0.0, 0.0), vertices[1]);
     ASSERT_EQ(Vec3d(0.0, 0.5, 0.0), vertices[2]);
-    const VecDataArray<int, 3>& indices = *surfMesh->getIndices();
+    const VecDataArray<int, 3>& indices = *surfMesh->getCells();
     ASSERT_EQ(0, indices[0][0]);
     ASSERT_EQ(1, indices[0][1]);
     ASSERT_EQ(2, indices[0][2]);
@@ -144,7 +144,7 @@ TEST(imstkMshMeshIOTest, ReadMsh_Ascii_TetrahedralMesh)
     ASSERT_EQ(Vec3d(1.0, -0.707107, 0.0), vertices[1]);
     ASSERT_EQ(Vec3d(-1.0, -0.707107, 0.0), vertices[2]);
     ASSERT_EQ(Vec3d(0.0, 0.707107, -1.0), vertices[3]);
-    const VecDataArray<int, 4>& indices = *tetMesh->getIndices();
+    const VecDataArray<int, 4>& indices = *tetMesh->getCells();
     ASSERT_EQ(0, indices[0][0]);
     ASSERT_EQ(1, indices[0][1]);
     ASSERT_EQ(2, indices[0][2]);
@@ -169,7 +169,7 @@ TEST(imstkMshMeshIOTest, ReadMsh_Binary_TetrahedralMesh)
     ASSERT_EQ(Vec3d(1.0, -0.707107, 0.0), vertices[1]);
     ASSERT_EQ(Vec3d(-1.0, -0.707107, 0.0), vertices[2]);
     ASSERT_EQ(Vec3d(0.0, 0.707107, -1.0), vertices[3]);
-    const VecDataArray<int, 4>& indices = *tetMesh->getIndices();
+    const VecDataArray<int, 4>& indices = *tetMesh->getCells();
     ASSERT_EQ(0, indices[0][0]);
     ASSERT_EQ(1, indices[0][1]);
     ASSERT_EQ(2, indices[0][2]);
@@ -200,7 +200,7 @@ TEST(imstkMshMeshIOTest, ReadMsh_Ascii_HexahedralMesh)
     ASSERT_EQ(Vec3d(0.5, 0.5, 0.5), vertices[5]);
     ASSERT_EQ(Vec3d(0.5, 0.5, -0.5), vertices[6]);
     ASSERT_EQ(Vec3d(-0.5, 0.5, -0.5), vertices[7]);
-    const VecDataArray<int, 8>& indices = *hexMesh->getIndices();
+    const VecDataArray<int, 8>& indices = *hexMesh->getCells();
     ASSERT_EQ(0, indices[0][0]);
     ASSERT_EQ(1, indices[0][1]);
     ASSERT_EQ(2, indices[0][2]);
@@ -230,7 +230,7 @@ TEST(imstkMshMeshIOTest, ReadMsh_Binary_HexahedralMesh)
     ASSERT_EQ(Vec3d(0.5, 0.5, 0.5), vertices[5]);
     ASSERT_EQ(Vec3d(0.5, 0.5, -0.5), vertices[6]);
     ASSERT_EQ(Vec3d(-0.5, 0.5, -0.5), vertices[7]);
-    const VecDataArray<int, 8>& indices = *hexMesh->getIndices();
+    const VecDataArray<int, 8>& indices = *hexMesh->getCells();
     ASSERT_EQ(0, indices[0][0]);
     ASSERT_EQ(1, indices[0][1]);
     ASSERT_EQ(2, indices[0][2]);

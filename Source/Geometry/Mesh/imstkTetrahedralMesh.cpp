@@ -27,18 +27,6 @@
 
 namespace imstk
 {
-void
-TetrahedralMesh::clear()
-{
-    VolumetricMesh::clear();
-}
-
-void
-TetrahedralMesh::print() const
-{
-    PointSet::print();
-}
-
 double
 TetrahedralMesh::getVolume()
 {

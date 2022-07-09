@@ -44,16 +44,6 @@ public:
     IMSTK_TYPE_NAME(TetrahedralMesh)
 
     ///
-    /// \brief Clear all the mesh data
-    ///
-    void clear() override;
-
-    ///
-    /// \brief Print the tetrahedral mesh
-    ///
-    void print() const override;
-
-    ///
     /// \brief This method extracts the conforming triangular mesh from the tetrahedral mesh
     ///
     std::shared_ptr<SurfaceMesh> extractSurfaceMesh() override;

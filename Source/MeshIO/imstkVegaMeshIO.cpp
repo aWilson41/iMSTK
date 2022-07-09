@@ -169,7 +169,7 @@ VegaMeshIO::convertVolumetricMeshToVegaMesh(const std::shared_ptr<PointSet> imst
             vertices.emplace_back(node(2));
         }
 
-        VecDataArray<int, 4>& tetArray = *imstkVolTetMesh->getIndices();
+        VecDataArray<int, 4>& tetArray = *imstkVolTetMesh->getCells();
         std::vector<int>      elements;
         for (const Vec4i& tet : tetArray)
         {

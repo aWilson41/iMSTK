@@ -56,17 +56,9 @@ PbdCollisionHandling::getBodyAndContactPoint(const CollisionElement& elem, const
 AbstractDataArray*
 PbdCollisionHandling::getCellArray(std::shared_ptr<Geometry> pointSet)
 {
-    if (auto lineMesh = std::dynamic_pointer_cast<LineMesh>(pointSet))
+    if (auto cellMesh = std::dynamic_pointer_cast<AbstractCellMesh>(pointSet))
     {
-        return lineMesh->getIndices().get();
-    }
-    else if (auto surfMesh = std::dynamic_pointer_cast<SurfaceMesh>(pointSet))
-    {
-        return surfMesh->getIndices().get();
-    }
-    else if (auto tetMesh = std::dynamic_pointer_cast<TetrahedralMesh>(pointSet))
-    {
-        return tetMesh->getIndices().get();
+        return cellMesh->getIndices().get();
     }
     else
     {

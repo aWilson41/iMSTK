@@ -127,11 +127,11 @@ NeedlePbdCH::handle(
         PbdCollisionHandling::handle(elementsA, elementsB);     // (PBD Object, Needle Object)
     }
 
-    std::shared_ptr<VecDataArray<int, 2>> needleIndicesPtr = needleMesh->getIndices();
+    std::shared_ptr<VecDataArray<int, 2>> needleIndicesPtr = needleMesh->getCells();
     const VecDataArray<int, 2>&           needleIndices    = *needleIndicesPtr;
-    std::shared_ptr<VecDataArray<int, 3>> tissueSurfMeshIndicesPtr = m_tissueSurfMesh->getIndices();
+    std::shared_ptr<VecDataArray<int, 3>> tissueSurfMeshIndicesPtr = m_tissueSurfMesh->getCells();
     const VecDataArray<int, 3>&           tissueSurfMeshIndices    = *tissueSurfMeshIndicesPtr;
-    std::shared_ptr<VecDataArray<int, 2>> threadIndcicesPtr = m_threadMesh->getIndices();
+    std::shared_ptr<VecDataArray<int, 2>> threadIndcicesPtr = m_threadMesh->getCells();
     const VecDataArray<int, 2>&           threadIndices     = *threadIndcicesPtr;
 
     // If inserted, find intersections and constrain to insertion points

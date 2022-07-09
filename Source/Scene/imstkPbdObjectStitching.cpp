@@ -180,17 +180,9 @@ PbdObjectStitching::addStitchConstraints()
     std::shared_ptr<VecDataArray<double, 3>> verticesPtr = pbdPhysicsGeom->getVertexPositions();
 
     std::shared_ptr<AbstractDataArray> indicesPtr = nullptr;
-    if (auto lineMesh = std::dynamic_pointer_cast<LineMesh>(pointSetToPick))
+    if (auto cellMesh = std::dynamic_pointer_cast<AbstractCellMesh>(pointSetToPick))
     {
-        indicesPtr = lineMesh->getIndices();
-    }
-    if (auto surfMesh = std::dynamic_pointer_cast<SurfaceMesh>(pointSetToPick))
-    {
-        indicesPtr = surfMesh->getIndices();
-    }
-    else if (auto tetMesh = std::dynamic_pointer_cast<TetrahedralMesh>(pointSetToPick))
-    {
-        indicesPtr = tetMesh->getIndices();
+        indicesPtr = cellMesh->getIndices();
     }
 
     // If the user tries to pick

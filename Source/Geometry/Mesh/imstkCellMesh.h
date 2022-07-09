@@ -1,7 +1,7 @@
 /*=========================================================================
    Library: iMSTK
-   Copyright (c) Kitware, Inc. & Center for Modeling, Simulation,
-   & Imaging in Medicine, Rensselaer Polytechnic Institute.
+   Copyright (c) Kitware, Inc.
+
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -14,8 +14,8 @@
 =========================================================================*/
 
 #include "imstkPointSet.h"
-
 #include "imstkVecDataArray.h"
+
 #include <unordered_set>
 
 #pragma once
@@ -23,142 +23,55 @@
 namespace imstk
 {
 ///
-/// \class CellMesh
+/// \class AbstractCellMesh
 ///
-/// \brief Abstract template base class for all meshes that have homogenous
-/// cell types. This class allows templated access to cells.
+/// \brief Provides non templated base for cell based meshes
 ///
-template<int N>
-class CellMesh : public PointSet
+class AbstractCellMesh : public PointSet
 {
 public:
-    CellMesh() : m_indices(std::make_shared<VecDataArray<int, N>>()) { }
-    ~CellMesh() override = default;
-
-    ///
-    /// \brief Initializes the rest of the data structures given vertex
-    /// positions and connectivity
-    ///
-    void initialize(std::shared_ptr<VecDataArray<double, 3>> vertices,
-                    std::shared_ptr<VecDataArray<int, N>> indices)
-    {
-        clear();
-
-        PointSet::initialize(vertices);
-        setIndices(indices);
-    }
-
-    void clear()
-    {
-        PointSet::clear();
-        if (m_indices != nullptr)
-        {
-            m_indices->clear();
-        }
-        m_vertexToCells.clear();
-        m_vertexToCells.clear();
-        for (auto i : m_cellAttributes)
-        {
-            i.second->clear();
-        }
-    }
-
-    ///
-    /// \brief Print the surface mesh
-    ///
-    void print() const override
-    {
-        PointSet::print();
-
-        LOG(INFO) << "Number of cells: " << getNumCells();
-    }
-
-    ///
-    /// \brief Computes neighboring triangles for all vertices
-    ///
-    void computeVertexToCells()
-    {
-        m_vertexToCells.clear();
-        m_vertexToCells.resize(m_vertexPositions->size());
-
-        int cellId = 0;
-        for (const auto& cell : *m_indices)
-        {
-            // \todo: Could variadic unfold
-            for (int i = 0; i < N; i++)
-            {
-                m_vertexToCells.at(cell[i]).insert(cellId);
-            }
-            cellId++;
-        }
-    }
-
-    ///
-    /// \brief Computes neighboring vertices for all vertices
-    ///
-    void computeVertexNeighbors()
-    {
-        m_vertexToNeighborVertex.clear();
-        m_vertexToNeighborVertex.resize(m_vertexPositions->size());
-        this->computeVertexToCells();
-
-        // For every vertex
-        const VecDataArray<int, N>& indices = *m_indices;
-        for (int vertexId = 0; vertexId < m_vertexToNeighborVertex.size(); vertexId++)
-        {
-            // For every cell it is connected too
-            for (const int cellId : m_vertexToCells.at(vertexId))
-            {
-                // For every vertex of that cell
-                for (int i = 0; i < N; i++)
-                {
-                    // So long as its not the source vertex (not a neighbor of itself)
-                    const int vertexId2 = indices[cellId][i];
-                    if (vertexId2 != vertexId)
-                    {
-                        m_vertexToNeighborVertex.at(vertexId).insert(vertexId2);
-                    }
-                }
-            }
-        }
-    }
-
-    ///
-    /// \brief compute the barycentric weights of a given point in 3D space for a given the cell
-    ///
-    virtual Eigen::Vector<double, N> computeBarycentricWeights(const int    imstkNotUsed(cellId),
-                                                               const Vec3d& imstkNotUsed(pos)) const
-    {
-        return Eigen::Vector<double, N>::Zero();
-    }
+    AbstractCellMesh() = default;
+    ~AbstractCellMesh() override = default;
 
     ///
     /// \brief Returns true if the geometry is a mesh, else returns false
     ///
     bool isMesh() const override { return true; }
 
-// Accessors
-    ///
-    /// \brief Get/Set triangle connectivity
-    ///@{
-    void setIndices(std::shared_ptr<VecDataArray<int, N>> indices) { m_indices = indices; }
-    std::shared_ptr<VecDataArray<int, N>> getIndices() const { return m_indices; }
-    ///@}
+    void clear() override;
 
     ///
-    /// \brief Returns the number of cells
+    /// \brief Print the surface mesh
     ///
-    int getNumCells() const { return m_indices->size(); }
+    void print() const override;
+
+    virtual int getNumCells() const = 0;
+
+    ///
+    /// \brief Computes neighboring cells for all vertices
+    ///
+    virtual void computeVertexToCellMap() { }
+
+    ///
+    /// \brief Computes neighboring vertices for all vertices
+    ///
+    virtual void computeVertexNeighbors() { }
+
+    ///
+    /// \brief Get cells as abstract array. Overridden by derived classes to return
+    ///     cells as point indices.
+    ///
+    virtual std::shared_ptr<AbstractDataArray> getIndices() const = 0;
 
     ///
     /// \brief Returns map of vertices to cells that contain the vertex (reverse linkage)
     ///
-    const std::vector<std::unordered_set<int>>& getVertexToCells() { return m_vertexToCells; }
+    const std::vector<std::unordered_set<int>>& getVertexToCellMap() const { return m_vertexToCells; }
 
     ///
     /// \brief Returns map of vertices to neighboring vertices
     ///
-    const std::vector<std::unordered_set<int>>& getVertexNeighbors() { return m_vertexToNeighborVertex; }
+    const std::vector<std::unordered_set<int>>& getVertexNeighbors() const { return m_vertexToNeighborVertex; }
 
 // Attributes
     ///
@@ -195,34 +108,160 @@ public:
     ///
     void setCellAttributes(std::unordered_map<std::string, std::shared_ptr<AbstractDataArray>> attributes) { m_cellAttributes = attributes; }
 
+    ///
+    /// \brief Get/Set the active scalars
+    ///@{
+    void setCellScalars(const std::string& arrayName, std::shared_ptr<AbstractDataArray> scalars);
+    void setCellScalars(const std::string& arrayName);
+    std::string getActiveCellScalars() const { return m_activeCellScalars; }
+    std::shared_ptr<AbstractDataArray> getCellScalars() const;
+    ///@}
+
+    ///
+    /// \brief Get/Set the active normals
+    ///@{
+    void setCellNormals(const std::string& arrayName, std::shared_ptr<VecDataArray<double, 3>> normals);
+    void setCellNormals(const std::string& arrayName);
+    std::string getActiveCellNormals() const { return m_activeCellNormals; }
+    std::shared_ptr<VecDataArray<double, 3>> getCellNormals() const;
+    ///@}
+
+    ///
+    /// \brief Get/Set the active tangents
+    ///@{
+    void setCellTangents(const std::string& arrayName, std::shared_ptr<VecDataArray<double, 3>> tangents);
+    void setCellTangents(const std::string& arrayName);
+    std::string getActiveCellTangents() const { return m_activeCellTangents; }
+    std::shared_ptr<VecDataArray<double, 3>> getCellTangents() const;
+///@}
+
 protected:
     void setCellActiveAttribute(std::string& activeAttributeName, std::string attributeName,
-                                const int expectedNumComponents, const ScalarTypeId expectedScalarType)
-    {
-        std::shared_ptr<AbstractDataArray> attribute = m_cellAttributes[attributeName];
-        if (attribute->getNumberOfComponents() != expectedNumComponents)
-        {
-            LOG(WARNING) << "Failed to set cell attribute on SurfaceMesh " + getName() + " with "
-                         << attribute->getNumberOfComponents() << " components. Expected " <<
-                expectedNumComponents << " components.";
-            return;
-        }
-        else if (attribute->getScalarType() != expectedScalarType)
-        {
-            LOG(INFO) << "Tried to set cell attribute on SurfaceMesh " + getName() + " with scalar type "
-                      << static_cast<int>(attribute->getScalarType()) << ". Casting to "
-                      << static_cast<int>(expectedScalarType) << " scalar type";
-            m_cellAttributes[attributeName] = attribute->cast(expectedScalarType);
-        }
-        activeAttributeName = attributeName;
-    }
-
-    std::shared_ptr<VecDataArray<int, N>> m_indices = nullptr;
+                                const int expectedNumComponents, const ScalarTypeId expectedScalarType);
 
     std::vector<std::unordered_set<int>> m_vertexToCells;          ///< Map of vertices to neighbor cells
     std::vector<std::unordered_set<int>> m_vertexToNeighborVertex; ///< Map of vertice sto neighbor vertices
 
     ///< Per cell attributes
     std::unordered_map<std::string, std::shared_ptr<AbstractDataArray>> m_cellAttributes;
+
+    std::string m_activeCellNormals  = "";
+    std::string m_activeCellTangents = "";
+    std::string m_activeCellScalars  = "";
+};
+
+///
+/// \class CellMesh
+///
+/// \brief Abstract template base class for all meshes that have homogenous
+/// cell types. This class allows templated access to cells.
+///
+template<int N>
+class CellMesh : public AbstractCellMesh
+{
+public:
+    static constexpr int CellVertexCount = N;
+
+    CellMesh() : m_indices(std::make_shared<VecDataArray<int, N>>()) { }
+    ~CellMesh() override = default;
+
+    ///
+    /// \brief Initializes the rest of the data structures given vertex
+    /// positions and connectivity
+    ///
+    void initialize(std::shared_ptr<VecDataArray<double, 3>> vertices,
+                    std::shared_ptr<VecDataArray<int, N>> indices)
+    {
+        clear();
+
+        PointSet::initialize(vertices);
+        setCells(indices);
+    }
+
+    void clear() override
+    {
+        AbstractCellMesh::clear();
+        if (m_indices != nullptr)
+        {
+            m_indices->clear();
+        }
+    }
+
+    ///
+    /// \brief Computes neighboring triangles for all vertices
+    ///
+    void computeVertexToCellMap() override
+    {
+        m_vertexToCells.clear();
+        m_vertexToCells.resize(m_vertexPositions->size());
+
+        int cellId = 0;
+        for (const auto& cell : *m_indices)
+        {
+            // \todo: Could variadic unfold
+            // Subclasses can implement a more efficient version if needbe
+            for (int i = 0; i < N; i++)
+            {
+                m_vertexToCells.at(cell[i]).insert(cellId);
+            }
+            cellId++;
+        }
+    }
+
+    ///
+    /// \brief Computes neighboring vertices for all vertices
+    ///
+    void computeVertexNeighbors() override
+    {
+        m_vertexToNeighborVertex.clear();
+        m_vertexToNeighborVertex.resize(m_vertexPositions->size());
+        this->computeVertexToCellMap();
+
+        // For every vertex
+        const VecDataArray<int, N>& indices = *m_indices;
+        for (int vertexId = 0; vertexId < m_vertexToNeighborVertex.size(); vertexId++)
+        {
+            // For every cell it is connected too
+            for (const int cellId : m_vertexToCells.at(vertexId))
+            {
+                // For every vertex of that cell
+                for (int i = 0; i < N; i++)
+                {
+                    // So long as its not the source vertex (not a neighbor of itself)
+                    const int vertexId2 = indices[cellId][i];
+                    if (vertexId2 != vertexId)
+                    {
+                        m_vertexToNeighborVertex.at(vertexId).insert(vertexId2);
+                    }
+                }
+            }
+        }
+    }
+
+    ///
+    /// \brief compute the barycentric weights of a given point in 3D space for a given the cell
+    ///
+    virtual Eigen::Vector<double, N> computeBarycentricWeights(const int    imstkNotUsed(cellId),
+                                                               const Vec3d& imstkNotUsed(pos)) const
+    {
+        return Eigen::Vector<double, N>::Zero();
+    }
+
+    std::shared_ptr<AbstractDataArray> getIndices() const override { return m_indices; }
+
+    ///
+    /// \brief Get/Set cell connectivity
+    ///@{
+    void setCells(std::shared_ptr<VecDataArray<int, N>> indices) { m_indices = indices; }
+    std::shared_ptr<VecDataArray<int, N>> getCells() const { return m_indices; }
+    ///@}
+
+    ///
+    /// \brief Returns the number of cells
+    ///
+    int getNumCells() const override { return m_indices->size(); }
+
+protected:
+    std::shared_ptr<VecDataArray<int, N>> m_indices = nullptr;
 };
 } // namespace imstk

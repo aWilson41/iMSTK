@@ -135,9 +135,9 @@ LineMeshToLineMeshCCD::internalComputeCollision(
     const VecDataArray<double, 3>& verticesA = *verticesPtrA;
     const VecDataArray<double, 3>& verticesB = *verticesPtrB;
 
-    std::shared_ptr<VecDataArray<int, 2>> linesAPtr = meshA->getIndices();
+    std::shared_ptr<VecDataArray<int, 2>> linesAPtr = meshA->getCells();
     const VecDataArray<int, 2>&           linesA    = *linesAPtr;
-    std::shared_ptr<VecDataArray<int, 2>> linesBPtr = meshB->getIndices();
+    std::shared_ptr<VecDataArray<int, 2>> linesBPtr = meshB->getCells();
     const VecDataArray<int, 2>&           linesB    = *linesBPtr;
     for (size_t i = 0; i < static_cast<size_t>(meshA->getNumCells()); ++i)
     {
