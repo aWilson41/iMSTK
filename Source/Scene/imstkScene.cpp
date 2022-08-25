@@ -534,7 +534,11 @@ Scene::advance(const double dt)
         }
         for (auto comp : obj->getComponents())
         {
+<<<<<<< HEAD
             if (auto behaviour = std::dynamic_pointer_cast<SceneBehaviour>(comp))
+=======
+            if (auto behaviour = std::dynamic_pointer_cast<Behaviour<double>>(comp))
+>>>>>>> e7d45c27 (ENH: Rework initialization for dependent components)
             {
                 behaviour->update(dt);
             }
@@ -582,9 +586,15 @@ Scene::updateVisuals(const double dt)
         }
         for (auto comp : ent->getComponents())
         {
+<<<<<<< HEAD
             if (auto behaviour = std::dynamic_pointer_cast<SceneBehaviour>(comp))
             {
                 behaviour->visualUpdate(dt);
+=======
+            if (auto behaviour = std::dynamic_pointer_cast<Behaviour<double>>(comp))
+            {
+                behaviour->visualUpdate();
+>>>>>>> e7d45c27 (ENH: Rework initialization for dependent components)
             }
         }
     }

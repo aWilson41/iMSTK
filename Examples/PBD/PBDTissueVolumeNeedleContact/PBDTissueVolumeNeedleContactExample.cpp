@@ -325,6 +325,10 @@ main()
 #endif
         controller->setDevice(deviceClient);
 
+        // Add extra component to tool for the ghost
+        std::shared_ptr<ObjectControllerGhost> controllerGhost = toolObj->addComponent<ObjectControllerGhost>();
+        controllerGhost->setController(controller);
+
         int counter = 0;
         connect<Event>(viewer, &VTKViewer::preUpdate,
             [&](Event*)

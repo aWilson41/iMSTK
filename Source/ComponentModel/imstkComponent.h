@@ -31,7 +31,7 @@ class Component
 friend class Entity;
 
 protected:
-    Component(const std::string& name = "Component") : m_name(name) { }
+    Component(const std::string& name = "Component") : m_name(name), m_entity(nullptr) { }
 
 public:
     virtual ~Component() = default;

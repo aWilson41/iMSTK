@@ -173,7 +173,7 @@ main()
 
         std::shared_ptr<ObjectControllerGhost> ghostObj = rbdObj->addComponent<ObjectControllerGhost>();
         ghostObj->setController(controller);
-
+        
         connect<Event>(sceneManager, &SceneManager::preUpdate,
             [&](Event*)
             {
