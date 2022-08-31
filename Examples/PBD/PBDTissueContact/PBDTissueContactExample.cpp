@@ -165,6 +165,7 @@ makeToolObj(std::shared_ptr<PbdModel> model)
         0.2,                                              // Mass
         Quatd::Identity(),                                // Orientation
         Mat3d::Identity() * 10.0);                        // Inertia
+<<<<<<< HEAD
 
     // Add a component for controlling via a device
     auto controller = toolObj->addComponent<PbdObjectController>();
@@ -178,12 +179,14 @@ makeToolObj(std::shared_ptr<PbdModel> model)
     // Add extra component to tool for the ghost
     auto controllerGhost = toolObj->addComponent<ObjectControllerGhost>();
     controllerGhost->setController(controller);
+=======
+>>>>>>> 8d3d69be (ENH: ControllerForceText component)
 
     // Add a component for controlling via a device
     auto controller = toolObj->addComponent<PbdObjectController>();
     controller->setControlledObject(toolObj);
     controller->setLinearKs(5000.0);
-    controller->setAngularKs(10000000.0);
+    controller->setAngularKs(10000.0);
     controller->setUseCritDamping(true);
     controller->setForceScaling(0.0025);
     controller->setUseForceSmoothening(true);

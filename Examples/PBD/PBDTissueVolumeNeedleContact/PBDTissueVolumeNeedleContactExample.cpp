@@ -33,7 +33,12 @@
 #include "imstkStraightNeedle.h"
 #include "imstkTextVisualModel.h"
 #include "imstkVTKViewer.h"
+<<<<<<< HEAD
 #include "NeedleEmbedder.h"
+=======
+#include "imstkControllerForceText.h"
+#include "NeedleEmbeddedCH.h"
+>>>>>>> 8d3d69be (ENH: ControllerForceText component)
 #include "NeedleInteraction.h"
 
 #ifdef iMSTK_USE_HAPTICS
@@ -121,6 +126,7 @@ makeTissueObj(const std::string&               name,
     return tissueObj;
 }
 
+<<<<<<< HEAD
 static std::shared_ptr<PbdObject>
 makeNeedleObj(const std::string&        name,
               std::shared_ptr<PbdModel> model)
@@ -176,6 +182,8 @@ makeNeedleObj(const std::string&        name,
     return toolObj;
 }
 
+=======
+>>>>>>> 8d3d69be (ENH: ControllerForceText component)
 static std::shared_ptr<PbdObject>
 makeNeedleObj(const std::string&        name,
               std::shared_ptr<PbdModel> model)
@@ -237,12 +245,21 @@ makeNeedleObj(const std::string&        name,
 }
 
 static void
+<<<<<<< HEAD
 updateDebugGeom(std::shared_ptr<NeedleInteraction>  interaction,
                 std::shared_ptr<DebugGeometryModel> debugGeomObj)
 {
     auto                      needleEmbedder     = std::dynamic_pointer_cast<NeedleEmbedder>(interaction->getEmbedder());
     const std::vector<Vec3d>& debugEmbeddingPts  = needleEmbedder->m_debugEmbeddingPoints;
     const std::vector<Vec3i>& debugEmbeddingTris = needleEmbedder->m_debugEmbeddedTriangles;
+=======
+updateDebugGeom(std::shared_ptr<NeedleInteraction>   interaction,
+                std::shared_ptr<DebugGeometryObject> debugGeomObj)
+{
+    auto                      needleEmbeddedCH   = std::dynamic_pointer_cast<NeedleEmbeddedCH>(interaction->getEmbeddingCH());
+    const std::vector<Vec3d>& debugEmbeddingPts  = needleEmbeddedCH->m_debugEmbeddingPoints;
+    const std::vector<Vec3i>& debugEmbeddingTris = needleEmbeddedCH->m_debugEmbeddedTriangles;
+>>>>>>> 8d3d69be (ENH: ControllerForceText component)
     debugGeomObj->clear();
     for (size_t i = 0; i < debugEmbeddingPts.size(); i++)
     {
@@ -324,6 +341,14 @@ main()
     debugGeom->setLineWidth(0.1);
     scene->addSceneObject(toolObj);
 
+<<<<<<< HEAD
+=======
+    // Setup a debug polygon soup for debug contact points
+    auto debugGeomObj = std::make_shared<DebugGeometryObject>();
+    debugGeomObj->setLineWidth(0.1);
+    scene->addSceneObject(debugGeomObj);
+
+>>>>>>> 8d3d69be (ENH: ControllerForceText component)
     // This adds both contact and puncture functionality
     auto interaction = std::make_shared<NeedleInteraction>(tissueObj, toolObj);
     interaction->setPunctureForceThreshold(3.0);
