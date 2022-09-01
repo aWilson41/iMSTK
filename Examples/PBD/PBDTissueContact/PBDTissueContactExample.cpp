@@ -143,6 +143,7 @@ makeTissueObj(const std::string& name,
 static std::shared_ptr<PbdObject>
 makeToolObj(std::shared_ptr<PbdModel> model)
 {
+    //auto toolGeometry = std::make_shared<Sphere>(Vec3d::Zero(), 0.5);
     auto                    toolGeometry = std::make_shared<LineMesh>();
     VecDataArray<double, 3> vertices     = { Vec3d(0.0, 0.0, 0.0), Vec3d(0.0, 2.0, 0.0) };
     VecDataArray<int, 2>    indices      = { Vec2i(0, 1) };
@@ -162,7 +163,7 @@ makeToolObj(std::shared_ptr<PbdModel> model)
     model->getConfig()->setBodyDamping(toolObj->getPbdBody()->bodyHandle, 0.05, 0.0);
 
     toolObj->getPbdBody()->setRigid(Vec3d(0.0, 0.8, 0.0), // Position
-        0.2,                                              // Mass
+        0.5,                                              // Mass
         Quatd::Identity(),                                // Orientation
         Mat3d::Identity() * 10.0);                        // Inertia
 <<<<<<< HEAD
@@ -221,12 +222,11 @@ main()
     auto pbdModel = std::make_shared<PbdModel>();
     pbdModel->getConfig()->m_doPartitioning = false;
     pbdModel->getConfig()->m_gravity    = Vec3d(0.0, 0.0, 0.0);
-    pbdModel->getConfig()->m_dt         = 0.05;
-    pbdModel->getConfig()->m_iterations = 5;
+    pbdModel->getConfig()->m_iterations = 2;
 
     // Setup a tissue
     std::shared_ptr<PbdObject> tissueObj = makeTissueObj("Tissue",
-        Vec3d(8.0, 2.0, 8.0), Vec3i(6, 5, 6), Vec3d(0.0, -1.0, 0.0), pbdModel);
+        Vec3d(8.0, 2.0, 8.0), Vec3i(8, 5, 8), Vec3d(0.0, -1.0, 0.0), pbdModel);
     scene->addSceneObject(tissueObj);
 
     // Setup a tool

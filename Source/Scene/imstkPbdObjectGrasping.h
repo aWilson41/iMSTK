@@ -126,6 +126,11 @@ public:
         const std::vector<double>& weightsB,
         const double stiffnessA, const double stiffnessB);
 
+    /*virtual void addBodyConstraint(
+        const PbdParticleId& bodyId,
+        const Vec3d& supportPt,
+        const double compliance);*/
+
     ///
     /// \brief Add 0 distance constraint between two points defined on
     /// two separate bodies.
