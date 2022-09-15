@@ -28,7 +28,7 @@ Graph::addEdge(const size_t v, const size_t w)
 }
 
 void
-Graph::getEdges(const size_t v, edgeType& edges) const
+Graph::getEdges(const size_t v, EdgeType& edges) const
 {
     edges = m_adjList[v];
 }
@@ -50,7 +50,7 @@ Graph::print() const
     }
 }
 
-Graph::graphColorsType
+Graph::ColorsType
 Graph::doColoring(ColoringMethod method /*=ColoringMethod::WelshPowell*/, bool print /*= false*/) const
 {
     return method == ColoringMethod::WelshPowell ?
@@ -58,7 +58,7 @@ Graph::doColoring(ColoringMethod method /*=ColoringMethod::WelshPowell*/, bool p
            doColoringGreedy(print);
 }
 
-Graph::graphColorsType
+Graph::ColorsType
 Graph::doColoringWelshPowell(bool print /*= false*/) const
 {
     const auto numNodes = m_adjList.size();

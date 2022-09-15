@@ -19,8 +19,6 @@
 #include "imstkRigidObject2.h"
 #include "imstkSurfaceMesh.h"
 #include "imstkTetrahedralMesh.h"
-#include "imstkRigidObject2.h"
-#include "imstkNeedle.h"
 
 #include <cmath>
 

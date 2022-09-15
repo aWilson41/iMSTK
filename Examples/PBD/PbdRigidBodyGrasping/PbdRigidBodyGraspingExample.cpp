@@ -78,7 +78,7 @@ makeCapsuleToolObj(std::shared_ptr<PbdModel> model, bool isLeft)
     axesModel->setScale(Vec3d(0.05, 0.05, 0.05));
 
     auto axesUpdate = toolObj->addComponent<LambdaBehaviour>("AxesModelUpdate");
-    axesUpdate->setUpdate([ = ](const double& dt)
+    axesUpdate->setUpdate([ = ](const double&)
         {
             axesModel->setPosition((*toolObj->getPbdBody()->vertices)[0]);
             axesModel->setOrientation((*toolObj->getPbdBody()->orientations)[0]);
@@ -265,7 +265,7 @@ main()
                 }
             });
 #ifdef USE_TWO_HAPTIC_DEVICES
-        std::shared_ptr<DeviceClient> rightDeviceClient = hapticManager->makeDeviceClient("Device2");
+        std::shared_ptr<DeviceClient> rightDeviceClient = hapticManager->makeDeviceClient("RightDevice");
         auto                          rightController   = rightToolObj->getComponent<PbdObjectController>();
         rightController->setDevice(rightDeviceClient);
 
@@ -304,7 +304,7 @@ main()
                 rightDeviceClient->setPosition(worldPos);
             });
         connect<MouseEvent>(viewer->getMouseDevice(), &MouseDeviceClient::mouseButtonPress,
-            [&](MouseEvent* e)
+            [&](MouseEvent*)
             {
                 // Use a slightly larger capsule since collision prevents intersection
                 auto capsule = std::dynamic_pointer_cast<Capsule>(rightToolObj->getCollidingGeometry());
@@ -314,7 +314,7 @@ main()
                 rightGrasping1->beginCellGrasp(dilatedCapsule);
             });
         connect<MouseEvent>(viewer->getMouseDevice(), &MouseDeviceClient::mouseButtonRelease,
-            [&](MouseEvent* e)
+            [&](MouseEvent*)
             {
                 rightGrasping0->endGrasp();
                 rightGrasping1->endGrasp();

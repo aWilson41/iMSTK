@@ -12,6 +12,7 @@ set(H_FILES
   imstkSceneManager.h
   imstkSimulationManager.h
   imstkSimulationUtils.h
+  imstkVRCameraControl.h
   )
 
 set(SRC_FILES
@@ -24,6 +25,7 @@ set(SRC_FILES
   imstkSceneManager.cpp
   imstkSimulationManager.cpp
   imstkSimulationUtils.cpp
+  imstkVRCameraControl.cpp
   )
 
 include(imstkAddLibrary)

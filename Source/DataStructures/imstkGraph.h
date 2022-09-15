@@ -17,9 +17,10 @@ namespace imstk
 ///
 class Graph
 {
-using edgeType = std::unordered_set<size_t>;
-using graphColorsType = std::pair<std::vector<unsigned short>, unsigned short>;
 public:
+    using EdgeType = std::unordered_set<size_t>;
+    using ColorsType = std::pair<std::vector<unsigned short>, unsigned short>;
+
     enum class ColoringMethod
     {
         Greedy,
@@ -37,7 +38,7 @@ public:
     ///
     /// \brief Get edges surrounding a node
     ///
-    void getEdges(const size_t v, edgeType& edges) const;
+    void getEdges(const size_t v, EdgeType& edges) const;
 
     ///
     /// \brief Get size of the graph
@@ -58,7 +59,7 @@ public:
     /// \brief Colorize using the given method and prints the assignment of colors
     /// \return Vertex colors and number of colors
     ///
-    graphColorsType doColoring(ColoringMethod method = ColoringMethod::WelshPowell,
+    ColorsType doColoring(ColoringMethod method = ColoringMethod::WelshPowell,
                                bool           print = false) const;
 
 protected:
@@ -66,15 +67,15 @@ protected:
     /// \brief Colorize using greedy algorithm and print the assignment of colors
     /// \return Vertex colors and number of colors
     ///
-    graphColorsType doColoringGreedy(bool print = false) const;
+    ColorsType doColoringGreedy(bool print = false) const;
 
     ///
     /// \brief Colorize using Welsh-Powell algorithm and print the assignment of colors
     /// \return Vertex colors and number of colors
     ///
-    graphColorsType doColoringWelshPowell(bool print = false) const;
+    ColorsType doColoringWelshPowell(bool print = false) const;
 
-    std::vector<edgeType> m_adjList;    ///< A array of std::vectors to represent adjacency list
+    std::vector<EdgeType> m_adjList;    ///< A array of std::vectors to represent adjacency list
     ColoringMethod m_ColoringMethod = ColoringMethod::WelshPowell;
 };
 } // namespace imstk

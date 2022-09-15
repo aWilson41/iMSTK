@@ -152,12 +152,12 @@ main()
     std::shared_ptr<DeviceManager> hapticManager = DeviceManagerFactory::makeDeviceManager();
 
 #ifdef USE_TWO_HAPTIC_DEVICES
-    std::shared_ptr<DeviceClient> leftDeviceClient = hapticManager->makeDeviceClient("Default Device");
+    std::shared_ptr<DeviceClient> leftDeviceClient = hapticManager->makeDeviceClient(); // Default device
     auto                          leftController   = lapTool2->getComponent<PbdObjectController>();
     leftController->setDevice(leftDeviceClient);
     leftController->setTranslationOffset(Vec3d(0.0, 0.1, -1.0));
 
-    std::shared_ptr<DeviceClient> rightDeviceClient = hapticManager->makeDeviceClient("Device2");
+    std::shared_ptr<DeviceClient> rightDeviceClient = hapticManager->makeDeviceClient("RightDevice");
     auto                          rightController   = lapTool1->getComponent<PbdObjectController>();
     rightController->setDevice(rightDeviceClient);
     rightController->setTranslationOffset(Vec3d(0.0, 0.1, -1.0));
@@ -172,21 +172,23 @@ main()
     rightController->setDevice(rightDeviceClient);
 #endif
 
-    auto portHoleInteraction = std::make_shared<PortHoleInteraction>(lapTool1);
-    portHoleInteraction->setPortHoleLocation(Vec3d(0.015, 0.092, -1.117));
-    auto sphere = std::make_shared<Sphere>(Vec3d(0.015, 0.092, -1.117), 0.01);
-    portHoleInteraction->setVisualGeometry(sphere);
-    portHoleInteraction->setToolGeometry(lapTool1->getCollidingGeometry());
-    portHoleInteraction->setCompliance(0.000001);
-    scene->addInteraction(portHoleInteraction);
+    auto portHoleInteraction1 = lapTool1->addComponent<PortHoleInteraction>();
+    portHoleInteraction1->setTool(lapTool1);
+    portHoleInteraction1->setPortHoleLocation(Vec3d(0.015, 0.092, -1.117));
+    portHoleInteraction1->setToolGeometry(lapTool1->getCollidingGeometry());
+    portHoleInteraction1->setCompliance(0.000001);
+    auto sphere1 = std::make_shared<Sphere>(Vec3d(0.015, 0.092, -1.117), 0.01);
+    auto portHole1Visuals = lapTool1->addComponent<VisualModel>();
+    portHole1Visuals->setGeometry(sphere1);
 
-    auto portHoleInteraction2 = std::make_shared<PortHoleInteraction>(lapTool2);
+    auto portHoleInteraction2 = lapTool2->addComponent<PortHoleInteraction>();
+    portHoleInteraction2->setTool(lapTool2);
     portHoleInteraction2->setPortHoleLocation(Vec3d(-0.065, 0.078, -1.127));
-    auto sphere2 = std::make_shared<Sphere>(Vec3d(-0.065, 0.078, -1.127), 0.01);
-    portHoleInteraction2->setVisualGeometry(sphere2);
     portHoleInteraction2->setToolGeometry(lapTool2->getCollidingGeometry());
     portHoleInteraction2->setCompliance(0.000001);
-    scene->addInteraction(portHoleInteraction2);
+    auto sphere2 = std::make_shared<Sphere>(Vec3d(-0.065, 0.078, -1.127), 0.01);
+    auto portHole2Visuals = lapTool2->addComponent<VisualModel>();
+    portHole2Visuals->setGeometry(sphere2);
 
     // Run the simulation
     {

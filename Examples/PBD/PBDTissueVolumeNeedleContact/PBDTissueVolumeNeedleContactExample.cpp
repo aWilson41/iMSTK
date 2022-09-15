@@ -15,7 +15,6 @@
 #include "imstkMeshIO.h"
 #include "imstkMouseDeviceClient.h"
 #include "imstkMouseSceneControl.h"
-#include "imstkNeedle.h"
 #include "imstkObjectControllerGhost.h"
 #include "imstkPbdCollisionHandling.h"
 #include "imstkPbdContactConstraint.h"
@@ -116,8 +115,6 @@ makeTissueObj(const std::string&               name,
 
     tissueObj->addComponent<Puncturable>();
 
-    tissueObj->addComponent<Puncturable>();
-
     return tissueObj;
 }
 
@@ -176,87 +173,13 @@ makeNeedleObj(const std::string&        name,
     return toolObj;
 }
 
-static std::shared_ptr<PbdObject>
-makeNeedleObj(const std::string&        name,
-              std::shared_ptr<PbdModel> model)
-{
-    auto toolObj = std::make_shared<PbdObject>(name);
-
-    // Setup the geometry for a straight needle
-    auto toolGeometry = std::make_shared<LineMesh>();
-    auto verticesPtr  = std::make_shared<VecDataArray<double, 3>>(2);
-    (*verticesPtr)[0] = Vec3d(0.0, -0.05, 0.0);
-    (*verticesPtr)[1] = Vec3d(0.0, 0.05, 0.0);
-    auto indicesPtr = std::make_shared<VecDataArray<int, 2>>(1);
-    (*indicesPtr)[0] = Vec2i(0, 1);
-    toolGeometry->initialize(verticesPtr, indicesPtr);
-
-    auto syringeMesh = MeshIO::read<SurfaceMesh>(iMSTK_DATA_ROOT "/Surgical Instruments/Syringes/Disposable_Syringe.stl");
-    syringeMesh->rotate(Vec3d(1.0, 0.0, 0.0), -PI_2, Geometry::TransformType::ApplyToData);
-    syringeMesh->translate(Vec3d(0.0, 4.4, 0.0), Geometry::TransformType::ApplyToData);
-    syringeMesh->scale(0.0055, Geometry::TransformType::ApplyToData);
-    syringeMesh->translate(Vec3d(0.0, 0.1, 0.0));
-
-    toolObj->setVisualGeometry(syringeMesh);
-    toolObj->setCollidingGeometry(toolGeometry);
-    toolObj->setPhysicsGeometry(toolGeometry);
-    toolObj->setPhysicsToVisualMap(std::make_shared<IsometricMap>(toolGeometry, syringeMesh));
-    toolObj->getVisualModel(0)->getRenderMaterial()->setColor(Color(0.9, 0.9, 0.9));
-    toolObj->getVisualModel(0)->getRenderMaterial()->setShadingModel(RenderMaterial::ShadingModel::PBR);
-    toolObj->getVisualModel(0)->getRenderMaterial()->setRoughness(0.5);
-    toolObj->getVisualModel(0)->getRenderMaterial()->setMetalness(1.0);
-    toolObj->getVisualModel(0)->getRenderMaterial()->setIsDynamicMesh(false);
-
-    toolObj->setDynamicalModel(model);
-    toolObj->getPbdBody()->setRigid(
-        Vec3d(0.0, 1.0, 0.0),         // Position
-        1.0,                          // Mass
-        Quatd::Identity(),            // Orientation
-        Mat3d::Identity() * 10000.0); // Inertia
-
-    // Add a component for needle puncturing
-    auto needle = toolObj->addComponent<StraightNeedle>();
-    needle->setNeedleGeometry(toolGeometry);
-
-    // Add a component for controlling via another device
-    auto controller = toolObj->addComponent<PbdObjectController>();
-    controller->setControlledObject(toolObj);
-    controller->setLinearKs(20000.0);
-    controller->setAngularKs(8000000.0);
-    controller->setUseCritDamping(true);
-    controller->setForceScaling(0.05);
-    controller->setSmoothingKernelSize(15);
-    controller->setUseForceSmoothening(true);
-
-    // Add extra component to tool for the ghost
-    auto controllerGhost = toolObj->addComponent<ObjectControllerGhost>();
-    controllerGhost->setUseForceFade(true);
-    controllerGhost->setController(controller);
-
-    return toolObj;
-}
-
 static void
-<<<<<<< HEAD
-<<<<<<< HEAD
 updateDebugGeom(std::shared_ptr<NeedleInteraction>  interaction,
                 std::shared_ptr<DebugGeometryModel> debugGeomObj)
 {
     auto                      needleEmbedder     = std::dynamic_pointer_cast<NeedleEmbedder>(interaction->getEmbedder());
     const std::vector<Vec3d>& debugEmbeddingPts  = needleEmbedder->m_debugEmbeddingPoints;
     const std::vector<Vec3i>& debugEmbeddingTris = needleEmbedder->m_debugEmbeddedTriangles;
-=======
-updateDebugGeom(std::shared_ptr<NeedleInteraction>   interaction,
-                std::shared_ptr<DebugGeometryObject> debugGeomObj)
-=======
-updateDebugGeom(std::shared_ptr<NeedleInteraction>  interaction,
-                std::shared_ptr<DebugGeometryModel> debugGeomObj)
->>>>>>> b151b291 (REFAC: DebugGeometryObject renamed to DebugGeoemtryModel, turned into a component)
-{
-    auto                      needleEmbeddedCH   = std::dynamic_pointer_cast<NeedleEmbeddedCH>(interaction->getEmbeddingCH());
-    const std::vector<Vec3d>& debugEmbeddingPts  = needleEmbeddedCH->m_debugEmbeddingPoints;
-    const std::vector<Vec3i>& debugEmbeddingTris = needleEmbeddedCH->m_debugEmbeddedTriangles;
->>>>>>> 8d3d69be (ENH: ControllerForceText component)
     debugGeomObj->clear();
     for (size_t i = 0; i < debugEmbeddingPts.size(); i++)
     {
@@ -337,7 +260,7 @@ main()
     auto                       debugGeom = toolObj->addComponent<DebugGeometryModel>();
     debugGeom->setLineWidth(0.1);
     scene->addSceneObject(toolObj);
-    
+
     // This adds both contact and puncture functionality
     auto interaction = std::make_shared<NeedleInteraction>(tissueObj, toolObj);
     interaction->setPunctureForceThreshold(3.0);
@@ -401,10 +324,6 @@ main()
             });
 #endif
         controller->setDevice(deviceClient);
-
-        // Add extra component to tool for the ghost
-        std::shared_ptr<ObjectControllerGhost> controllerGhost = toolObj->addComponent<ObjectControllerGhost>();
-        controllerGhost->setController(controller);
 
         int counter = 0;
         connect<Event>(viewer, &VTKViewer::preUpdate,

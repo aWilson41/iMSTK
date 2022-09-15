@@ -178,6 +178,9 @@ struct PbdBody
 
         /// Map for archiving fixed nodes' mass.
         std::unordered_map<int, double> fixedNodeInvMass;
+
+        /// Flag for applying gravity
+        bool hasGravity = true;
 };
 
 ///

@@ -7,12 +7,14 @@
 ###########################################################################
 
 if (iMSTK_USE_RENDERING_VTK)
-  project(Example-TissueScope)
+  project(Example-VRLapToolControl)
 
   #-----------------------------------------------------------------------------
   # Create executable
   #-----------------------------------------------------------------------------
-  imstk_add_executable(${PROJECT_NAME} pbdTissueScopeExampleBag.cpp)
+  imstk_add_executable(${PROJECT_NAME}
+    VRLapToolControlExample.cpp
+  )
 
   #-----------------------------------------------------------------------------
   # Add the target to Examples folder
@@ -24,6 +26,6 @@ if (iMSTK_USE_RENDERING_VTK)
   #-----------------------------------------------------------------------------
   target_link_libraries(${PROJECT_NAME}
     SimulationManager
-    Filtering
-    ViewerVTK)
+    ViewerVTK
+    )
 endif()

@@ -54,11 +54,11 @@ SurfaceMeshToCapsuleCD::computeCollisionDataAB(
             const Vec3d trianglePointA = CollisionUtils::closestPointOnTriangle(capsulePosA, x1, x2, x3, unusedCaseType);
             const Vec3d trianglePointB = CollisionUtils::closestPointOnTriangle(capsulePosB, x1, x2, x3, unusedCaseType);
 
-            const auto segmentPointA = CollisionUtils::closestPointOnSegment(trianglePointA, capsulePosA, capsulePosB, unusedCaseType);
-            const auto segmentPointB = CollisionUtils::closestPointOnSegment(trianglePointB, capsulePosA, capsulePosB, unusedCaseType);
+            const Vec3d segmentPointA = CollisionUtils::closestPointOnSegment(trianglePointA, capsulePosA, capsulePosB, unusedCaseType);
+            const Vec3d segmentPointB = CollisionUtils::closestPointOnSegment(trianglePointB, capsulePosA, capsulePosB, unusedCaseType);
 
-            const auto distanceA = (segmentPointA - trianglePointA).norm();
-            const auto distanceB = (segmentPointB - trianglePointB).norm();
+            const double distanceA = (segmentPointA - trianglePointA).norm();
+            const double distanceB = (segmentPointB - trianglePointB).norm();
 
             const double sphereRadius = capsuleRadius;
             Vec3d spherePos(0, 0, 0);
@@ -76,7 +76,7 @@ SurfaceMeshToCapsuleCD::computeCollisionDataAB(
             }
             else // parallel
             {
-                spherePos = (segmentPointA + segmentPointB) / 2.0;        // switch to intersection point?
+                spherePos = (segmentPointA + segmentPointB) * 0.5; // Switch to intersection point?
             }
 
             // This approach does a built in sphere sweep
@@ -98,10 +98,10 @@ SurfaceMeshToCapsuleCD::computeCollisionDataAB(
                 int pointContact;
 
                 int caseType = CollisionUtils::testSphereToTriangle(
-                spherePos, sphereRadius,
-                cell, x1, x2, x3,
-                triangleContactPt,
-                edgeContact, pointContact);
+                    spherePos, sphereRadius,
+                    cell, x1, x2, x3,
+                    triangleContactPt,
+                    edgeContact, pointContact);
 
                 // Test if capsule centerline intersects with surface
                 Vec3d uvw;
@@ -235,6 +235,6 @@ SurfaceMeshToCapsuleCD::computeCollisionDataAB(
                     lock.unlock();
                 }
             }
-    }, false);
+    }, indices.size() > 1000);
 }
 } // namespace imstk

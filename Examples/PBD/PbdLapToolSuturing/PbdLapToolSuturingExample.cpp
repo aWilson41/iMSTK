@@ -12,6 +12,7 @@
 #include "imstkGeometryUtilities.h"
 #include "imstkIsometricMap.h"
 #include "imstkMeshIO.h"
+#include "imstkObjectControllerGhost.h"
 #include "imstkPbdContactConstraint.h"
 #include "imstkPbdModel.h"
 #include "imstkPbdModelConfig.h"
@@ -33,7 +34,7 @@
 
 using namespace imstk;
 
-//#define USE_TWO_HAPTIC_DEVICES
+#define USE_TWO_HAPTIC_DEVICES
 
 #ifndef USE_TWO_HAPTIC_DEVICES
 #include "imstkDummyClient.h"
@@ -52,10 +53,18 @@ makeLapToolObj(const std::string&        name,
     auto lapTool = std::make_shared<PbdObject>(name);
 
     const double capsuleLength = 0.3;
-    auto         toolGeom      = std::make_shared<Capsule>(Vec3d(0.0, 0.0, capsuleLength * 0.5 - 0.005),
-        0.002,
-        capsuleLength,
-        Quatd(Rotd(PI_2, Vec3d(1.0, 0.0, 0.0))));
+    auto         toolGeom      = std::make_shared<Capsule>(
+        Vec3d(0.0, 0.0, capsuleLength * 0.5 - 0.005), // Position
+        0.002,                                        // Radius
+        capsuleLength,                                // Length
+        Quatd(Rotd(PI_2, Vec3d(1.0, 0.0, 0.0))));     // Orientation
+
+    const double lapToolHeadLength = 0.01;
+    auto         graspCapsule      = std::make_shared<Capsule>(
+        Vec3d(0.0, 0.0, lapToolHeadLength * 0.5),                           // Position
+        0.004,                                                              // Radius
+        lapToolHeadLength,                                                  // Length
+        Quatd::FromTwoVectors(Vec3d(0.0, 1.0, 0.0), Vec3d(0.0, 0.0, 1.0))); // Orientation
 
     auto lapToolVisualGeom = MeshIO::read<SurfaceMesh>(iMSTK_DATA_ROOT "/Surgical Instruments/LapTool/laptool_all_in_one.obj");
 
@@ -64,6 +73,13 @@ makeLapToolObj(const std::string&        name,
     lapTool->setCollidingGeometry(toolGeom);
     lapTool->setVisualGeometry(lapToolVisualGeom);
     lapTool->setPhysicsToVisualMap(std::make_shared<IsometricMap>(toolGeom, lapToolVisualGeom));
+
+    // Add grasp capsule for visualization
+    auto graspVisualModel = std::make_shared<VisualModel>();
+    graspVisualModel->setGeometry(graspCapsule);
+    graspVisualModel->getRenderMaterial()->setIsDynamicMesh(false);
+    graspVisualModel->setIsVisible(false);
+    lapTool->addVisualModel(graspVisualModel);
 
     std::shared_ptr<RenderMaterial> material = lapTool->getVisualModel(0)->getRenderMaterial();
     material->setIsDynamicMesh(false);
@@ -93,6 +109,18 @@ makeLapToolObj(const std::string&        name,
     // this is important for the inversion of control in lap tools (right movement at the
     // back should move the tip left).
     controller->setHapticOffset(Vec3d(0.0, 0.0, capsuleLength));
+
+    // \todo: The grasp capsule and its map can't be placed as components yet.
+    // For now grasp capsule is placed as a VisualModel and the map updated in this lambda
+    auto graspCapsuleMap    = std::make_shared<IsometricMap>(toolGeom, graspCapsule);
+    auto graspCapsuleUpdate = lapTool->addComponent<LambdaBehaviour>("graspCapsuleUpdate");
+    graspCapsuleUpdate->setUpdate([ = ](const double&)
+        {
+            graspCapsuleMap->update();
+        });
+
+    /*auto ghostController = lapTool->addComponent<ObjectControllerGhost>();
+    ghostController->setController(controller);*/
 
     return lapTool;
 }
@@ -134,7 +162,9 @@ makePbdString(
     const int bodyHandle = stringObj->getPbdBody()->bodyHandle;
     model->getConfig()->enableConstraint(PbdModelConfig::ConstraintGenType::Distance, 1000.0,
         bodyHandle);
-    model->getConfig()->enableBendConstraint(0.1, 1, true, bodyHandle);
+    // It should have a high bend but without plasticity it's very difficult to use
+    //model->getConfig()->enableBendConstraint(100.0, 1, true, bodyHandle);
+    model->getConfig()->enableBendConstraint(1.0, 1, true, bodyHandle);
     //model->getConfig()->enableBendConstraint(0.1, 2, true, bodyHandle);
 
     // Add a component to update the suture thread to be on the needle
@@ -241,18 +271,24 @@ main()
     //threadCollision1->setFriction(0.1);
     scene->addInteraction(threadCollision1);
 
-    auto leftGrasping = std::make_shared<PbdObjectGrasping>(needleObj, leftToolObj);
-    leftGrasping->setCompliance(0.00001);
-    scene->addInteraction(leftGrasping);
+    auto leftNeedleGrasping = std::make_shared<PbdObjectGrasping>(needleObj, leftToolObj);
+    leftNeedleGrasping->setCompliance(0.00001);
+    scene->addInteraction(leftNeedleGrasping);
     auto leftThreadGrasping = std::make_shared<PbdObjectGrasping>(sutureThreadObj, leftToolObj);
     leftThreadGrasping->setCompliance(0.00001);
     scene->addInteraction(leftThreadGrasping);
-    auto rightGrasping = std::make_shared<PbdObjectGrasping>(needleObj, rightToolObj);
-    rightGrasping->setCompliance(0.00001);
-    scene->addInteraction(rightGrasping);
+    auto rightNeedleGrasping = std::make_shared<PbdObjectGrasping>(needleObj, rightToolObj);
+    rightNeedleGrasping->setCompliance(0.00001);
+    scene->addInteraction(rightNeedleGrasping);
     auto rightThreadGrasping = std::make_shared<PbdObjectGrasping>(sutureThreadObj, rightToolObj);
     rightThreadGrasping->setCompliance(0.00001);
     scene->addInteraction(rightThreadGrasping);
+
+    // Add thread-thread self collision
+    auto threadOnThreadCollision = std::make_shared<PbdObjectCollision>(sutureThreadObj, sutureThreadObj);
+    threadOnThreadCollision->setDeformableStiffnessA(0.05);
+    threadOnThreadCollision->setDeformableStiffnessB(0.05);
+    scene->addInteraction(threadOnThreadCollision);
 
     // Plane with which to move haptic point of tool on
     auto mousePlane = std::make_shared<Plane>(Vec3d(0.03, 0.1, -0.95), Vec3d(0.1, 0.0, 1.0));
@@ -266,12 +302,12 @@ main()
     std::shared_ptr<DeviceManager> hapticManager = DeviceManagerFactory::makeDeviceManager();
 
 #ifdef USE_TWO_HAPTIC_DEVICES
-    std::shared_ptr<DeviceClient> leftDeviceClient = hapticManager->makeDeviceClient("Default Device");
+    std::shared_ptr<DeviceClient> leftDeviceClient = hapticManager->makeDeviceClient("LeftDevice");
     auto                          leftController   = leftToolObj->getComponent<PbdObjectController>();
     leftController->setDevice(leftDeviceClient);
     leftController->setTranslationOffset(Vec3d(0.0, 0.1, -1.0));
 
-    std::shared_ptr<DeviceClient> rightDeviceClient = hapticManager->makeDeviceClient("Device2");
+    std::shared_ptr<DeviceClient> rightDeviceClient = hapticManager->makeDeviceClient("RightDevice");
     auto                          rightController   = rightToolObj->getComponent<PbdObjectController>();
     rightController->setDevice(rightDeviceClient);
     rightController->setTranslationOffset(Vec3d(0.0, 0.1, -1.0));
@@ -284,15 +320,14 @@ main()
                 if (e->m_buttonState == BUTTON_PRESSED)
                 {
                     // Use a slightly larger capsule since collision prevents intersection
-                    auto capsule = std::dynamic_pointer_cast<Capsule>(rightToolObj->getCollidingGeometry());
-                    auto dilatedCapsule = std::make_shared<Capsule>(*capsule);
-                    dilatedCapsule->setRadius(capsule->getRadius() * 1.2);
-                    rightGrasping->beginCellGrasp(dilatedCapsule);
-                    rightThreadGrasping->beginCellGrasp(dilatedCapsule);
+                    auto graspCapsule = std::dynamic_pointer_cast<Capsule>(
+                        rightToolObj->getVisualModel(1)->getGeometry());
+                    rightNeedleGrasping->beginCellGrasp(graspCapsule);
+                    rightThreadGrasping->beginCellGrasp(graspCapsule);
                 }
                 else if (e->m_buttonState == BUTTON_RELEASED)
                 {
-                    rightGrasping->endGrasp();
+                    rightNeedleGrasping->endGrasp();
                     rightThreadGrasping->endGrasp();
                 }
             }
@@ -314,36 +349,36 @@ main()
             {
                 if (e->m_buttonState == BUTTON_PRESSED)
                 {
-                    // Use a slightly larger capsule since collision prevents intersection
-                    auto capsule = std::dynamic_pointer_cast<Capsule>(leftToolObj->getCollidingGeometry());
-                    auto dilatedCapsule = std::make_shared<Capsule>(*capsule);
-                    dilatedCapsule->setRadius(capsule->getRadius() * 1.2);
-                    leftGrasping->beginCellGrasp(dilatedCapsule);
-                    leftThreadGrasping->beginCellGrasp(dilatedCapsule);
+                    auto graspCapsule = std::dynamic_pointer_cast<Capsule>(
+                        leftToolObj->getVisualModel(1)->getGeometry());
+                    leftNeedleGrasping->beginCellGrasp(graspCapsule);
+                    leftThreadGrasping->beginCellGrasp(graspCapsule);
                 }
                 else if (e->m_buttonState == BUTTON_RELEASED)
                 {
-                    leftGrasping->endGrasp();
+                    leftNeedleGrasping->endGrasp();
                     leftThreadGrasping->endGrasp();
                 }
             }
         });
 
-    auto portHoleInteraction = std::make_shared<PortHoleInteraction>(rightToolObj);
-    portHoleInteraction->setPortHoleLocation(Vec3d(0.015, 0.092, -1.117));
-    auto sphere = std::make_shared<Sphere>(Vec3d(0.015, 0.092, -1.117), 0.01);
-    portHoleInteraction->setVisualGeometry(sphere);
-    portHoleInteraction->setToolGeometry(rightToolObj->getCollidingGeometry());
-    portHoleInteraction->setCompliance(0.000001);
-    scene->addInteraction(portHoleInteraction);
+    auto rightPortHole = rightToolObj->addComponent<PortHoleInteraction>();
+    rightPortHole->setTool(rightToolObj);
+    rightPortHole->setPortHoleLocation(Vec3d(0.015, 0.092, -1.117));
+    rightPortHole->setToolGeometry(rightToolObj->getCollidingGeometry());
+    rightPortHole->setCompliance(0.000001);
+    auto rightPortVisuals = rightToolObj->addComponent<VisualModel>();
+    auto rightPortSphere  = std::make_shared<Sphere>(Vec3d(0.015, 0.092, -1.117), 0.01);
+    rightPortVisuals->setGeometry(rightPortSphere);
 
-    auto portHoleInteraction2 = std::make_shared<PortHoleInteraction>(leftToolObj);
-    portHoleInteraction2->setPortHoleLocation(Vec3d(-0.065, 0.078, -1.127));
-    auto sphere2 = std::make_shared<Sphere>(Vec3d(-0.065, 0.078, -1.127), 0.01);
-    portHoleInteraction2->setVisualGeometry(sphere2);
-    portHoleInteraction2->setToolGeometry(leftToolObj->getCollidingGeometry());
-    portHoleInteraction2->setCompliance(0.000001);
-    scene->addInteraction(portHoleInteraction2);
+    auto leftPortHole = leftToolObj->addComponent<PortHoleInteraction>();
+    leftPortHole->setTool(leftToolObj);
+    leftPortHole->setPortHoleLocation(Vec3d(-0.065, 0.078, -1.127));
+    leftPortHole->setToolGeometry(leftToolObj->getCollidingGeometry());
+    leftPortHole->setCompliance(0.000001);
+    auto leftPortVisuals = leftToolObj->addComponent<VisualModel>();
+    auto leftPortSphere  = std::make_shared<Sphere>(Vec3d(-0.065, 0.078, -1.127), 0.01);
+    leftPortVisuals->setGeometry(leftPortSphere);
 
     // Run the simulation
     {
@@ -409,16 +444,16 @@ main()
         connect<MouseEvent>(viewer->getMouseDevice(), &MouseDeviceClient::mouseButtonPress,
             [&](MouseEvent* e)
             {
-                // Use a slightly larger capsule since collision prevents intersection
-                auto capsule = std::dynamic_pointer_cast<Capsule>(rightToolObj->getCollidingGeometry());
-                auto dilatedCapsule = std::make_shared<Capsule>(*capsule);
-                dilatedCapsule->setRadius(capsule->getRadius() * 1.1);
-                rightGrasping->beginCellGrasp(dilatedCapsule);
+                auto graspCapsule = std::dynamic_pointer_cast<Capsule>(
+                    rightToolObj->getVisualModel(1)->getGeometry());
+                rightNeedleGrasping->beginCellGrasp(graspCapsule);
+                rightThreadGrasping->beginCellGrasp(graspCapsule);
             });
         connect<MouseEvent>(viewer->getMouseDevice(), &MouseDeviceClient::mouseButtonRelease,
             [&](MouseEvent* e)
             {
-                rightGrasping->endGrasp();
+                rightNeedleGrasping->endGrasp();
+                rightThreadGrasping->endGrasp();
             });
 #endif
         connect<Event>(sceneManager, &SceneManager::preUpdate,

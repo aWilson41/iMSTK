@@ -7,10 +7,7 @@
 #pragma once
 
 #include "imstkMacros.h"
-
-#include <functional>
-#include <memory>
-#include <string>
+#include "imstkTaskGraph.h"
 
 namespace imstk
 {
@@ -31,7 +28,7 @@ class Component
 friend class Entity;
 
 protected:
-    Component(const std::string& name = "Component") : m_name(name), m_entity(nullptr) { }
+    Component(const std::string& name = "Component") : m_name(name) { }
 
 public:
     virtual ~Component() = default;
@@ -85,13 +82,53 @@ public:
 };
 
 ///
+/// \class TaskBehaviour
+///
+/// \brief Defines a behaviour that also can also schedule TaskGraph functions.
+/// It's pipeline can also be "joined"/combined with other TaskGraphs. Nodes
+/// shared between two graphs are combined.
+///
+template<typename UpdateInfo>
+class TaskBehaviour : public Behaviour<UpdateInfo>
+{
+protected:
+    TaskBehaviour(const std::string& name = "TaskBehaviour") : Behaviour<UpdateInfo>(name),
+        m_taskGraph(std::make_shared<TaskGraph>())
+    {
+    }
+
+public:
+    ~TaskBehaviour() override = default;
+
+    ///
+    /// \brief Setup the edges/connections of the TaskGraph
+    ///
+    void initGraph()
+    {
+        m_taskGraph->clearEdges();
+        initGraphEdges(m_taskGraph->getSource(), m_taskGraph->getSink());
+    }
+
+    std::shared_ptr<TaskGraph> getTaskGraph() const { return m_taskGraph; }
+
+protected:
+    ///
+    /// \brief Setup the edges/connections of the TaskGraph
+    ///
+    virtual void initGraphEdges(std::shared_ptr<TaskNode> source, std::shared_ptr<TaskNode> sink) = 0;
+
+    std::shared_ptr<TaskGraph> m_taskGraph = nullptr;
+};
+
+///
 /// \class SceneBehaviour
 ///
 /// \brief A SceneBehaviour represents a single component system
 /// that resides in the scene. It makes the assumption that all
 /// components used are updated with a double for deltaTime/time passed.
 ///
-using SceneBehaviour = Behaviour<double>;
+using SceneBehaviour     = Behaviour<double>;
+using SceneTaskBehaviour = TaskBehaviour<double>;
 
 ///
 /// \brief A SceneBehaviour that can update via a lambda function

@@ -126,11 +126,6 @@ public:
         const std::vector<double>& weightsB,
         const double stiffnessA, const double stiffnessB);
 
-    /*virtual void addBodyConstraint(
-        const PbdParticleId& bodyId,
-        const Vec3d& supportPt,
-        const double compliance);*/
-
     ///
     /// \brief Add 0 distance constraint between two points defined on
     /// two separate bodies.
@@ -157,6 +152,17 @@ public:
     void setPickingAlgorithm(std::shared_ptr<PickingAlgorithm> pickMethod) { m_pickMethod = pickMethod; }
     std::shared_ptr<PickingAlgorithm> getPickingAlgorithm() const { return m_pickMethod; }
     ///@}
+    
+    ///
+    /// \brief Get the object that is grasped
+    /// 
+    std::shared_ptr<PbdObject> getObjectToGrasp() const { return m_objectToGrasp; }
+    
+    ///
+    /// \brief Get the object that does the grasping. This may not
+    /// be present if grasping with static geometry.
+    /// 
+    std::shared_ptr<PbdObject> getGrasperObject() const { return m_grasperObject; }
 
     ///
     /// \brief Set a different geometry to pick with and a mapping back to the physics geometry

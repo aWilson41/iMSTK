@@ -210,6 +210,10 @@ mark_as_superbuild(${PROJECT_NAME}_USE_HAPTICS:BOOL)
 cmake_dependent_option(${PROJECT_NAME}_USE_BUILTIN_LOGGING "Uses iMSTK local logger when g3log and its error behavior is not wanted" OFF "NOT ${PROJECT_NAME}_BUILD_FOR_UNITY" ON)
 mark_as_superbuild(${PROJECT_NAME}_USE_BUILTIN_LOGGING:BOOL)
 
+# resource path option
+set(VLAHHS_DATA_PATH ${CMAKE_SOURCE_DIR}/resources/ CACHE PATH "path to VLAHHS resources")
+mark_as_superbuild(VLAHHS_DATA_PATH:PATH)
+
 #-----------------------------------------------------------------------------
 # CTest/Dashboards
 #-----------------------------------------------------------------------------
@@ -449,6 +453,7 @@ if (${PROJECT_NAME}_USE_BUILTIN_LOGGING)
   add_definitions( -DiMSTK_SYNCHRONOUS_LOGGING)
 endif()
 
+add_definitions( -DVLAHHS_DATA_PATH=\"${VLAHHS_DATA_PATH}\")
 
 #-----------------------------------------------------------------------------
 # Data

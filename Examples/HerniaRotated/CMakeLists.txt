@@ -6,27 +6,26 @@
 #
 ###########################################################################
 
-
-if (iMSTK_USE_RENDERING_VTK)
-  project(Example-OpenVRController)
+if (iMSTK_USE_HAPTICS AND iMSTK_USE_RENDERING_VTK)
+  project(Example-HerniaRotated)
 
   #-----------------------------------------------------------------------------
   # Create executable
   #-----------------------------------------------------------------------------
   imstk_add_executable(${PROJECT_NAME}
-    OpenVRControllerExample.cpp
-    CameraOpenVRControl.h
-    CameraOpenVRControl.cpp)
+    herniaRotatedExample.cpp
+    VRHandControl.h)
 
   #-----------------------------------------------------------------------------
   # Add the target to Examples folder
   #-----------------------------------------------------------------------------
-  set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Examples/OpenVR)
+  set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Examples/Hernia)
 
   #-----------------------------------------------------------------------------
   # Link libraries to executable
   #-----------------------------------------------------------------------------
   target_link_libraries(${PROJECT_NAME}
     SimulationManager
+    Filtering
     ViewerVTK)
 endif()

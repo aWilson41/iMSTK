@@ -86,47 +86,66 @@ PbdConstraintContainer::partitionConstraints(const int partitionedThreshold)
 
     //std::cout << "---------partitionConstraints: " << allConstraints.size() << std::endl;
 
-    std::unordered_map<size_t, std::vector<size_t>> vertexConstraints;
+    // Determine the maximum body id
+    size_t maxBodyId = 0;
     for (size_t constrIdx = 0; constrIdx < allConstraints.size(); ++constrIdx)
     {
-        const auto& constr = allConstraints[constrIdx];
+        const std::shared_ptr<PbdConstraint>& constr = allConstraints[constrIdx];
         for (const auto& vIds : constr->getParticles())
         {
-            vertexConstraints[vIds.second].push_back(constrIdx);
+            maxBodyId = std::max(maxBodyId, static_cast<size_t>(vIds.first));
+        }
+    }
+
+    // Fully unique hash up until (num particles * maxinum # bodies = max size_t)
+    auto getParticleUniqueId = [=](const PbdParticleId& pid)
+    {
+        return pid.second * maxBodyId + pid.first;
+    };
+
+    // Map particle ids -> constraint ids
+    std::unordered_map<size_t, std::vector<size_t>> particleIdToConstraintIds;
+    for (size_t constrIdx = 0; constrIdx < allConstraints.size(); ++constrIdx)
+    {
+        const std::shared_ptr<PbdConstraint>& constr = allConstraints[constrIdx];
+        for (const PbdParticleId& particleId : constr->getParticles())
+        {
+            particleIdToConstraintIds[getParticleUniqueId(particleId)].push_back(constrIdx);
         }
     }
 
     // Add edges to the constraint graph
     // Each edge represent a shared vertex between two constraints
     Graph constraintGraph(allConstraints.size());
-    for (const auto& kv : vertexConstraints)
+    for (const auto& kv : particleIdToConstraintIds)
     {
-        const auto& constraints = kv.second;     // the list of constraints for a vertex
-        for (size_t i = 0; i < constraints.size(); ++i)
+        // The list of constraints for a particle
+        const std::vector<size_t>& constraintIds = kv.second;
+        for (size_t i = 0; i < constraintIds.size(); i++)
         {
-            for (size_t j = i + 1; j < constraints.size(); ++j)
+            for (size_t j = i + 1; j < constraintIds.size(); j++)
             {
-                constraintGraph.addEdge(constraints[i], constraints[j]);
+                constraintGraph.addEdge(constraintIds[i], constraintIds[j]);
             }
         }
     }
-    vertexConstraints.clear();
+    particleIdToConstraintIds.clear();
 
     // do graph coloring for the constraint graph
-    const auto coloring = constraintGraph.doColoring(Graph::ColoringMethod::WelshPowell);
+    const Graph::ColorsType coloring = constraintGraph.doColoring(Graph::ColoringMethod::WelshPowell);
     // const auto  coloring = constraintGraph.doColoring(Graph::ColoringMethod::Greedy);
-    const auto& partitionIndices = coloring.first;
-    const auto  numPartitions    = coloring.second;
+    const std::vector<unsigned short>& partitionIndices = coloring.first;
+    const unsigned short numPartitions = coloring.second;
     assert(partitionIndices.size() == allConstraints.size());
 
     std::vector<std::vector<std::shared_ptr<PbdConstraint>>>& partitionedConstraints = m_partitionedConstraints;
     partitionedConstraints.resize(0);
     partitionedConstraints.resize(static_cast<size_t>(numPartitions));
 
-    for (size_t constrIdx = 0; constrIdx < partitionIndices.size(); ++constrIdx)
+    for (size_t constraintId = 0; constraintId < partitionIndices.size(); constraintId++)
     {
-        const auto partitionIdx = partitionIndices[constrIdx];
-        partitionedConstraints[partitionIdx].push_back(allConstraints[constrIdx]);
+        const unsigned short partitionIdx = partitionIndices[constraintId];
+        partitionedConstraints[partitionIdx].push_back(allConstraints[constraintId]);
     }
 
     // If a partition has size smaller than the partition threshold, then move its constraints back
@@ -137,27 +156,27 @@ PbdConstraintContainer::partitionConstraints(const int partitionedThreshold)
     {
         if (constraints.size() < partitionedThreshold)
         {
-            for (size_t constrIdx = 0; constrIdx < constraints.size(); ++constrIdx)
+            for (size_t constraintId = 0; constraintId < constraints.size(); constraintId++)
             {
-                allConstraints.push_back(std::move(constraints[constrIdx]));
+                allConstraints.push_back(std::move(constraints[constraintId]));
             }
         }
     }
 
     // Remove all empty partitions
-    size_t writeIdx = 0;
+    size_t writeId = 0;
     for (size_t readIdx = 0; readIdx < partitionedConstraints.size(); ++readIdx)
     {
         if (partitionedConstraints[readIdx].size() >= partitionedThreshold)
         {
-            if (readIdx != writeIdx)
+            if (readIdx != writeId)
             {
-                partitionedConstraints[writeIdx] = std::move(partitionedConstraints[readIdx]);
+                partitionedConstraints[writeId] = std::move(partitionedConstraints[readIdx]);
             }
-            ++writeIdx;
+            writeId++;
         }
     }
-    partitionedConstraints.resize(writeIdx);
+    partitionedConstraints.resize(writeId);
 
     // Print
     /*if (print)

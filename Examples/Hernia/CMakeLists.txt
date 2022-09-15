@@ -6,7 +6,7 @@
 #
 ###########################################################################
 
-if (iMSTK_USE_RENDERING_VTK)
+if (iMSTK_USE_HAPTICS AND iMSTK_USE_RENDERING_VTK)
   project(Example-Hernia)
 
   #-----------------------------------------------------------------------------
@@ -17,7 +17,7 @@ if (iMSTK_USE_RENDERING_VTK)
   #-----------------------------------------------------------------------------
   # Add the target to Examples folder
   #-----------------------------------------------------------------------------
-  set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Examples)
+  set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Examples/Hernia)
 
   #-----------------------------------------------------------------------------
   # Link libraries to executable

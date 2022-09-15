@@ -10,8 +10,10 @@
 #include "imstkDeviceManagerFactory.h"
 #include "imstkDirectionalLight.h"
 #include "imstkGeometryUtilities.h"
+#include "imstkIsometricMap.h"
 #include "imstkKeyboardDeviceClient.h"
 #include "imstkKeyboardSceneControl.h"
+#include "imstkMeshIO.h"
 #include "imstkMouseDeviceClient.h"
 #include "imstkMouseSceneControl.h"
 #include "imstkPbdModel.h"
@@ -104,8 +106,8 @@ makeTissueObj(const std::string& name,
     tissueMesh->setVertexAttribute("ReferenceCount", referenceCountPtr);
 
     // Use FEMTet constraints
-    model->getConfig()->m_femParams->m_YoungModulus = 50.0;
-    model->getConfig()->m_femParams->m_PoissonRatio = 0.4;
+    model->getConfig()->m_femParams->m_YoungModulus = 10000.0;
+    model->getConfig()->m_femParams->m_PoissonRatio = 0.49;
     model->getConfig()->enableFemConstraint(PbdFemConstraint::MaterialType::StVK);
 
     // Setup the material
@@ -131,7 +133,7 @@ makeTissueObj(const std::string& name,
         {
             for (int x = 0; x < dim[0]; x++)
             {
-                if (x == 0 || /*z == 0 ||*/ x == dim[0] - 1 /*|| z == dim[2] - 1*/)
+                if (/*x == 0 ||*/ z == 0 || /*x == dim[0] - 1 ||*/ z == dim[2] - 1)
                 {
                     tissueObj->getPbdBody()->fixedNodeIds.push_back(x + dim[0] * (y + dim[1] * z) + 1); // +1 for dummy vertex
                 }
@@ -146,14 +148,24 @@ makeTissueObj(const std::string& name,
 static std::shared_ptr<PbdObject>
 makeToolObj(std::shared_ptr<PbdModel> model)
 {
-    auto plane = std::make_shared<Plane>();
-    plane->setWidth(1.0);
+    auto plane = std::make_shared<Plane>(Vec3d(0.0, 0.0, 0.0), Vec3d(1.0, 0.0, 0.0));
+    plane->setWidth(0.005);
     std::shared_ptr<SurfaceMesh> toolGeom = GeometryUtils::toSurfaceMesh(plane);
 
+    auto toolMesh = MeshIO::read<SurfaceMesh>(
+        iMSTK_DATA_ROOT "/Surgical Instruments/Scalpel/Scalpel_Hull_Subdivided_Shifted.stl");
+    toolMesh->rotate(Vec3d(1.0, 0.0, 0.0), -PI_2, Geometry::TransformType::ApplyToData);
+    toolMesh->scale(0.01, Geometry::TransformType::ApplyToData);
+
     auto toolObj = std::make_shared<PbdObject>("Tool");
-    toolObj->setVisualGeometry(toolGeom);
+    toolObj->setVisualGeometry(toolMesh);
+    auto visualModel = std::make_shared<VisualModel>();
+    visualModel->setGeometry(plane);
+    toolObj->addVisualModel(visualModel);
     toolObj->setCollidingGeometry(toolGeom);
-    toolObj->setPhysicsGeometry(toolGeom);
+    toolObj->setPhysicsGeometry(plane);
+    toolObj->setPhysicsToCollidingMap(std::make_shared<IsometricMap>(plane, toolGeom));
+    toolObj->setPhysicsToVisualMap(std::make_shared<IsometricMap>(plane, toolMesh));
     toolObj->setDynamicalModel(model);
     toolObj->getVisualModel(0)->getRenderMaterial()->setColor(Color::Blue);
     toolObj->getVisualModel(0)->getRenderMaterial()->setDisplayMode(RenderMaterial::DisplayMode::WireframeSurface);
@@ -168,7 +180,6 @@ makeToolObj(std::shared_ptr<PbdModel> model)
 
     auto controller = toolObj->addComponent<PbdObjectController>();
     controller->setControlledObject(toolObj);
-    controller->setTranslationScaling(60.0);
     controller->setLinearKs(1000.0);
     controller->setLinearKd(50.0);
     controller->setAngularKs(10000000.0);
@@ -191,20 +202,20 @@ main()
 
     // Setup the scene
     auto scene =  std::make_shared<Scene>("PbdTissueCut");
-    scene->getActiveCamera()->setPosition(0.12, 4.51, 16.51);
+    scene->getActiveCamera()->setPosition(0.0, 0.1, 0.1);
     scene->getActiveCamera()->setFocalPoint(0.0, 0.0, 0.0);
-    scene->getActiveCamera()->setViewUp(0.0, 0.96, -0.28);
+    scene->getActiveCamera()->setViewUp(-0.01, 0.48, -0.88);
 
     // Setup the Model/System
     auto pbdModel = std::make_shared<PbdModel>();
     pbdModel->getConfig()->m_doPartitioning = false;
     pbdModel->getConfig()->m_gravity    = Vec3d(0.0, -0.2, 0.0);
-    pbdModel->getConfig()->m_dt         = 0.05;
-    pbdModel->getConfig()->m_iterations = 5;
+    pbdModel->getConfig()->m_dt         = 0.005;
+    pbdModel->getConfig()->m_iterations = 2;
 
     // Setup a tissue
     std::shared_ptr<PbdObject> tissueObj = makeTissueObj("Tissue",
-        Vec3d(10.0, 3.0, 10.0), Vec3i(10, 3, 10), Vec3d(0.0, -1.0, 0.0),
+        Vec3d(0.1, 0.03, 0.1), Vec3i(15, 5, 15), Vec3d(0.0, 0.0, 0.0),
         pbdModel);
     scene->addSceneObject(tissueObj);
 
@@ -227,6 +238,7 @@ main()
         auto viewer = std::make_shared<VTKViewer>();
         viewer->setActiveScene(scene);
         viewer->setVtkLoggerMode(VTKViewer::VTKLoggerMode::MUTE);
+        viewer->setDebugAxesLength(0.1, 0.1, 0.1);
 
         // Setup a scene manager to advance the scene
         auto sceneManager = std::make_shared<SceneManager>();
@@ -236,7 +248,7 @@ main()
         auto driver = std::make_shared<SimulationManager>();
         driver->addModule(viewer);
         driver->addModule(sceneManager);
-        driver->setDesiredDt(0.01);
+        driver->setDesiredDt(0.005);
 
         // Setup default haptics manager
         std::shared_ptr<DeviceManager> hapticManager = DeviceManagerFactory::makeDeviceManager();
@@ -265,9 +277,10 @@ main()
                     const Vec3d left    = (rot * Vec3d(1.0, 0.0, 0.0)).normalized();
                     const Vec3d n       = (rot * Vec3d(0.0, 1.0, 0.0)).normalized();
 
-                    const Vec3d planePos        = toolGeom->getTranslation();
-                    const Vec3d planeNormal     = n;
-                    const double planeWidth     = 1.1; // Slightly larger than collision geometry
+                    const Vec3d planePos    = toolGeom->getTranslation();
+                    const Vec3d planeNormal = n;
+                    auto planeGeom = std::dynamic_pointer_cast<Plane>(toolObj->getPhysicsGeometry());
+                    const double planeWidth     = planeGeom->getWidth() * 1.1; // Slightly larger than collision geometry
                     const double planeHalfWidth = planeWidth * 0.5;
 
                     std::shared_ptr<VecDataArray<double, 3>> tissueVerticesPtr = tissueMesh->getVertexPositions();

@@ -17,6 +17,7 @@ imstk_add_library( Scene
     imstkRigidObjectLevelSetCollision.h
     imstkScene.h
     imstkSphObjectCollision.h
+    imstkTetrahedralize.h
   CPP_FILES
     imstkCollisionInteraction.cpp
     imstkControllerForceText.cpp
@@ -30,6 +31,7 @@ imstk_add_library( Scene
     imstkRigidObjectLevelSetCollision.cpp
     imstkScene.cpp
     imstkSphObjectCollision.cpp
+    imstkTetrahedralize.cpp
   DEPENDS
     Common
     CollisionDetection

@@ -16,7 +16,6 @@
 #include "imstkVisualModel.h"
 #include "imstkVTKSurfaceMeshRenderDelegate.h"
 
-#include <vtkAxesActor.h>
 #include <vtkCameraActor.h>
 #include <vtkCullerCollection.h>
 #include <vtkLight.h>
@@ -281,19 +280,26 @@ VTKRenderer::setTimeTable(const std::unordered_map<std::string, double>& timeTab
     std::sort(nameToTimesVec.begin(), nameToTimesVec.end(),
         [](const std::pair<std::string, double>& a, const std::pair<std::string, double>& b) { return a.second < b.second; });
 
+    const size_t maxNumTasks = 20;
+    const size_t numTasks = std::min(maxNumTasks, nameToTimesVec.size());
+
     // Construct vtkTable from provided data
     vtkSmartPointer<vtkDoubleArray> xIndices      = vtkDoubleArray::SafeDownCast(m_timeTable->GetColumn(0));
     vtkSmartPointer<vtkDoubleArray> yElapsedTimes = vtkDoubleArray::SafeDownCast(m_timeTable->GetColumn(1));
     vtkSmartPointer<vtkStringArray> labels = vtkStringArray::SafeDownCast(m_timeTable->GetColumn(2));
 
-    labels->SetNumberOfValues(nameToTimesVec.size());
-    xIndices->SetNumberOfValues(nameToTimesVec.size());
-    yElapsedTimes->SetNumberOfValues(nameToTimesVec.size());
-    for (size_t i = 0; i < nameToTimesVec.size(); i++)
+    // Only display the last N tasks
+    labels->SetNumberOfValues(numTasks);
+    xIndices->SetNumberOfValues(numTasks);
+    yElapsedTimes->SetNumberOfValues(numTasks);
+    for (size_t i = nameToTimesVec.size() - 1, j = 0; j < numTasks; i--, j++)
     {
-        labels->SetValue(i, nameToTimesVec[i].first.c_str());
-        xIndices->SetValue(i, i + 1);
-        yElapsedTimes->SetValue(i, nameToTimesVec[i].second);
+        const std::string& name = nameToTimesVec[i].first;
+        const double time = nameToTimesVec[i].second;
+
+        labels->SetValue(j, name.c_str());
+        xIndices->SetValue(j, numTasks - j + 1);
+        yElapsedTimes->SetValue(j, time);
     }
 
     // The range for the x axis is based on history of the elapsed times
@@ -351,7 +357,19 @@ VTKRenderer::updateCamera()
     getVtkRenderer()->SetActiveCamera(m_camera);
 
     // As long as we don't have a VR camera apply the camera view
-    if (vtkOpenVRCamera::SafeDownCast(m_camera) == nullptr)
+    if (auto vtkVRCam = vtkOpenVRCamera::SafeDownCast(m_camera))
+    {
+        // Copy back the view values from the VR cam to hmd_view in ours
+        vtkMatrix4x4* finalView = m_camera->GetModelViewTransformMatrix();
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                cam->m_hmdView(i, j) = finalView->GetElement(j, i);
+            }
+        }
+    }
+    else
     {
         // Update the camera to obtain corrected view/proj matrices
         cam->update();

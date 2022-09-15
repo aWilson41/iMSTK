@@ -60,12 +60,14 @@ ObjectControllerGhost::visualUpdate(const double&)
 {
     Quatd orientation = Quatd::Identity();
     Vec3d position    = Vec3d::Zero();
+    Vec3d offset      = Vec3d::Zero();
     Vec3d force       = Vec3d::Zero();
     if (m_pbdController != nullptr)
     {
         orientation = m_pbdController->getOrientation();
         position    = m_pbdController->getPosition();
         force       = m_pbdController->getDeviceForce();
+        offset      = m_pbdController->getHapticOffset();
     }
     else
     {
@@ -77,7 +79,7 @@ ObjectControllerGhost::visualUpdate(const double&)
     // Update the ghost debug geometry
     std::shared_ptr<Geometry> toolGhostMesh = m_ghostVisualModel->getGeometry();
     toolGhostMesh->setRotation(orientation);
-    toolGhostMesh->setTranslation(position);
+    toolGhostMesh->setTranslation(position - orientation._transformVector(offset));
     toolGhostMesh->updatePostTransformData();
     toolGhostMesh->postModified();
 

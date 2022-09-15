@@ -127,9 +127,9 @@ public:
     double m_linearDampingCoeff  = 0.01;      ///< Damping coefficient applied to linear velocity [0, 1]
     double m_angularDampingCoeff = 0.01;      ///< Damping coefficient applied to angular velcoity [0, 1]
 
-    unsigned int m_iterations = 10;           ///< Internal constraints pbd solver iterations
-    double       m_dt     = 0.01;             ///< Time step size
-    bool m_doPartitioning = true;             ///< Does graph coloring to solve in parallel
+    unsigned int m_iterations = 10; ///< Internal constraints pbd solver iterations
+    double       m_dt     = 0.01;   ///< Time step size
+    bool m_doPartitioning = false;  ///< Does graph coloring to solve in parallel (only works when using one body)
 
     Vec3d m_gravity = Vec3d(0.0, -9.81, 0.0); ///< Gravity acceleration
 

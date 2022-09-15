@@ -28,7 +28,9 @@
 #include "imstkSimulationManager.h"
 #include "imstkSimulationUtils.h"
 #include "imstkTextVisualModel.h"
+#include "imstkPointToTetMap.h"
 #include "imstkVTKViewer.h"
+#include "imstkSurfaceMeshSubdivide.h"
 
 #ifdef iMSTK_USE_HAPTICS
 #include "imstkDeviceManager.h"
@@ -84,6 +86,13 @@ makeTissueObj(const std::string& name,
     std::shared_ptr<SurfaceMesh>     surfMesh   = tissueMesh->extractSurfaceMesh();
     setSphereTexCoords(surfMesh, 4.0);
 
+    // Subdivide the surf mesh once
+    SurfaceMeshSubdivide subdiv;
+    subdiv.setInputMesh(surfMesh);
+    subdiv.setNumberOfSubdivisions(1);
+    subdiv.update();
+    std::shared_ptr<SurfaceMesh> fancyMesh = subdiv.getOutputMesh();
+
     // Setup the material
     auto material = std::make_shared<RenderMaterial>();
     material->setShadingModel(RenderMaterial::ShadingModel::PBR);
@@ -94,9 +103,9 @@ makeTissueObj(const std::string& name,
     auto ormTex = MeshIO::read<ImageData>(iMSTK_DATA_ROOT "/textures/fleshORM.jpg");
     material->addTexture(std::make_shared<Texture>(ormTex, Texture::Type::ORM));
 
-    // Add a visual model to render the surface of the tet mesh
+    // Add a visual model to render the fancy surface mesh
     auto visualModel = std::make_shared<VisualModel>();
-    visualModel->setGeometry(surfMesh);
+    visualModel->setGeometry(fancyMesh);
     visualModel->setRenderMaterial(material);
 
     // Add a visual model to render the normals of the surface
@@ -111,7 +120,12 @@ makeTissueObj(const std::string& name,
     tissueObj->addVisualModel(normalsVisualModel);
     tissueObj->setPhysicsGeometry(tissueMesh);
     tissueObj->setCollidingGeometry(surfMesh);
+    // Use the coincidnent SurfaceMesh for collision
     tissueObj->setPhysicsToCollidingMap(std::make_shared<PointwiseMap>(tissueMesh, surfMesh));
+    // Use the fancy SurfaceMesh for visuals
+    auto visualMap = std::make_shared<PointToTetMap>(tissueMesh, fancyMesh);
+    visualMap->compute();
+    tissueObj->setPhysicsToVisualMap(visualMap);
     tissueObj->setDynamicalModel(model);
     tissueObj->getPbdBody()->uniformMassValue = 0.05;
     // Fix the borders
@@ -143,7 +157,6 @@ makeTissueObj(const std::string& name,
 static std::shared_ptr<PbdObject>
 makeToolObj(std::shared_ptr<PbdModel> model)
 {
-    //auto toolGeometry = std::make_shared<Sphere>(Vec3d::Zero(), 0.5);
     auto                    toolGeometry = std::make_shared<LineMesh>();
     VecDataArray<double, 3> vertices     = { Vec3d(0.0, 0.0, 0.0), Vec3d(0.0, 2.0, 0.0) };
     VecDataArray<int, 2>    indices      = { Vec2i(0, 1) };
@@ -163,25 +176,9 @@ makeToolObj(std::shared_ptr<PbdModel> model)
     model->getConfig()->setBodyDamping(toolObj->getPbdBody()->bodyHandle, 0.05, 0.0);
 
     toolObj->getPbdBody()->setRigid(Vec3d(0.0, 0.8, 0.0), // Position
-        0.5,                                              // Mass
+        0.2,                                              // Mass
         Quatd::Identity(),                                // Orientation
         Mat3d::Identity() * 10.0);                        // Inertia
-<<<<<<< HEAD
-
-    // Add a component for controlling via a device
-    auto controller = toolObj->addComponent<PbdObjectController>();
-    controller->setControlledObject(toolObj);
-    controller->setLinearKs(5000.0);
-    controller->setAngularKs(10000.0);
-    controller->setUseCritDamping(true);
-    controller->setForceScaling(0.0025);
-    controller->setUseForceSmoothening(true);
-
-    // Add extra component to tool for the ghost
-    auto controllerGhost = toolObj->addComponent<ObjectControllerGhost>();
-    controllerGhost->setController(controller);
-=======
->>>>>>> 8d3d69be (ENH: ControllerForceText component)
 
     // Add a component for controlling via a device
     auto controller = toolObj->addComponent<PbdObjectController>();
@@ -222,11 +219,12 @@ main()
     auto pbdModel = std::make_shared<PbdModel>();
     pbdModel->getConfig()->m_doPartitioning = false;
     pbdModel->getConfig()->m_gravity    = Vec3d(0.0, 0.0, 0.0);
-    pbdModel->getConfig()->m_iterations = 2;
+    pbdModel->getConfig()->m_dt         = 0.05;
+    pbdModel->getConfig()->m_iterations = 5;
 
     // Setup a tissue
     std::shared_ptr<PbdObject> tissueObj = makeTissueObj("Tissue",
-        Vec3d(8.0, 2.0, 8.0), Vec3i(8, 5, 8), Vec3d(0.0, -1.0, 0.0), pbdModel);
+        Vec3d(8.0, 2.0, 8.0), Vec3i(6, 5, 6), Vec3d(0.0, -1.0, 0.0), pbdModel);
     scene->addSceneObject(tissueObj);
 
     // Setup a tool

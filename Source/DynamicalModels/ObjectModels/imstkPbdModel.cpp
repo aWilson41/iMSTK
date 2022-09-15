@@ -280,6 +280,7 @@ PbdModel::integratePosition(PbdBody& body)
     CHECK(numParticles == prevPos.size()) << "PbdModel data corrupt";
     CHECK(numParticles == vel.size()) << "PbdModel data corrupt";
     CHECK(numParticles == invMasses.size()) << "PbdModel data corrupt";
+    const double gravityMask = static_cast<double>(body.hasGravity);
 
     const double dt = m_config->m_dt;
     const double linearVelocityDamp = 1.0 - m_config->getLinearDamping(body.bodyHandle);
@@ -288,7 +289,7 @@ PbdModel::integratePosition(PbdBody& body)
         {
             if (std::abs(invMasses[i]) > 0.0)
             {
-                const Vec3d accel = m_config->m_gravity + body.externalForce * invMasses[i];
+                const Vec3d accel = m_config->m_gravity * gravityMask + body.externalForce * invMasses[i];
                 vel[i]    += accel * dt;
                 vel[i]    *= linearVelocityDamp;
                 prevPos[i] = pos[i];
