@@ -41,6 +41,12 @@
     variables:
         CMAKE_CONFIGURATION: windows_vs2022_ninja
 
+.windows_vs2022_ninja_unity:
+    extends: .windows_vs2022
+
+    variables:
+        CMAKE_CONFIGURATION: windows_vs2022_ninja_unity
+
 ## Tags
 
 .windows_builder_tags:
@@ -63,7 +69,9 @@
     - cmake --version
     - ninja --version
     - cmake -P .gitlab/ci/download_python.cmake
-    - Set-Item -Force -Path "env:PATH" -Value "$pwdpath\.gitlab\python;$env:PATH"
+    - cmake -P .gitlab/ci/download_swig.cmake
+    - Set-Item -Force -Path "env:PATH" -Value "$pwdpath\.gitlab\python;$pwdpath\.gitlab\swig;$env:PATH"
+    - Set-Item -Force -Path "env:SWIG_EXECUTABLE" -Value "$pwdpath\.gitlab\swig\swig.exe"
     - Set-Item -Force -Path "env:PYTHONHOME" -Value "$pwdpath\.gitlab\python"
 
 .cmake_build_windows:

@@ -81,3 +81,15 @@ windows-vs2022-ninja:test:
         - windows-vs2022-ninja:build
     needs:
         - windows-vs2022-ninja:build
+
+# Windows with C# Wrapper
+
+## Build and test
+
+windows-vs2022-ninja-unity:build:
+    extends:
+        - .windows_vs2022_ninja_unity
+        - .cmake_build_windows
+        - .cmake_build_artifacts
+        - .windows_builder_tags
+        - .run_manually

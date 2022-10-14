@@ -138,6 +138,9 @@ configure_file(iMSTKCWrapperConfig.cmake.in
 
 # If on msvc, generate a library/.dll out of our generated C# files
 if (MSVC)
+    # This will only ever work on Visual Studio, for testing purposes,
+    # try to use the visual studio generator
+
     # Because the files aren't generated until build time of the iMSTKCWrapper target
     # we must wait to configure it until after it's done building
     include(ExternalProject)
@@ -151,6 +154,7 @@ if (MSVC)
         STAMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/iMSTKCSharpWrapper/stamp"
         TMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/iMSTKCSharpWrapper/tmp"
         INSTALL_DIR "install"
+        CMAKE_GENERATOR "Visual Studio 17 2022" # How can I ask for the latest version of visual studio available?
         CMAKE_CACHE_ARGS
             -DiMSTKCWrapper_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}
             -DSWIG_OUTPUT_DIR:PATH=${SWIG_CSHARP_OUTPUT_DIR}

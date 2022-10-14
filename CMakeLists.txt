@@ -141,12 +141,6 @@ mark_as_superbuild(${PROJECT_NAME}_BUILD_EXAMPLES:BOOL)
 option(${PROJECT_NAME}_BUILD_TESTING "Build iMSTK tests" ON)
 mark_as_superbuild(${PROJECT_NAME}_BUILD_TESTING:BOOL)
 
-option(${PROJECT_NAME}_BUILD_VISUAL_TESTING "Build iMSTK visual tests" ON)
-if (${PROJECT_NAME}_BUILD_VISUAL_TESTING)
-    set(${PROJECT_NAME}_BUILD_TESTING ON)
-endif()
-mark_as_superbuild(${PROJECT_NAME}_BUILD_VISUAL_TESTING:BOOL)
-
 set(BUILD_TESTING OFF)
 if (${PROJECT_NAME}_BUILD_TESTING)
   set(BUILD_TESTING ON)
@@ -155,7 +149,6 @@ endif ()
 #Build Benchmark
 option(${PROJECT_NAME}_BUILD_BENCHMARK "Build iMSTK benchmarks" OFF)
 mark_as_superbuild(${PROJECT_NAME}_BUILD_BENCHMARK:BOOL)
-
 
 if (UNIX)
   option(${PROJECT_NAME}_USE_MODEL_REDUCTION "Build with model reduction, requires a VegaFEM built with Intel MKL and arpack" OFF)
@@ -185,14 +178,16 @@ if (${PROJECT_NAME}_USE_HAPLY)
   message(WARNING "iMSTK_USE_HAPLY set to true, this code is based of an early version of the Haply API")
 endif()
 
-cmake_dependent_option(${PROJECT_NAME}_USE_RENDERING_VTK "Build with/out VTK rendering support" ON "NOT ${PROJECT_NAME}_BUILD_FOR_UNITY" OFF)
+cmake_dependent_option(${PROJECT_NAME}_USE_RENDERING_VTK "Build with/out VTK rendering support" ON
+  "NOT ${PROJECT_NAME}_BUILD_FOR_UNITY" OFF)
 mark_as_superbuild(${PROJECT_NAME}_USE_RENDERING_VTK:BOOL)
+
+cmake_dependent_option(${PROJECT_NAME}_BUILD_VISUAL_TESTING "Build iMSTK visual tests" ON
+  "${PROJECT_NAME}_USE_RENDERING_VTK AND ${PROJECT_NAME}_BUILD_TESTING" ON)
+mark_as_superbuild(${PROJECT_NAME}_BUILD_VISUAL_TESTING:BOOL)
 
 if (NOT ${PROJECT_NAME}_USE_RENDERING_VTK AND ${PROJECT_NAME}_USE_VTK_OSMESA)
   message(FATAL_ERROR "Setting ${PROJECT_NAME}_USE_VTK_OSMESA ON is only supported when ${PROJECT_NAME}_USE_RENDERING_VTK is ON")
-endif()
-if (NOT ${PROJECT_NAME}_USE_RENDERING_VTK AND ${PROJECT_NAME}_BUILD_VISUAL_TESTING)
-  message(FATAL_ERROR "Setting ${PROJECT_NAME}_BUILD_VISUAL_TESTING ON is only supported when ${PROJECT_NAME}_USE_RENDERING_VTK is ON")
 endif()
 
 option(${PROJECT_NAME}_USE_OpenHaptics "Use OpenHaptic Support." OFF)
@@ -207,7 +202,8 @@ if (${PROJECT_NAME}_USE_HAPLY OR ${PROJECT_NAME}_USE_OpenHaptics OR ${PROJECT_NA
 endif()
 mark_as_superbuild(${PROJECT_NAME}_USE_HAPTICS:BOOL)
 
-cmake_dependent_option(${PROJECT_NAME}_USE_BUILTIN_LOGGING "Uses iMSTK local logger when g3log and its error behavior is not wanted" OFF "NOT ${PROJECT_NAME}_BUILD_FOR_UNITY" ON)
+cmake_dependent_option(${PROJECT_NAME}_USE_BUILTIN_LOGGING "Uses iMSTK local logger when g3log and its error behavior is not wanted" OFF
+  "NOT ${PROJECT_NAME}_BUILD_FOR_UNITY" ON)
 mark_as_superbuild(${PROJECT_NAME}_USE_BUILTIN_LOGGING:BOOL)
 
 #-----------------------------------------------------------------------------
