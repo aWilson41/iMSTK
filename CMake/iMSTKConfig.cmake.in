@@ -20,6 +20,10 @@ set(iMSTK_BUILD_TESTING @iMSTK_BUILD_TESTING@)
 set(iMSTK_BUILD_VISUAL_TESTING @iMSTK_BUILD_VISUAL_TESTING@)
 set(iMSTK_VTK_DEPENDENCIES "@iMSTK_VTK_DEPENDENCIES@")
 
+set(iMSTK_USE_G3LOG @iMSTK__USE_G3LOG@)
+set(iMSTK_USE_TBB @iMSTK_USE_TBB@)
+set(iMSTK_USE_SFML @iMSTK_USE_SFML@)
+set(iMSTK_USE_VegaFEM @iMSTK_USE_VegaFEM@)
 set(iMSTK_USE_OpenHaptics @iMSTK_USE_OpenHaptics@)
 set(iMSTK_USE_HAPLY @iMSTK_USE_HAPLY@)
 set(iMSTK_USE_VRPN @iMSTK_USE_VRPN@)
@@ -47,7 +51,9 @@ find_dependency( Assimp )
 find_dependency( Eigen3 )
 
 # g3log
-find_dependency( g3log )
+if (iMSTK_USE_G3LOG)
+  find_dependency(g3log)
+endif()
 
 # GTest
 if(iMSTK_BUILD_TESTING OR iMSTK_BUILD_VISUAL_TESTING)
@@ -59,32 +65,39 @@ if (iMSTK_BUILD_BENCHMARK)
   find_package( benchmark REQUIRED )
 endif()
 
-# Libusb
-if (iMSTK_USE_VRPN)
- 
-  find_dependency( Libusb )
-endif()
-
 # OpenVR
 if (iMSTK_USE_RENDERING_VTK)
   find_dependency( OpenVR )
 endif()
 
 # SFML
-if(iMSTK_AUDIO_ENABLED)
-  find_dependency( SFML REQUIRED )
-  add_definitions( -DiMSTK_AUDIO_ENABLED )
+if(iMSTK_USE_SFML)
+  find_dependency(SFML REQUIRED)
+  add_definitions(-DiMSTK_USE_SFML)
+else()
+  remove_definitions(-DiMSTK_USE_SFML)
 endif()
 
 # TBB
-find_dependency(TBB)
+if (iMSTK_USE_TBB)
+  find_dependency(TBB)
+  add_definitions(-DiMSTK_USE_TBB)
+else()
+  remove_definitions(-DiMSTK_USE_TBB)
+endif()
 
 # VegaFEM
-find_dependency( VegaFEM )
+if (iMSTK_USE_VegaFEM)
+  find_dependency(VegaFEM)
+  add_definitions(-DiMSTK_USE_VegaFEM)
+else()
+  remove_definitions(-DiMSTK_USE_VegaFEM)
+endif()
 
 # VRPN
 if (iMSTK_USE_VRPN)
-  find_dependency( VRPN )
+  find_dependency(Libusb)
+  find_dependency(VRPN)
 endif()
 
 # VRPN
@@ -96,12 +109,16 @@ endif()
 if(iMSTK_USE_OpenHaptics)
   find_dependency( OpenHapticsSDK )
   add_definitions( -DiMSTK_USE_OPENHAPTICS )
+else()
+  remove_definitions(-DiMSTK_USE_OPENHAPTICS)
 endif()
 
 # Haply
 if(iMSTK_USE_HAPLY)
   find_dependency( Haply )
   add_definitions( -DiMSTK_USE_HAPLY )
+else()
+  remove_definitions(-DiMSTK_USE_HAPLY)
 endif()
 
 # VTK
@@ -114,6 +131,8 @@ find_dependency(VTK COMPONENTS ${iMSTK_VTK_DEPENDENCIES})
 
 if(iMSTK_USE_VTK_OSMESA)
   add_definitions(-DiMSTK_USE_VTK_OSMESA)
+else()
+  remove_definitions(-DiMSTK_USE_VTK_OSMESA)
 endif()
 
 # Restore

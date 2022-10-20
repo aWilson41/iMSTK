@@ -8,7 +8,6 @@
 #include "imstkParallelUtils.h"
 #include "imstkPointSet.h"
 #include "imstkTaskGraph.h"
-#include "imstkVTKMeshIO.h"
 
 namespace imstk
 {

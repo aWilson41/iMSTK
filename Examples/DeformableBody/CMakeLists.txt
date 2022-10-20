@@ -6,8 +6,7 @@
 #
 ###########################################################################
 
-
-if (iMSTK_USE_RENDERING_VTK)
+if (iMSTK_USE_RENDERING_VTK AND iMSTK_USE_VegaFEM)
   project(Example-DeformableBody)
 
   #-----------------------------------------------------------------------------

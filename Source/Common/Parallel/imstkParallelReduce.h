@@ -9,10 +9,12 @@
 #include "imstkMath.h"
 #include "imstkVecDataArray.h"
 
+#ifdef iMSTK_USE_TBB
 DISABLE_WARNING_PUSH
     DISABLE_WARNING_PADDING
 #include <tbb/tbb.h>
 DISABLE_WARNING_POP
+#endif
 
 #undef min
 #undef max
@@ -21,6 +23,7 @@ namespace imstk
 {
 namespace ParallelUtils
 {
+#ifdef iMSTK_USE_TBB
 ///
 /// \brief Private helper class, providing operator() using in std::parallel_reduce
 ///  for finding range of a container with specified begin/end/operator[],operator++ functions
@@ -150,6 +153,7 @@ private:
                                 -std::numeric_limits<double>::max());
     const VecDataArray<double, 3>& m_Data;
 };
+#endif
 
 ///
 /// \brief Find the maximum value of L2 norm from the input data array
@@ -157,9 +161,19 @@ private:
 inline double
 findMaxL2Norm(const VecDataArray<double, 3>& data)
 {
+#ifdef iMSTK_USE_TBB
     MaxL2NormFunctor pObj(data);
     tbb::parallel_reduce(tbb::blocked_range<size_t>(0, data.size()), pObj);
     return pObj.getResult();
+#else
+    // Sequential
+    double maxL2NormSqr = IMSTK_DOUBLE_MIN;
+    for (int i = 0; i < data.size(); i++)
+    {
+        maxL2NormSqr = std::max(data[i].squaredNorm(), maxL2NormSqr);
+    }
+    return std::sqrt(maxL2NormSqr);
+#endif
 }
 
 ///
@@ -168,10 +182,20 @@ findMaxL2Norm(const VecDataArray<double, 3>& data)
 inline void
 findAABB(const VecDataArray<double, 3>& points, Vec3d& lowerCorner, Vec3d& upperCorner)
 {
+#ifdef iMSTK_USE_TBB
     AABBFunctor pObj(points);
     tbb::parallel_reduce(tbb::blocked_range<size_t>(0, points.size()), pObj);
     lowerCorner = pObj.getLowerCorner();
     upperCorner = pObj.getUpperCorner();
+#else
+    lowerCorner = Vec3d(IMSTK_DOUBLE_MAX, IMSTK_DOUBLE_MAX, IMSTK_DOUBLE_MAX);
+    upperCorner = Vec3d(IMSTK_DOUBLE_MIN, IMSTK_DOUBLE_MIN, IMSTK_DOUBLE_MIN);
+    for (int i = 0; i < points.size(); i++)
+    {
+        lowerCorner = lowerCorner.cwiseMin(points[i]);
+        upperCorner = upperCorner.cwiseMax(points[i]);
+    }
+#endif
 }
 } // end namespace ParallelUtils
 } // end namespace imstk

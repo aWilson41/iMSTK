@@ -19,6 +19,7 @@
     * [VRPN Support](#vrpn-support)
     * [Offscreen Rendering](#offscreen-rendering)
     * [Renderless](#renderless)
+    * [Android Support](#android-support)
 
 ## About
 ### Overview
@@ -152,6 +153,19 @@ We use [CMake] to configure the project on every platform. See how to run it [HE
   To build iMSTK without any rendering & completely as a physics backend, use:
     1. Set `iMSTK_USE_RENDERING_VTK` to `OFF`
     2. Set `iMSTK_BUILD_VISUAL_TESTING` to `OFF`
+
+* #### Android Support
+  To build for android specify the following:
+   1. Set `iMSTK_BUILD_FOR_ANDROID` to `ON`
+   2. Set `ANDROID_NDK` to <your ndk path>. (Ex: `C:\Users\<myusername>\AppData\Local\Android\sdk\ndk\23.1.7779620`)
+   3. Set your preferred android architecture: `ANDROID_ARCH_ABI=<your architecture>`. Default is `arm64-v8a`.
+   4. Ensure you build with Release or Debug configuration only.
+
+  One can also build with android and unity, toggling the unity flag.
+   5. Set `iMSTK_BUILD_FOR_UNITY` to `ON`
+
+  The android build will produce a fully static library build. With the unity C# wrapper on you will find one C# dll.
+  Currently you may only build through ninja via the Developer Command Prompt for VS
 
 ---
 [NIH-OD]: <https://www.nih.gov/about-nih/what-we-do/nih-almanac/office-director-nih>

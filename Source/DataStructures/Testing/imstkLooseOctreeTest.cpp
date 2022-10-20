@@ -9,6 +9,7 @@
 #include "imstkVecDataArray.h"
 
 #include <gtest/gtest.h>
+#include <queue>
 
 using namespace imstk;
 

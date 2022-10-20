@@ -8,12 +8,15 @@
 #include "imstkMacros.h"
 #include "imstkTimer.h"
 #include "imstkViewer.h"
+#include "imstkLogger.h"
 
 #include <thread>
+#ifdef iMSTK_USE_TBB
 DISABLE_WARNING_PUSH
     DISABLE_WARNING_PADDING
 #include <tbb/task_group.h>
 DISABLE_WARNING_POP
+#endif
 
 namespace imstk
 {
@@ -44,9 +47,12 @@ SimulationManager::start()
     }
 
     // Start parallel modules
+#ifdef iMSTK_USE_TBB
     tbb::task_group          tasks;
+#endif
     std::vector<std::thread> threads(m_asyncModules.size());
     {
+#ifdef iMSTK_USE_TBB
         if (m_threadType == ThreadingType::TBB)
         {
             for (auto module : m_asyncModules)
@@ -55,7 +61,14 @@ SimulationManager::start()
             }
             tasks.wait();
         }
-        else if (m_threadType == ThreadingType::STL)
+#else
+        if (m_threadType == ThreadingType::TBB)
+        {
+            LOG(FATAL) << "Requested TBB parallel modules but TBB was not built";
+            return;
+        }
+#endif
+        if (m_threadType == ThreadingType::STL)
         {
             for (size_t i = 0; i < m_asyncModules.size(); i++)
             {

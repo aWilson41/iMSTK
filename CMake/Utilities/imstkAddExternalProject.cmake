@@ -38,7 +38,7 @@ macro(imstk_add_external_project proj)
   #-----------------------------------------------------------------------------
   # Parse arguments
   #-----------------------------------------------------------------------------
-  set(options VERBOSE)
+  set(options VERBOSE BUILD_ANDROID)
   set(oneValueArgs RELATIVE_INCLUDE_PATH SOURCE_DIR BINARY_DIR)
   set(multiValueArgs DEPENDENCIES)
   include(CMakeParseArguments)
@@ -97,20 +97,33 @@ macro(imstk_add_external_project proj)
         )
     endif()
 
-    #-----------------------------------------------------------------------------
-    # Add project
-    #-----------------------------------------------------------------------------    
-    ExternalProject_add( ${proj}
-      PREFIX ${${proj}_PREFIX} # from caller's scope (see imstk_define_external_dirs)
-      SOURCE_DIR ${_imstk_add_ep_${proj}_SOURCE_DIR} # from caller's scope (see imstk_define_external_dirs) or parsed argument
-      BINARY_DIR ${_imstk_add_ep_${proj}_BINARY_DIR} # from caller's scope (see imstk_define_external_dirs) or parsed argument
-      TMP_DIR ${${proj}_TMP_DIR}       # from caller's scope (see imstk_define_external_dirs)
-      STAMP_DIR ${${proj}_STAMP_DIR}   # from caller's scope (see imstk_define_external_dirs)
-      ${${proj}_EP_ARGS}               # from ExternalProject_Include_Dependencies
-      CMAKE_CACHE_ARGS ${${proj}_CMAKE_CACHE_ARGS} # from above
-      ${_imstk_add_ep_${proj}_UNPARSED_ARGUMENTS}    # from unparsed arguments of this macro
-      DEPENDS ${_imstk_add_ep_${proj}_DEPENDENCIES}  # from parsed argument
-      )
+    # Spent hours trying to figure out how to encode INSTALL_COMMAND into a variable, giving up
+    if (_imstk_add_ep_${proj}_BUILD_ANDROID) # Dumb VTK stuff
+      ExternalProject_add( ${proj}
+        PREFIX ${${proj}_PREFIX} # from caller's scope (see imstk_define_external_dirs)
+        SOURCE_DIR ${_imstk_add_ep_${proj}_SOURCE_DIR} # from caller's scope (see imstk_define_external_dirs) or parsed argument
+        BINARY_DIR ${_imstk_add_ep_${proj}_BINARY_DIR} # from caller's scope (see imstk_define_external_dirs) or parsed argument
+        TMP_DIR ${${proj}_TMP_DIR}       # from caller's scope (see imstk_define_external_dirs)
+        STAMP_DIR ${${proj}_STAMP_DIR}   # from caller's scope (see imstk_define_external_dirs)
+        INSTALL_COMMAND ""
+      #  ${${proj}_EP_ARGS}               # from ExternalProject_Include_Dependencies
+        CMAKE_CACHE_ARGS ${${proj}_CMAKE_CACHE_ARGS} # from above
+        ${_imstk_add_ep_${proj}_UNPARSED_ARGUMENTS}    # from unparsed arguments of this macro
+        DEPENDS ${_imstk_add_ep_${proj}_DEPENDENCIES}  # from parsed argument
+        )
+    else()
+      ExternalProject_add( ${proj}
+        PREFIX ${${proj}_PREFIX} # from caller's scope (see imstk_define_external_dirs)
+        SOURCE_DIR ${_imstk_add_ep_${proj}_SOURCE_DIR} # from caller's scope (see imstk_define_external_dirs) or parsed argument
+        BINARY_DIR ${_imstk_add_ep_${proj}_BINARY_DIR} # from caller's scope (see imstk_define_external_dirs) or parsed argument
+        TMP_DIR ${${proj}_TMP_DIR}       # from caller's scope (see imstk_define_external_dirs)
+        STAMP_DIR ${${proj}_STAMP_DIR}   # from caller's scope (see imstk_define_external_dirs)
+        ${${proj}_EP_ARGS}               # from ExternalProject_Include_Dependencies
+        CMAKE_CACHE_ARGS ${${proj}_CMAKE_CACHE_ARGS} # from above
+        ${_imstk_add_ep_${proj}_UNPARSED_ARGUMENTS}    # from unparsed arguments of this macro
+        DEPENDS ${_imstk_add_ep_${proj}_DEPENDENCIES}  # from parsed argument
+        )
+    endif() 
     
     #-----------------------------------------------------------------------------
     # Add the target to ExternalDeps folder

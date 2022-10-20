@@ -6,27 +6,51 @@
 
 #pragma once
 
-#include <stdexcept>
-#include <string>
-#include <memory>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-
 #include "imstkSpinLock.h"
 
-// Using g3log loglevels for compatibility
-#include "g3log/loglevels.hpp"
 #include <deque>
-/*
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
-Still some weirdness, as we are still building G3 Log, the defines are still active
+struct LEVELS
+{
+    LEVELS(const LEVELS& other) : value(other.value) { }
+    LEVELS(int id) : value(id) { }
 
-#define DEBUG 0
-#define INFO 1
-#define WARNING 2
-#define FATAL 3
-*/
+    bool operator==(const LEVELS& rhs) const
+    {
+        return (value == rhs.value);
+    }
+
+    bool operator!=(const LEVELS& rhs) const
+    {
+        return (value != rhs.value);
+    }
+
+    friend void swap(LEVELS& first, LEVELS& second)
+    {
+        using std::swap;
+        swap(first.value, second.value);
+    }
+
+    LEVELS& operator=(LEVELS other)
+    {
+        swap(*this, other);
+        return *this;
+    }
+
+    int value;
+};
+
+const LEVELS DEBUG = 100;
+const LEVELS INFO = 300;
+const LEVELS WARNING = 500;
+const LEVELS FATAL = 1000;
+
 namespace imstk
 {
 #if defined(__func__)

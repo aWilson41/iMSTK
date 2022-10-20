@@ -1,5 +1,36 @@
 cmake_minimum_required(VERSION 3.9)
-project(iMSTK VERSION 6.0.0 LANGUAGES C CXX)
+
+option(iMSTK_BUILD_FOR_ANDROID "Build with Android NDK toolchain" OFF)
+
+#-----------------------------------------------------------------------------
+# Android configuration
+#-----------------------------------------------------------------------------
+# Android config must set the toolchain file before project is defined
+if (iMSTK_BUILD_FOR_ANDROID)
+  # Android options
+  set (_ANDROID_NDK_DEFAULT "/opt/android-ndk")
+  if (DEFINED ENV{ANDROID_NDK})
+    set (_ANDROID_NDK_DEFAULT "$ENV{ANDROID_NDK}")
+  endif()
+  set(ANDROID_NDK ${_ANDROID_NDK_DEFAULT} CACHE PATH
+    "Set to the absolute path of the Android NDK root directory.\
+     A \$\{ANDROID_NDK\}/sources/android directory must exist."
+  )
+  # Verify ANDROID_NDK path
+  if (NOT EXISTS "${ANDROID_NDK}/sources/android")
+    message(FATAL_ERROR "Please set a valid ANDROID_NDK path")
+  endif()
+  set(ANDROID_NATIVE_API_LEVEL "27" CACHE STRING "Android Native API Level")
+  set(ANDROID_ARCH_ABI "arm64-v8a" CACHE STRING "Target Android architecture/abi")
+
+  # Setup a toolchain file
+  set(_ANDROID_DIR "imstk-android-${ANDROID_NATIVE_API_LEVEL}-${ANDROID_ARCH_ABI}")
+  set(_ANDROID_TOOLCHAIN ${CMAKE_CURRENT_BINARY_DIR}/${_ANDROID_DIR}-toolchain.cmake)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CMake/iMSTKAndroid-toolchain.cmake.in ${_ANDROID_TOOLCHAIN} @ONLY)
+  set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_BINARY_DIR}/${_ANDROID_DIR}-toolchain.cmake CACHE STRING "Override option" FORCE)
+endif()
+
+project(iMSTK VERSION 6.0.0)
 
 include(CMakeDependentOption)
 
@@ -71,18 +102,22 @@ endif()
 #-----------------------------------------------------------------------------
 
 # Unity Switch
-if (WIN32)
+if (WIN32 OR ANDROID)
   option(${PROJECT_NAME}_BUILD_FOR_UNITY "Build iMSTK libraries for the unity asset" OFF)
   mark_as_superbuild(${PROJECT_NAME}_BUILD_FOR_UNITY:BOOL)
-  if (${PROJECT_NAME}_BUILD_FOR_UNITY)
-    set(${PROJECT_NAME}_ENABLE_AUDIO OFF)
-  endif()
 endif()
+
+option(${PROJECT_NAME}_BUILD_TESTING "Build iMSTK tests" ON)
+mark_as_superbuild(${PROJECT_NAME}_BUILD_TESTING:BOOL)
+
+# Couldn't do earlier since CMAKE_MODULE_PATH hadn't given solve dependencies include
+mark_as_superbuild(${PROJECT_NAME}_BUILD_FOR_ANDROID:BOOl)
+mark_as_superbuild(ANDROID_NDK:STRING)
+mark_as_superbuild(ANDROID_NATIVE_API_LEVEL:STRING)
+mark_as_superbuild(ANDROID_ARCH_ABI:STRING)
 
 # SWIG 
 cmake_dependent_option(${PROJECT_NAME}_WRAP_CSHARP "Build iMSTK-C# wrapper code and lib" OFF "NOT ${PROJECT_NAME}_BUILD_FOR_UNITY" ON)
-
-#option(${PROJECT_NAME}_WRAP_CSHARP "Build iMSTK-C# wrapper code and lib" OFF)
 mark_as_superbuild(${PROJECT_NAME}_WRAP_CSHARP:BOOL)
 
 # SWIG will generate managed array using pinning if this option is ON. Otherwise using P/Invoke default array marshalling.
@@ -117,58 +152,38 @@ endif()
 #   endif()
 # endif ()
 
-# Audio
-if(WIN32)
-  if(DEFINED ${PROJECT_NAME}_ENABLE_AUDIO)
-    set(_enable_audio ${${PROJECT_NAME}_ENABLE_AUDIO})
-    set(_reason "${PROJECT_NAME}_ENABLE_AUDIO is SET")
-  else()
-    set(_enable_audio ON)
-    set(_reason "default initialization")
-  endif()
-else()
-  set(_enable_audio OFF)
-  set(_reason "not supported")
-endif()
-set(_msg "${PROJECT_NAME} Audio support")
-message(STATUS "${_msg} - ${_enable_audio} (${_reason})")
-set(${PROJECT_NAME}_AUDIO_ENABLED ${_enable_audio})
+# If on, everything is built as shared libs that can be
+# If off, everything is built as static libs
+# Force off if build for android
+cmake_dependent_option(BUILD_SHARED_LIBS "Build as many libraries as possible as shared or static" ON "NOT ${PROJECT_NAME}_BUILD_FOR_ANDROID" OFF)
+mark_as_superbuild(BUILD_SHARED_LIBS:BOOL)
 
 # General Options
 option(${PROJECT_NAME}_BUILD_EXAMPLES "Build iMSTK examples" ON)
 mark_as_superbuild(${PROJECT_NAME}_BUILD_EXAMPLES:BOOL)
 
-option(${PROJECT_NAME}_BUILD_TESTING "Build iMSTK tests" ON)
-mark_as_superbuild(${PROJECT_NAME}_BUILD_TESTING:BOOL)
-
-option(${PROJECT_NAME}_BUILD_VISUAL_TESTING "Build iMSTK visual tests" ON)
-if (${PROJECT_NAME}_BUILD_VISUAL_TESTING)
-    set(${PROJECT_NAME}_BUILD_TESTING ON)
-endif()
-mark_as_superbuild(${PROJECT_NAME}_BUILD_VISUAL_TESTING:BOOL)
-
-set(BUILD_TESTING OFF)
-if (${PROJECT_NAME}_BUILD_TESTING)
-  set(BUILD_TESTING ON)
-endif ()
-
-#Build Benchmark
+# Build Benchmark
 option(${PROJECT_NAME}_BUILD_BENCHMARK "Build iMSTK benchmarks" OFF)
 mark_as_superbuild(${PROJECT_NAME}_BUILD_BENCHMARK:BOOL)
 
+# Default on, force off if not win32 or on unity
+cmake_dependent_option(${PROJECT_NAME}_USE_SFML "If on, imstk is built with SFML audio support" ON "WIN32; NOT ${PROJECT_NAME}_BUILD_FOR_UNITY" OFF)
+mark_as_superbuild(${PROJECT_NAME}_USE_SFML:BOOL)
+
+# Force off if build for android
+cmake_dependent_option(${PROJECT_NAME}_USE_VegaFEM "Build with VegaFEM models" ON "NOT ${PROJECT_NAME}_BUILD_FOR_ANDROID" OFF)
+mark_as_superbuild(${PROJECT_NAME}_USE_VegaFEM:BOOL)
+
+# Default off, if not building VegaFEM or not unix force off
+cmake_dependent_option(${PROJECT_NAME}_USE_MODEL_REDUCTION "Build with model reduction, requires a VegaFEM built with Intel MKL and arpack" OFF "${PROJECT_NAME}_USE_VegaFEM;UNIX" OFF)
+mark_as_superbuild(${PROJECT_NAME}_USE_MODEL_REDUCTION:BOOL)
 
 if (UNIX)
-  option(${PROJECT_NAME}_USE_MODEL_REDUCTION "Build with model reduction, requires a VegaFEM built with Intel MKL and arpack" OFF)
-  mark_as_superbuild(${PROJECT_NAME}_USE_MODEL_REDUCTION:BOOL)
-
   option(${PROJECT_NAME}_COLOR_OUTPUT "For coloring output in gcc" OFF)
   mark_as_superbuild(${PROJECT_NAME}_COLOR_OUTPUT:BOOL)
 
   option(${PROJECT_NAME}_COVERAGE "Build for calculating coverage" OFF)
   mark_as_superbuild(${PROJECT_NAME}_COVERAGE:BOOL)
-
-  option(${PROJECT_NAME}_USE_VTK_OSMESA "Build with VTK OSMesa rendering" OFF)
-  mark_as_superbuild(${PROJECT_NAME}_USE_VTK_OSMESA:BOOL)
 
   if (${PROJECT_NAME}_COVERAGE AND NOT ${CMAKE_BUILD_TYPE} MATCHES [Dd][Ee][Bb][Uu][Gg])
     message(WARNING "Coverage requires a debug build forcing debug")
@@ -176,30 +191,30 @@ if (UNIX)
   endif()  
 endif()
 
+# Default on, force off if build for android
+cmake_dependent_option(${PROJECT_NAME}_USE_TBB "Build with TBB parallelization" ON "NOT ${PROJECT_NAME}_BUILD_FOR_ANDROID" OFF)
+mark_as_superbuild(${PROJECT_NAME}_USE_TBB:BOOL)
+
 option(${PROJECT_NAME}_USE_VRPN "Build with VRPN support" OFF)
 mark_as_superbuild(${PROJECT_NAME}_USE_VRPN:BOOL)
 
-option(${PROJECT_NAME}_USE_HAPLY "Build with Haply support" OFF)
-mark_as_superbuild(${PROJECT_NAME}_USE_HAPLY:BOOL)
+# Default off, force off if build for android
+cmake_dependent_option(${PROJECT_NAME}_USE_HAPLY "Build with Haply support" OFF "NOT ${PROJECT_NAME}_BUILD_FOR_ANDROID" OFF)
 if (${PROJECT_NAME}_USE_HAPLY)
   message(WARNING "iMSTK_USE_HAPLY set to true, this code is based of an early version of the Haply API")
 endif()
 
+# Default on, if building unity force off
 cmake_dependent_option(${PROJECT_NAME}_USE_RENDERING_VTK "Build with/out VTK rendering support" ON "NOT ${PROJECT_NAME}_BUILD_FOR_UNITY" OFF)
 mark_as_superbuild(${PROJECT_NAME}_USE_RENDERING_VTK:BOOL)
 
-if (NOT ${PROJECT_NAME}_USE_RENDERING_VTK AND ${PROJECT_NAME}_USE_VTK_OSMESA)
-  message(FATAL_ERROR "Setting ${PROJECT_NAME}_USE_VTK_OSMESA ON is only supported when ${PROJECT_NAME}_USE_RENDERING_VTK is ON")
-endif()
-if (NOT ${PROJECT_NAME}_USE_RENDERING_VTK AND ${PROJECT_NAME}_BUILD_VISUAL_TESTING)
-  message(FATAL_ERROR "Setting ${PROJECT_NAME}_BUILD_VISUAL_TESTING ON is only supported when ${PROJECT_NAME}_USE_RENDERING_VTK is ON")
-endif()
+# Default off, if not rendering or unix force off
+cmake_dependent_option(${PROJECT_NAME}_USE_VTK_OSMESA "Build with VTK OSMesa rendering" OFF "${PROJECT_NAME}_USE_RENDERING_VTK;UNIX" OFF)
+mark_as_superbuild(${PROJECT_NAME}_USE_VTK_OSMESA:BOOL)
 
-option(${PROJECT_NAME}_USE_OpenHaptics "Use OpenHaptic Support." OFF)
+# Default off, if not win32 or building for android force off
+cmake_dependent_option(${PROJECT_NAME}_USE_OpenHaptics "Use OpenHaptic Support" OFF "WIN32;NOT ${PROJECT_NAME}_BUILD_FOR_ANDROID" OFF)
 mark_as_superbuild(${PROJECT_NAME}_USE_OpenHaptics:BOOL)
-if(NOT WIN32 AND ${PROJECT_NAME}_USE_OpenHaptics)
-  message(FATAL_ERROR "Setting ${PROJECT_NAME}_USE_OpenHaptics to ON is only supported on Windows")
-endif()
 
 # If at least one haptic API is provided
 if (${PROJECT_NAME}_USE_HAPLY OR ${PROJECT_NAME}_USE_OpenHaptics OR ${PROJECT_NAME}_USE_VRPN)
@@ -207,13 +222,21 @@ if (${PROJECT_NAME}_USE_HAPLY OR ${PROJECT_NAME}_USE_OpenHaptics OR ${PROJECT_NA
 endif()
 mark_as_superbuild(${PROJECT_NAME}_USE_HAPTICS:BOOL)
 
-cmake_dependent_option(${PROJECT_NAME}_USE_BUILTIN_LOGGING "Uses iMSTK local logger when g3log and its error behavior is not wanted" OFF "NOT ${PROJECT_NAME}_BUILD_FOR_UNITY" ON)
-mark_as_superbuild(${PROJECT_NAME}_USE_BUILTIN_LOGGING:BOOL)
+# Default on, if building for unity or android force off
+cmake_dependent_option(${PROJECT_NAME}_USE_G3LOG "Use g3 async logger. If off, builtin sync logger is used" ON "NOT ${PROJECT_NAME}_BUILD_FOR_UNITY;NOT ${PROJECT_NAME}_BUILD_FOR_ANDROID" OFF)
+mark_as_superbuild(${PROJECT_NAME}_USE_G3LOG:BOOL)
+
+# Default on, if not rendering or not testing force off
+cmake_dependent_option(${PROJECT_NAME}_BUILD_VISUAL_TESTING "Build iMSTK visual tests" ON "${PROJECT_NAME}_USE_RENDERING_VTK;${PROJECT_NAME}_BUILD_TESTING" OFF)
+mark_as_superbuild(${PROJECT_NAME}_BUILD_VISUAL_TESTING:BOOL)
 
 #-----------------------------------------------------------------------------
 # CTest/Dashboards
 #-----------------------------------------------------------------------------
+set(BUILD_TESTING OFF)
 if (${PROJECT_NAME}_BUILD_TESTING)
+  set(BUILD_TESTING ON)
+
   include(CTest)
   set_property(CACHE BUILD_TESTING PROPERTY TYPE INTERNAL)
 endif ()
@@ -234,7 +257,8 @@ if(${PROJECT_NAME}_SUPERBUILD)
     mark_as_advanced(USE_SYSTEM_${extProj})
   endmacro()
 
-  option(${PROJECT_NAME}_USE_Uncrustify "Use Uncrustify as a code style beautifier." ON)
+  # Default on, force off if build with android
+  cmake_dependent_option(${PROJECT_NAME}_USE_Uncrustify "Use Uncrustify as a code style beautifier." ON "NOT ${PROJECT_NAME}_BUILD_FOR_ANDROID" OFF)
   if(${PROJECT_NAME}_USE_Uncrustify)
     find_package (Python COMPONENTS Interpreter)
     if(Python_Interpreter_FOUND)
@@ -246,12 +270,18 @@ if(${PROJECT_NAME}_SUPERBUILD)
   
   imstk_define_dependency(Assimp)
   imstk_define_dependency(Eigen3)
-  imstk_define_dependency(g3log)
+  if (${PROJECT_NAME}_USE_G3LOG)
+    imstk_define_dependency(g3log)
+  endif()
   if (${PROJECT_NAME}_USE_RENDERING_VTK)
     imstk_define_dependency(OpenVR)
   endif()
-  imstk_define_dependency(TBB)
-  imstk_define_dependency(VegaFEM)
+  if (${PROJECT_NAME}_USE_TBB)
+    imstk_define_dependency(TBB)
+  endif()
+  if (${PROJECT_NAME}_USE_VegaFEM)
+    imstk_define_dependency(VegaFEM)
+  endif()
   imstk_define_dependency(VTK)
   if(${PROJECT_NAME}_USE_OpenHaptics)
     imstk_define_dependency(OpenHaptics)
@@ -266,7 +296,7 @@ if(${PROJECT_NAME}_SUPERBUILD)
     imstk_define_dependency(Haply)
   endif()
 
-  if(WIN32 AND ${PROJECT_NAME}_AUDIO_ENABLED)
+  if(${PROJECT_NAME}_USE_SFML)
     imstk_define_dependency(SFML)
   endif()
 
@@ -297,7 +327,6 @@ if(${PROJECT_NAME}_SUPERBUILD)
     imstk_define_dependency(benchmark)
   endif()
 
-
   #-----------------------------------------------------------------------------
   # Solve project dependencies
   #-----------------------------------------------------------------------------
@@ -306,6 +335,75 @@ if(${PROJECT_NAME}_SUPERBUILD)
   # CMakeLists.txt will be called back with SUPERBUILD=OFF, to execute
   # the rest of the code below (INNERBUILD), which explains the `return`
   add_subdirectory(CMake/External)
+
+  # Wrappers are built after everything
+  if (${PROJECT_NAME}_WRAP_CSHARP)
+    include(ExternalProject)
+    ExternalProject_Add(CWrapper
+      DEPENDS
+        iMSTK
+      DOWNLOAD_COMMAND ""
+      PREFIX "${CMAKE_CURRENT_BINARY_DIR}/CWrapper"
+      SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/Wrappers"
+      BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/CWrapper/build"
+      STAMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/CWrapper/stamp"
+      TMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/CWrapper/tmp"
+      INSTALL_DIR "install"
+      CMAKE_CACHE_ARGS
+        -DBUILD_SHARED_LIBS:BOOL=True # You can only dllimport shared libraries
+        -DiMSTK_DIR:PATH=${CMAKE_BINARY_DIR}/Innerbuild
+        -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_PREFIX_PATH}
+        -DiMSTK_SWIG_PINNED_ARRAY:BOOL=${iMSTK_SWIG_PINNED_ARRAY}
+        -DiMSTK_USE_RENDERING_VTK:BOOL=${iMSTK_USE_RENDERING_VTK}
+        -DiMSTK_USE_HAPTICS:BOOL=${iMSTK_USE_HAPTICS}
+        -DiMSTK_USE_OpenHaptics:BOOL=${iMSTK_USE_OpenHaptics}
+        -DiMSTK_USE_VRPN:BOOL=${iMSTK_USE_VRPN}
+        -DSWIG_DIR:PATH=${SWIG_DIR}
+        -DSWIG_EXECUTABLE:PATH=${SWIG_EXECUTABLE}
+        -DSWIG_CSHARP_OUTPUT_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/CSharpWrapper/src
+        -DCMAKE_TOOLCHAIN_FILE:PATH=${CMAKE_TOOLCHAIN_FILE}
+        -DANDROID_NDK:PATH=${ANDROID_NDK}
+        -DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}
+        -DANDROID_ARCH_ABI:STRING=${ANDROID_ARCH_ABI}
+      )
+    set_target_properties(CWrapper PROPERTIES FOLDER iMSTK)
+    # CMake only supports .NET csharp, not mono which could be used on linux
+    if (MSVC OR ${PROJECT_NAME}_BUILD_FOR_ANDROID)
+      # If building for android we have an android toolchain but C# .NET needs visual studio
+      # So we need to switch toolchains here
+      #if (${PROJECT_NAME}_BUILD_FOR_ANDROID)
+      #  message(WARNING "Cannot build iMSTKSharp for android yet")
+      #else()
+        ExternalProject_Add(CSharpWrapper
+          DEPENDS
+            CWrapper
+          DOWNLOAD_COMMAND ""
+          PREFIX "${CMAKE_CURRENT_BINARY_DIR}/CSharpWrapper"
+          SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Wrappers/iMSTKCSharpWrapper" # Should prob install the CMake file into src along with ".cs" files
+          BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/CSharpWrapper/build"
+          STAMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/CSharpWrapper/stamp"
+          TMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/CSharpWrapper/tmp"
+          INSTALL_DIR "install"
+          CMAKE_GENERATOR "Visual Studio 17 2022" # How can I ask for the latest version of visual studio available?
+          CMAKE_CACHE_ARGS
+            -DBUILD_SHARED_LIBS:BOOL=TRUE  # C# cannot dll import static libs, so always build shared
+            -DiMSTKCWrapper_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/CWrapper/build
+            -DSWIG_OUTPUT_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/CSharpWrapper/src
+            -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+            -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_PREFIX_PATH}
+            -DiMSTK_SWIG_PINNED_ARRAY:BOOL=${iMSTK_SWIG_PINNED_ARRAY}
+            -DiMSTK_USE_RENDERING_VTK:BOOL=${iMSTK_USE_RENDERING_VTK}
+            -DiMSTK_USE_HAPTICS:BOOL=${iMSTK_USE_HAPTICS}
+            -DiMSTK_USE_OpenHaptics:BOOL=${iMSTK_USE_OpenHaptics}
+            -DiMSTK_USE_VRPN:BOOL=${iMSTK_USE_VRPN}
+          )
+        set_target_properties(CSharpWrapper PROPERTIES FOLDER iMSTK)
+      #endif()
+    elseif(UNIX)
+      message(WARNING "C# library/.so cannot be built on unix systems through cmake, please build manually using generated \".cs\" files")
+    #find_package(Mono) # Provided with cmake to find mono bits
+    endif()
+  endif()
 
   return()
 
@@ -328,8 +426,13 @@ find_package( Assimp REQUIRED )
 # Eigen
 find_package( Eigen3 3.1.2 REQUIRED )
 
-# g3log
-find_package( g3log REQUIRED )
+if (${PROJECT_NAME}_USE_G3LOG)
+  # g3log
+  find_package( g3log REQUIRED )
+  remove_definitions(-DiMSTK_SYNCHRONOUS_LOGGING)
+else()
+  add_definitions(-DiMSTK_SYNCHRONOUS_LOGGING)
+endif()
 
 if (${PROJECT_NAME}_USE_VRPN)
   # Libusb
@@ -342,18 +445,28 @@ if (${PROJECT_NAME}_USE_RENDERING_VTK)
 endif()
 
 # SFML
-if(NOT iMSTK_AUDIO_ENABLED)
-  remove_definitions( -DiMSTK_AUDIO_ENABLED )
+if (${PROJECT_NAME}_USE_SFML)
+  find_package(SFML REQUIRED)
+  add_definitions(-DiMSTK_USE_SFML)
 else()
-  find_package( SFML REQUIRED )
-  add_definitions( -DiMSTK_AUDIO_ENABLED )
+  remove_definitions(-DiMSTK_USE_SFML)
 endif()
 
 # TBB
-find_package(TBB REQUIRED)
+if (${PROJECT_NAME}_USE_TBB)
+  find_package(TBB REQUIRED)
+  add_definitions(-DiMSTK_USE_TBB)
+else()
+  remove_definitions(-DiMSTK_USE_TBB)
+endif()
 
 # VegaFEM
-find_package( VegaFEM REQUIRED CONFIG )
+if (${PROJECT_NAME}_USE_VegaFEM)
+  find_package(VegaFEM REQUIRED CONFIG)
+  add_definitions(-DiMSTK_USE_VegaFEM)
+else()
+  remove_definitions(-DiMSTK_USE_VegaFEM)
+endif()
 
 # VRPN
 if (${PROJECT_NAME}_USE_VRPN)
@@ -389,7 +502,9 @@ if (${PROJECT_NAME}_USE_RENDERING_VTK)
 endif()
 
 if (${PROJECT_NAME}_USE_HAPTICS)
-  add_definitions( -DiMSTK_USE_HAPTICS )
+  add_definitions(-DiMSTK_USE_HAPTICS)
+else()
+  remove_definitions(-DiMSTK_USE_HAPTICS)
 endif()
 
 list(APPEND iMSTK_VTK_DEPENDENCIES
@@ -427,6 +542,8 @@ endif()
 find_package(VTK COMPONENTS ${iMSTK_VTK_DEPENDENCIES} REQUIRED)
 if(${PROJECT_NAME}_USE_VTK_OSMESA)
   add_definitions(-DiMSTK_USE_VTK_OSMESA)
+else()
+  remove_definitions(-DiMSTK_USE_VTK_OSMESA)
 endif()
 
 #--------------------------------------------------------------------------
@@ -441,14 +558,6 @@ if(Uncrustify_EXECUTABLE)
 else(Uncrustify_EXECUTABLE)
   message(WARNING "uncrustify not found! Cannot run code-style test.")
 endif(Uncrustify_EXECUTABLE)
-
-#--------------------------------------------------------------------------
-# Logger switch
-#--------------------------------------------------------------------------
-if (${PROJECT_NAME}_USE_BUILTIN_LOGGING)
-  add_definitions( -DiMSTK_SYNCHRONOUS_LOGGING)
-endif()
-
 
 #-----------------------------------------------------------------------------
 # Data
@@ -483,7 +592,6 @@ endif()
 if (${PROJECT_NAME}_BUILD_BENCHMARK)
   find_package( benchmark REQUIRED )
 endif()
-
 
 #-----------------------------------------------------------------------------
 # Code Coverage
@@ -521,6 +629,9 @@ if (${PROJECT_NAME}_USE_RENDERING_VTK)
 endif()
 add_subdirectory(Source/Solvers)
 add_subdirectory(Source/DynamicalModels)
+if (${PROJECT_NAME}_USE_VegaFEM)
+  add_subdirectory(Source/DynamicalModelsVegaFEM)
+endif()
 add_subdirectory(Source/SceneEntities)
 add_subdirectory(Source/Animation)
 add_subdirectory(Source/Controllers)
@@ -535,16 +646,12 @@ if (${PROJECT_NAME}_USE_RENDERING_VTK)
 endif()
 if( ${PROJECT_NAME}_BUILD_TESTING )
   add_subdirectory(Source/Testing)
-  if (${PROJECT_NAME}_USE_RENDERING_VTK AND ${PROJECT_NAME}_BUILD_VISUAL_TESTING)
+  if (${PROJECT_NAME}_BUILD_VISUAL_TESTING)
     add_subdirectory(Source/VisualTesting)
   endif()
 endif()
 add_subdirectory(Source/Filtering)
 add_subdirectory(Source/FilteringCore)
-
-if (${PROJECT_NAME}_WRAP_CSHARP)
-  add_subdirectory(Source/Wrappers)
-endif()
 
 #--------------------------------------------------------------------------
 # Add Examples subdirectories
@@ -629,8 +736,10 @@ set(CONFIG_CODE "${CONFIG_CODE}set(Assimp_LIB_DIR \"${Assimp_LIB_DIR}\")\n")
 
 set(CONFIG_CODE "${CONFIG_CODE}set(Eigen3_DIR \"${Eigen3_DIR}\")\n")
 
-set(CONFIG_CODE "${CONFIG_CODE}set(g3log_ROOT_DIR \"${g3log_ROOT_DIR}\")\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(g3log_LIB_DIR \"${g3log_LIB_DIR}\")\n")
+if (${PROJECT_NAME}_USE_G3LOG)
+  set(CONFIG_CODE "${CONFIG_CODE}set(g3log_ROOT_DIR \"${g3log_ROOT_DIR}\")\n")
+  set(CONFIG_CODE "${CONFIG_CODE}set(g3log_LIB_DIR \"${g3log_LIB_DIR}\")\n")
+endif()
 
 set(CONFIG_CODE "${CONFIG_CODE}set(GTest_DIR \"${GTest_DIR}\")\n")
 
@@ -651,9 +760,13 @@ if (${PROJECT_NAME}_USE_RENDERING_VTK)
   set(CONFIG_CODE "${CONFIG_CODE}set(OpenVR_LIB_DIR \"${OpenVR_LIB_DIR}\")\n")
 endif()
 
-set(CONFIG_CODE "${CONFIG_CODE}set(TBB_DIR \"${TBB_DIR}\")\n")
+if (${PROJECT_NAME}_USE_TBB)
+  set(CONFIG_CODE "${CONFIG_CODE}set(TBB_DIR \"${TBB_DIR}\")\n")
+endif()
 
-set(CONFIG_CODE "${CONFIG_CODE}set(VegaFEM_DIR \"${VegaFEM_DIR}\")\n")
+if (${PROJECT_NAME}_USE_VegaFEM)
+  set(CONFIG_CODE "${CONFIG_CODE}set(VegaFEM_DIR \"${VegaFEM_DIR}\")\n")
+endif()
 set(CONFIG_CODE "${CONFIG_CODE}set(VTK_DIR \"${VTK_DIR}\")\n")
 if (${PROJECT_NAME}_USE_RENDERING_VTK)
   set(CONFIG_CODE "${CONFIG_CODE}set(vtkRenderingOpenVR_DIR \"${vtkRenderingOpenVR_DIR}\")\n")
@@ -683,8 +796,12 @@ set(CONFIG_CODE "####### Expanded from \@CONFIG_CODE\@ #######\n")
 # inferred by Find<proj> CMake module provided by iSMTK.
 set(CONFIG_CODE "${CONFIG_CODE}set(Eigen3_DIR \"${Eigen3_DIR}\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(GTest_DIR \"${GTest_DIR}\")\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(TBB_DIR \"${TBB_DIR}\")\n")
-set(CONFIG_CODE "${CONFIG_CODE}set(VegaFEM_DIR \"${VegaFEM_DIR}\")\n")
+if (${PROJECT_NAME}_USE_TBB)
+  set(CONFIG_CODE "${CONFIG_CODE}set(TBB_DIR \"${TBB_DIR}\")\n")
+endif()
+if (${PROJECT_NAME}_USE_VegaFEM)
+  set(CONFIG_CODE "${CONFIG_CODE}set(VegaFEM_DIR \"${VegaFEM_DIR}\")\n")
+endif()
 set(CONFIG_CODE "${CONFIG_CODE}set(VTK_DIR \"${VTK_DIR}\")\n")
 set(CONFIG_CODE "${CONFIG_CODE}set(benchmark_DIR \"${benchmark_DIR}\")\n")
 if (${PROJECT_NAME}_USE_RENDERING_VTK)

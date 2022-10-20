@@ -1,24 +1,36 @@
-# \todo: Wrapper generation would make more sense in the superbuild above one level. For now it is here
+cmake_minimum_required(VERSION 3.9)
+project(iMSTKWrappers)
+
+message("size: ${CMAKE_SIZEOF_VOID_P}")
+find_package(iMSTK REQUIRED)
+
 # \todo: A different c wrapper is required to be generated per language
 set(SWIG_INTERFACE_DIR ${CMAKE_CURRENT_LIST_DIR}/SwigInterface)
-set(SWIG_CSHARP_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/iMSTKCSharpWrapper/src")
 
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include(UseSWIG)
 set_source_files_properties(${SWIG_INTERFACE_DIR}/imstkCWrapper.i PROPERTIES CPLUSPLUS ON)
 
+set(LIB_TYPE SHARED)
+if (NOT ${BUILD_SHARED_LIBS})
+  set(LIB_TYPE STATIC)
+endif()
+
+include(UseSWIG)
 swig_add_library(iMSTKCWrapper
-    TYPE SHARED
+    TYPE ${LIB_TYPE}
     OUTPUT_DIR ${SWIG_CSHARP_OUTPUT_DIR}
     LANGUAGE csharp
     SOURCES
     ${SWIG_INTERFACE_DIR}/imstkCWrapper.i)
-# Always clear the ".cs" files from the build directory before generating
-add_custom_command(
-    TARGET iMSTKCWrapper
-    PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -Ddir:PATH=${SWIG_CSHARP_OUTPUT_DIR}/ -P ${CMAKE_CURRENT_LIST_DIR}/ClearDirectory.cmake
-    DEPENDS ${PROJECT_NAME})
+
+# if (NOT iMSTK_BUILD_FOR_ANDROID)
+#     # Always clear the ".cs" files from the build directory before generating
+#     add_custom_command(
+#         TARGET iMSTKCWrapper
+#         PRE_BUILD
+#         COMMAND ${CMAKE_COMMAND} -Ddir:PATH=${SWIG_CSHARP_OUTPUT_DIR}/ -P ${CMAKE_CURRENT_LIST_DIR}/ClearDirectory.cmake
+#         DEPENDS ${PROJECT_NAME})
+# endif()
 
 # These files should not be provided via swig_add_library SOURCES
 # But still useful to display in visual studios
@@ -46,10 +58,8 @@ set_target_properties(iMSTKCWrapper PROPERTIES
     SWIG_COMPILE_OPTIONS "-namespace;Imstk;-Wall"
     FOLDER Wrappers)
 
+# Forward iMSTK variables to SWIG
 set(imstk_SWIG_DEFINITIONS "")
-
-
-# Forward iMSTK variables to SWIG and the 
 if(iMSTK_SWIG_PINNED_ARRAY)
     list(APPEND imstk_SWIG_DEFINITIONS "SWIG_PINNED_ARRAY")
 endif()
@@ -68,7 +78,10 @@ endif()
 if(iMSTK_USE_VRPN)
     list(APPEND imstk_SWIG_DEFINITIONS "iMSTK_USE_VRPN")
 endif()
-if(iMSTK_USE_BUILTIN_LOGGING)
+if(iMSTK_USE_VegaFEM)
+    list(APPEND imstk_SWIG_DEFINITIONS "iMSTK_USE_VegaFEM")
+endif()
+if(NOT iMSTK_USE_G3LOG)
     list(APPEND imstk_SWIG_DEFINITIONS "iMSTK_SYNCHRONOUS_LOGGING")
 endif()
 
@@ -78,27 +91,30 @@ target_compile_definitions(iMSTKCWrapper PRIVATE  ${imstk_SWIG_DEFINITIONS})
 
 # Link C Wrapper to the imstk libraries
 set(CWRAPPER_DEPENDENCIES
-    Common
-    Materials
-	Geometry
-	DataStructures
-	Devices
-	Filtering
-	FilteringCore
-	Materials
-	RenderingCore
-	Solvers
-	DynamicalModels
-	CollisionDetection
-	CollisionHandling
-	SceneEntities
-    Needle
-	Scene
-	SimulationManager
-    ViewerCore
-	Constraints
-	Animation
+    imstk::Common
+    imstk::Materials
+	imstk::Geometry
+	imstk::DataStructures
+	imstk::Devices
+	imstk::Filtering
+	imstk::FilteringCore
+	imstk::Materials
+	imstk::RenderingCore
+	imstk::Solvers
+	imstk::DynamicalModels
+	imstk::CollisionDetection
+	imstk::CollisionHandling
+	imstk::SceneEntities
+    imstk::Needle
+	imstk::Scene
+	imstk::SimulationManager
+    imstk::ViewerCore
+	imstk::Constraints
+	imstk::Animation
     )
+if (iMSTK_USE_VegaFEM)
+    list(APPEND CWRAPPER_DEPENDENCIES DynamicalModelsVegaFEM)
+endif()
 if (iMSTK_USE_RENDERING_VTK)
     list(APPEND CWRAPPER_DEPENDENCIES
         RenderingVTK
@@ -123,10 +139,10 @@ install( TARGETS iMSTKCWrapper EXPORT iMSTKCWrapperTargets
     LIBRARY DESTINATION lib COMPONENT RuntimeLibraries
     ARCHIVE DESTINATION lib COMPONENT Development)
 
-if (UNIX AND NOT APPLE)
-	# Why use CODE and then execute COMMAND?
-    install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink iMSTKCWrapper.so ${CMAKE_INSTALL_PREFIX}/lib/libiMSTKCWrapper.so)")
-endif()
+# if (UNIX AND NOT APPLE AND NOT iMSTK_BUILD_ANDROID)
+# 	# Why use CODE and then execute COMMAND?
+#     install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink iMSTKCWrapper.so ${CMAKE_INSTALL_PREFIX}/lib/libiMSTKCWrapper.so)")
+# endif()
 
 # Export the target file for the config file to use later			
 export(EXPORT iMSTKCWrapperTargets
@@ -135,39 +151,6 @@ export(EXPORT iMSTKCWrapperTargets
 configure_file(iMSTKCWrapperConfig.cmake.in
 	"${CMAKE_CURRENT_BINARY_DIR}/iMSTKCWrapperConfig.cmake"
 	@ONLY)
-
-# If on msvc, generate a library/.dll out of our generated C# files
-if (MSVC)
-    # Because the files aren't generated until build time of the iMSTKCWrapper target
-    # we must wait to configure it until after it's done building
-    include(ExternalProject)
-    ExternalProject_Add(iMSTKSharp
-        DEPENDS
-            iMSTKCWrapper
-        DOWNLOAD_COMMAND ""
-        PREFIX "${CMAKE_CURRENT_BINARY_DIR}/iMSTKCSharpWrapper"
-        SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/iMSTKCSharpWrapper"
-        BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/iMSTKCSharpWrapper/build"
-        STAMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/iMSTKCSharpWrapper/stamp"
-        TMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/iMSTKCSharpWrapper/tmp"
-        INSTALL_DIR "install"
-        CMAKE_CACHE_ARGS
-            -DiMSTKCWrapper_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}
-            -DSWIG_OUTPUT_DIR:PATH=${SWIG_CSHARP_OUTPUT_DIR}
-            -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_PREFIX_PATH}
-            -DiMSTK_SWIG_PINNED_ARRAY:BOOL=${iMSTK_SWIG_PINNED_ARRAY}
-            -DiMSTK_USE_RENDERING_VTK:BOOL=${iMSTK_USE_RENDERING_VTK}
-            -DiMSTK_USE_HAPTICS:BOOL=${iMSTK_USE_HAPTICS}
-            -DiMSTK_USE_OpenHaptics:BOOL=${iMSTK_USE_OpenHaptics}
-            -DiMSTK_USE_VRPN:BOOL=${iMSTK_USE_VRPN}
-        )
-    set_target_properties (iMSTKSharp PROPERTIES
-        FOLDER Wrappers)
-# If on unix, a library/.so can still be generated through mono, but cmake does not support mono
-elseif(UNIX)
-    message(WARNING "C# library/.so cannot be built on unix systems through cmake, please build manually using generated \".cs\" files")
-    #find_package(Mono) # Provided with cmake to find mono bits
-endif()
 
 # Clear the ".cs" wrapper code in the install directory and install new ones
 install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -Dsource_dir:PATH=${SWIG_CSHARP_OUTPUT_DIR} -Ddest_dir:PATH=${CMAKE_INSTALL_PREFIX}/include/iMSTKSharp/ -P ${CMAKE_CURRENT_LIST_DIR}/ClearInstall.cmake)")

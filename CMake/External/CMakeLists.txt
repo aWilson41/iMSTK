@@ -73,15 +73,10 @@ ExternalProject_Include_Dependencies( ${PROJECT_NAME}
   SUPERBUILD_VAR ${PROJECT_NAME}_SUPERBUILD
   )
 
-set(EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS)
-if(WIN32)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
-    -D${PROJECT_NAME}_ENABLE_AUDIO:BOOL=${${PROJECT_NAME}_AUDIO_ENABLED})
-endif()
-if (${PROJECT_NAME}_WRAP_CSHARP)
-  list(APPEND EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS
-    -DSWIG_DIR:PATH=${SWIG_DIR}
-    -DSWIG_EXECUTABLE:PATH=${SWIG_EXECUTABLE})
+set(VTK_LOCATION ${VTK_DIR})
+if (${PROJECT_NAME}_BUILD_FOR_ANDROID)
+  set(VTK_LOCATION ${CMAKE_BINARY_DIR}/External/VTK/build/CMakeExternals/Build/vtk-android-27-arm64-v8a)
+  message("whaa ${VTK_LOCATION}")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -99,8 +94,7 @@ ExternalProject_Add( ${PROJECT_NAME}
     -DGTest_DIR:PATH=${GTest_DIR}
     -Dbenchmark_DIR:PATH=${benchmark_DIR}
     -DVegaFEM_DIR:PATH=${VegaFEM_DIR}
-    -DVTK_DIR:PATH=${VTK_DIR}
-    ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS}
+    -DVTK_DIR:PATH=${VTK_LOCATION}
   DEPENDS ${${PROJECT_NAME}_DEPENDENCIES}
   )
 

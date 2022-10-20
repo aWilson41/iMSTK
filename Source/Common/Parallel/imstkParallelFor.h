@@ -8,15 +8,18 @@
 
 #include "imstkMacros.h"
 
+#ifdef iMSTK_USE_TBB
 DISABLE_WARNING_PUSH
     DISABLE_WARNING_PADDING
 #include <tbb/tbb.h>
 DISABLE_WARNING_POP
+#endif
 
 namespace imstk
 {
 namespace ParallelUtils
 {
+#ifdef iMSTK_USE_TBB
 ///
 /// \brief Execute a function in parallel over a range [beginIdx, endIdx) of indices
 /// \param start index
@@ -46,6 +49,26 @@ parallelFor(const IndexType beginIdx, const IndexType endIdx, Function&& functio
         }
     }
 }
+#else
+///
+/// \brief Execute a function in parallel over a range [beginIdx, endIdx) of indices
+/// \param start index
+/// \param end index
+/// \param function to execute that takes index
+/// \param if less than maxN falls back to normal for loop
+///
+template<class IndexType, class Function>
+void
+parallelFor(const IndexType beginIdx, const IndexType endIdx, Function&& function, const bool imstkNotUsed(doParallel) = false)
+{
+    for (IndexType i = beginIdx; i < endIdx; i++)
+    {
+        function(i);
+    }
+}
+#endif
+
+
 
 ///
 /// \brief Execute a function in parallel over a range [0, endIdx) of indices

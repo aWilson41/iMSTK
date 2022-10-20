@@ -10,7 +10,9 @@
 #include "imstkMshMeshIO.h"
 #include "imstkSurfaceMesh.h"
 #include "imstkTetrahedralMesh.h"
+#ifdef iMSTK_USE_VegaFEM
 #include "imstkVegaMeshIO.h"
+#endif
 #include "imstkVTKMeshIO.h"
 
 #include <cctype>
@@ -73,9 +75,11 @@ MeshIO::read(const std::string& filePath)
     case MeshFileType::_3DS:
         return AssimpMeshIO::read(filePath, meshType);
         break;
+#ifdef iMSTK_USE_VegaFEM
     case MeshFileType::VEG:
         return VegaMeshIO::read(filePath, meshType);
         break;
+#endif
     case MeshFileType::MSH:
         return MshMeshIO::read(filePath);
         break;
@@ -140,9 +144,11 @@ MeshIO::write(const std::shared_ptr<imstk::PointSet> imstkMesh, const std::strin
     MeshFileType meshType = MeshIO::getFileType(filePath);
     switch (meshType)
     {
+#ifdef iMSTK_USE_VegaFEM
     case MeshFileType::VEG:
         return VegaMeshIO::write(imstkMesh, filePath, meshType);
         break;
+#endif
     case MeshFileType::NII:
     case MeshFileType::NRRD:
     case MeshFileType::VTU:

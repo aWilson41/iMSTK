@@ -8,11 +8,15 @@
 
 #include "imstkMacros.h"
 
+#ifdef iMSTK_USE_TBB
 DISABLE_WARNING_PUSH
     DISABLE_WARNING_PADDING
 #include <tbb/tbb.h>
 #include <tbb/global_control.h>
 DISABLE_WARNING_POP
+#else
+#include <stddef.h>
+#endif
 
 namespace imstk
 {
@@ -37,10 +41,12 @@ public:
     static size_t getThreadPoolSize();
 
 private:
+#ifdef iMSTK_USE_TBB
     ///
     /// \brief Global variable for controlling maximum number of worker threads
     ///
     static std::unique_ptr<tbb::global_control> s_tbbGlobalControl;
+#endif
 };
 }  // end namespace ParallelUtils
 }  // end namespace imstk

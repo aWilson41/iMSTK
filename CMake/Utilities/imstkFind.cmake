@@ -52,6 +52,7 @@ macro(imstk_find_header package header)
       PATHS
         ${_SEARCH_DIR}
       NO_DEFAULT_PATH
+      NO_CMAKE_FIND_ROOT_PATH
     )
   else()
     #message(STATUS "I am looking in system for ${package}")
@@ -137,6 +138,7 @@ macro(imstk_find_libary package library)
         ${_SEARCH_DIR}
         ${_SEARCH_DIR}/Release
       NO_DEFAULT_PATH
+      NO_CMAKE_FIND_ROOT_PATH
     )
     
     unset(${PACKAGE}_LIBRARY_${library}-DEBUG CACHE)
@@ -147,6 +149,7 @@ macro(imstk_find_libary package library)
         ${_SEARCH_DIR}
         ${_SEARCH_DIR}/Debug
       NO_DEFAULT_PATH
+      NO_CMAKE_FIND_ROOT_PATH
     )
     
   else()
@@ -154,6 +157,7 @@ macro(imstk_find_libary package library)
     find_library(${PACKAGE}_LIBRARY_${library}-RELEASE
       NAMES
         ${library}${release_postfix}
+      NO_CMAKE_FIND_ROOT_PATH
     )
     
     unset(${PACKAGE}_LIBRARY_${library}-DEBUG CACHE)
@@ -161,6 +165,7 @@ macro(imstk_find_libary package library)
       NAMES
         ${library}${debug_postfix}
         lib${library}${debug_postfix}
+      NO_CMAKE_FIND_ROOT_PATH
     )
 
   endif()

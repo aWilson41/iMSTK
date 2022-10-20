@@ -6,20 +6,21 @@
 #
 ###########################################################################
 
+if (iMSTK_USE_VegaFEM)
+	project(Example-ConvertVTKToVega)
 
-project(Example-ConvertVTKToVega)
+	#-----------------------------------------------------------------------------
+	# Create executable
+	#-----------------------------------------------------------------------------
+	imstk_add_executable(${PROJECT_NAME} ConvertVTKToVega.cpp)
 
-#-----------------------------------------------------------------------------
-# Create executable
-#-----------------------------------------------------------------------------
-imstk_add_executable(${PROJECT_NAME} ConvertVTKToVega.cpp)
+	#-----------------------------------------------------------------------------
+	# Add the target to Examples folder
+	#-----------------------------------------------------------------------------
+	set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Examples/MeshIO)
 
-#-----------------------------------------------------------------------------
-# Add the target to Examples folder
-#-----------------------------------------------------------------------------
-set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Examples/MeshIO)
-
-#-----------------------------------------------------------------------------
-# Link libraries to executable
-#-----------------------------------------------------------------------------
-target_link_libraries(${PROJECT_NAME} MeshIO)
+	#-----------------------------------------------------------------------------
+	# Link libraries to executable
+	#-----------------------------------------------------------------------------
+	target_link_libraries(${PROJECT_NAME} MeshIO)
+endif()

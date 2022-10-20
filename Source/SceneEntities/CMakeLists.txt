@@ -2,6 +2,18 @@
 # Create target
 #-----------------------------------------------------------------------------
 
+set(Dependencies
+  ComponentModel
+  GeometryMappers
+  Materials
+  MeshIO
+  Constraints
+  Devices
+  DynamicalModels
+  CollisionDetection
+  Controllers
+  Filtering)
+
 set(H_FILES
   Camera/imstkCamera.h
   Components/imstkAxesModel.h
@@ -21,7 +33,6 @@ set(H_FILES
   Objects/imstkCollisionDataDebugModel.h
   Objects/imstkDebugGeometryModel.h
   Objects/imstkDynamicObject.h
-  Objects/imstkFeDeformableObject.h
   Objects/imstkLevelSetDeformableObject.h
   Objects/imstkPbdConnectiveTissueConstraintGenerator.h
   Objects/imstkPbdObject.h
@@ -43,7 +54,6 @@ set(SRC_FILES
   Objects/imstkCollisionDataDebugModel.cpp
   Objects/imstkDebugGeometryModel.cpp
   Objects/imstkDynamicObject.cpp
-  Objects/imstkFeDeformableObject.cpp
   Objects/imstkLevelSetDeformableObject.cpp
   Objects/imstkPbdConnectiveTissueConstraintGenerator.cpp
   Objects/imstkPbdObject.cpp
@@ -52,13 +62,15 @@ set(SRC_FILES
   Objects/imstkSphObject.cpp
   )
 
-if (iMSTK_USE_MODEL_REDUCTION)
-  list(APPEND H_FILES
-    Objects/imstkReducedFeDeformableObject.h
-    )
-  list(APPEND SRC_FILES
-    Objects/imstkReducedFeDeformableObject.cpp
-    )
+if (iMSTK_USE_VegaFEM)
+  list(APPEND H_FILES Objects/imstkFeDeformableObject.h)
+  list(APPEND SRC_FILES Objects/imstkFeDeformableObject.cpp)
+  list(APPEND Dependencies DynamicalModelsVegaFEM)
+
+  if (iMSTK_USE_MODEL_REDUCTION)
+    list(APPEND H_FILES Objects/imstkReducedFeDeformableObject.h)
+    list(APPEND SRC_FILES Objects/imstkReducedFeDeformableObject.cpp)
+  endif()
 endif()
 
 include(imstkAddLibrary)
@@ -68,16 +80,7 @@ imstk_add_library(SceneEntities
   CPP_FILES
     ${SRC_FILES}
   DEPENDS
-    ComponentModel
-    GeometryMappers
-    Materials
-    MeshIO
-    Constraints
-    Devices
-    DynamicalModels
-    CollisionDetection
-    Controllers
-    Filtering
+    ${Dependencies}
   )
 
 #-----------------------------------------------------------------------------

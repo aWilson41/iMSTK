@@ -81,18 +81,14 @@
 %shared_ptr(imstk::SurfaceMeshTextureProject)
 
 /* 
- * DynamicalModel 
+ * DynamicalModels
  */
 %shared_ptr(imstk::PbdObject)
 %shared_ptr(imstk::PbdModelConfig)
 %shared_ptr(imstk::PbdCollisionConstraintConfig)
 %shared_ptr(imstk::PbdFemConstraintConfig)
 %shared_ptr(imstk::PbdSolver)
-%shared_ptr(imstk::FeDeformBodyState)
-%shared_ptr(imstk::FemModelConfig)
-%shared_ptr(imstk::FemDeformableBodyModel)
 %shared_ptr(imstk::AbstractDynamicalModel)
-%shared_ptr(imstk::DynamicalModel<imstk::FeDeformBodyState>)
 %shared_ptr(imstk::DynamicalModel<imstk::SphState>)
 %shared_ptr(imstk::SphState)
 %shared_ptr(imstk::RigidBodyState2)
@@ -102,8 +98,18 @@
 %shared_ptr(imstk::RigidBodyModel2)
 %shared_ptr(imstk::SphModelConfig)
 %shared_ptr(imstk::SphModel)
+
+/* 
+ * DynamicalModelsVegaFEM
+ */
+#ifdef iMSTK_USE_VegaFEM
+%shared_ptr(imstk::FeDeformBodyState)
+%shared_ptr(imstk::FemModelConfig)
+%shared_ptr(imstk::FemDeformableBodyModel)
+%shared_ptr(imstk::DynamicalModel<imstk::FeDeformBodyState>)
 %shared_ptr(imstk::TimeIntegrator)
 %shared_ptr(imstk::BackwardEuler)
+#endif
 
 /* 
  * Materials
@@ -132,7 +138,6 @@
 %shared_ptr(imstk::DynamicObject)
 %shared_ptr(imstk::PbdConnectiveTissueConstraintGenerator)
 %shared_ptr(imstk::PbdObject)
-%shared_ptr(imstk::FeDeformableObject)
 %shared_ptr(imstk::SphObject)
 %shared_ptr(imstk::RigidObject2)
 %shared_ptr(imstk::VisualModel)
@@ -141,6 +146,9 @@
 %shared_ptr(imstk::DirectionalLight)
 %shared_ptr(imstk::PointLight)
 %shared_ptr(imstk::SpotLight)
+#ifdef iMSTK_USE_VegaFEM
+%shared_ptr(imstk::FeDeformableObject)
+#endif
 
 /*
  * CollisionDetection

@@ -817,28 +817,28 @@ EigenType cs2Eigen(const csType& cs_data, EigenType* eigen_data)
 
 #endif /* end of #ifdef SWIGCSHARP */
 
-%include "../../Common/imstkMacros.h"
-%include "../../Common/imstkTypes.h";
-%include "../../Common/imstkMath.h";
-%include "../../Common/imstkEventObject.h";
-%include "../../Common/imstkAbstractDataArray.h";
-%include "../../Common/imstkDataArray.h";
+%include "../../Source/Common/imstkMacros.h"
+%include "../../Source/Common/imstkTypes.h";
+%include "../../Source/Common/imstkMath.h";
+%include "../../Source/Common/imstkEventObject.h";
+%include "../../Source/Common/imstkAbstractDataArray.h";
+%include "../../Source/Common/imstkDataArray.h";
 %template(DataArrayi) imstk::DataArray<int>;
 %template(DataArrayf) imstk::DataArray<float>;
 %template(DataArrayd) imstk::DataArray<double>;
 %template(DataArrayuc) imstk::DataArray<unsigned char>;
-%include "../../Common/imstkLogger.h";
+%include "../../Source/Common/imstkLogger.h";
 #ifdef iMSTK_SYNCHRONOUS_LOGGING
 %rename (Logger) LoggerSynchronous;
-%include "../../Common/imstkLoggerSynchronous.h"
+%include "../../Source/Common/imstkLoggerSynchronous.h"
 #else 
 %rename (Logger) LoggerG3;
-%include "../../Common/imstkLoggerG3.h"
+%include "../../Source/Common/imstkLoggerG3.h"
 #endif
-%include "../../Common/imstkModule.h";
-%include "../../Common/imstkModuleDriver.h";
-%include "../../Common/imstkColor.h";
-%include "../../Common/imstkVecDataArray.h";
+%include "../../Source/Common/imstkModule.h";
+%include "../../Source/Common/imstkModuleDriver.h";
+%include "../../Source/Common/imstkColor.h";
+%include "../../Source/Common/imstkVecDataArray.h";
 %template(VecDataArray2i) imstk::VecDataArray<int, 2>;
 %template(VecDataArray3i) imstk::VecDataArray<int, 3>;
 %template(VecDataArray4i) imstk::VecDataArray<int, 4>;

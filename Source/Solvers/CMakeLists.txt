@@ -3,8 +3,19 @@
 #-----------------------------------------------------------------------------
 
 include(imstkAddLibrary)
-imstk_add_library( Solvers
-  H_FILES
+
+set(H_FILES
+  imstkPbdSolver.h
+  imstkProjectedGaussSeidelSolver.h
+  imstkSolverBase.h
+  )
+
+set(SRC_FILES
+  imstkPbdSolver.cpp
+  )
+
+if (NOT iMSTK_BUILD_FOR_ANDROID)
+  list(APPEND H_FILES
     imstkConjugateGradient.h
     imstkDirectLinearSolver.h
     imstkGaussSeidel.h
@@ -14,11 +25,9 @@ imstk_add_library( Solvers
     imstkNewtonSolver.h
     imstkNonLinearSolver.h
     imstkNonLinearSystem.h
-    imstkPbdSolver.h
-    imstkProjectedGaussSeidelSolver.h
-    imstkSolverBase.h
     imstkSOR.h
-  CPP_FILES
+    )
+  list(APPEND SRC_FILES
     imstkConjugateGradient.cpp
     imstkDirectLinearSolver.cpp
     imstkGaussSeidel.cpp
@@ -27,8 +36,15 @@ imstk_add_library( Solvers
     imstkNewtonSolver.cpp
     imstkNonLinearSolver.cpp
     imstkNonLinearSystem.cpp
-    imstkPbdSolver.cpp
     imstkSOR.cpp
+    )
+endif()
+
+imstk_add_library( Solvers
+  H_FILES
+    ${H_FILES}
+  CPP_FILES
+    ${SRC_FILES}
   DEPENDS
     Constraints
   )

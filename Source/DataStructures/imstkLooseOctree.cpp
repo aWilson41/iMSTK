@@ -6,7 +6,10 @@
 
 #include "imstkLooseOctree.h"
 #include "imstkLogger.h"
+#include "imstkParallelReduce.h"
 #include "imstkSurfaceMesh.h"
+
+#include <numeric>
 
 namespace imstk
 {
@@ -331,6 +334,7 @@ LooseOctree::clearPrimitive(const OctreePrimitiveType type)
 uint32_t
 LooseOctree::getMaxNumPrimitivesInNodes() const
 {
+#ifdef iMSTK_USE_TBB
     return tbb::parallel_reduce(m_sActiveTreeNodeBlocks.range(),
                     0u,
         [&](decltype(m_sActiveTreeNodeBlocks)::const_range_type& r, uint32_t prevResult) -> uint32_t
@@ -356,6 +360,25 @@ LooseOctree::getMaxNumPrimitivesInNodes() const
         {
             return x > y ? x : y;
         });
+#else
+    int maxNumPrimitives = 0;
+    for (auto val : m_sActiveTreeNodeBlocks)
+    {
+        for (uint32_t childIdx = 0; childIdx < 8u; ++childIdx)
+        {
+            const auto& pNode = val->m_Nodes[childIdx];
+            for (int type = 0; type < OctreePrimitiveType::NumPrimitiveTypes; ++type)
+            {
+                const int count = pNode.m_PrimitiveCounts[type];
+                if (count > maxNumPrimitives)
+                {
+                    maxNumPrimitives = count;
+                }
+            }
+        }
+    }
+    return maxNumPrimitives;
+#endif
 }
 
 uint32_t
@@ -472,6 +495,7 @@ LooseOctree::build()
             {
                 continue;
             }
+#ifdef iMSTK_USE_TBB
             const auto primitiveMinWidth = tbb::parallel_reduce(tbb::blocked_range<size_t>(0, vPrimitivePtrs.size()),
                                                                 IMSTK_DOUBLE_MAX,
                 [&](const tbb::blocked_range<size_t>& r, double prevResult) -> double {
@@ -495,6 +519,21 @@ LooseOctree::build()
                 [](const double x, const double y) -> double {
                     return x < y ? x : y;
                 });
+#else
+            double primitiveMinWidth = IMSTK_DOUBLE_MAX;
+            for (int i = 0; i < vPrimitivePtrs.size(); i++)
+            {
+                OctreePrimitive* pPrimitive = vPrimitivePtrs[i];
+                computePrimitiveBoundingBox(pPrimitive, static_cast<OctreePrimitiveType>(type));
+                Vec3d widths;
+                for (uint32_t dim = 0; dim < 3; ++dim)
+                {
+                    widths[dim] = pPrimitive->m_UpperCorner[dim] - pPrimitive->m_LowerCorner[dim];
+                }
+                double minBoxWidth = widths.minCoeff();
+                primitiveMinWidth = std::min(minBoxWidth, primitiveMinWidth);
+            }
+#endif
 
             minWidth = minWidth < primitiveMinWidth ? minWidth : primitiveMinWidth;
         }
@@ -740,6 +779,7 @@ LooseOctree::removeInvalidPrimitivesFromNodes()
     {
         return;
     }
+#ifdef iMSTK_USE_TBB
     tbb::parallel_for(m_sActiveTreeNodeBlocks.range(),
         [&](decltype(m_sActiveTreeNodeBlocks)::const_range_type& r) {
             for (auto it = r.begin(), iEnd = r.end(); it != iEnd; ++it)
@@ -775,6 +815,40 @@ LooseOctree::removeInvalidPrimitivesFromNodes()
                 }
             }
         });
+#else
+    for (auto block : m_sActiveTreeNodeBlocks)
+    {
+        OctreeNodeBlock* pNodeBlock = block;
+        for (uint32_t childIdx = 0; childIdx < 8u; ++childIdx)
+        {
+            auto& pNode = pNodeBlock->m_Nodes[childIdx];
+            for (int type = 0; type < OctreePrimitiveType::NumPrimitiveTypes; ++type)
+            {
+                const auto pOldHead = pNode.m_pPrimitiveListHeads[type];
+                if (!pOldHead)
+                {
+                    continue;
+                }
+
+                OctreePrimitive* pIter = pOldHead;
+                OctreePrimitive* pNewHead = nullptr;
+                uint32_t count = 0;
+                while (pIter) {
+                    const auto pNext = pIter->m_pNext;
+                    if (pIter->m_bValid)
+                    {
+                        pIter->m_pNext = pNewHead;
+                        pNewHead = pIter;
+                        ++count;
+                    }
+                    pIter = pNext;
+                }
+                pNode.m_pPrimitiveListHeads[type] = pNewHead;
+                pNode.m_PrimitiveCounts[type] = count;
+            }
+        }
+    }
+#endif
 }
 
 void
@@ -865,7 +939,11 @@ LooseOctree::returnChildrenToPool(OctreeNodeBlock* const pNodeBlock)
     pNodeBlock->m_NextBlock    = m_pNodeBlockPoolHead;
     m_pNodeBlockPoolHead       = pNodeBlock;
     m_NumAvaiableBlocksInPool += 1u;
+#ifdef iMSTK_USE_TBB
     m_sActiveTreeNodeBlocks.unsafe_erase(pNodeBlock);
+#else
+    m_sActiveTreeNodeBlocks.erase(pNodeBlock);
+#endif
     m_PoolLock.unlock();
 }
 

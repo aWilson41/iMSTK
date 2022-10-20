@@ -82,24 +82,30 @@
 #include "imstkMeshIO.h"
 
 /* 
- * DynamicalModel 
+ * DynamicalModels
  */
-#include "imstkVectorizedState.h"
 #include "imstkAbstractDynamicalModel.h"
 #include "imstkDynamicalModel.h"
 #include "imstkPbdModelConfig.h"
 #include "imstkPbdModel.h"
-#include "imstkTimeIntegrator.h"
-#include "imstkBackwardEuler.h"
 #include "imstkPbdFemConstraint.h"
 #include "imstkPbdCollisionConstraint.h"
 #include "imstkSphBoundaryConditions.h"
-#include "imstkInternalForceModelTypes.h"
-#include "imstkFemDeformableBodyModel.h"
 #include "imstkRigidBodyState2.h"
 #include "imstkRigidBodyModel2.h"
 #include "imstkSphState.h"
 #include "imstkSphModel.h"
+
+/*
+ * DynamicalModelsVegaFEM
+ */
+#ifdef iMSTK_USE_VegaFEM
+#include "imstkBackwardEuler.h"
+#include "imstkFemDeformableBodyModel.h"
+#include "imstkInternalForceModelTypes.h"
+#include "imstkTimeIntegrator.h"
+#include "imstkVectorizedState.h"
+#endif
 
 /* 
  * Rendering
@@ -132,9 +138,11 @@
 #include "imstkCamera.h"
 #include "imstkLight.h"
 #include "imstkDirectionalLight.h"
-#include "imstkFeDeformableObject.h"
 #include "imstkRigidObject2.h"
 #include "imstkSphObject.h"
+#ifdef iMSTK_USE_VegaFEM
+#include "imstkFeDeformableObject.h"
+#endif
 
 /*
  * CollisionDetection
@@ -294,66 +302,66 @@ namespace std
 /*
  * DataStructures
  */
-%include "../../DataStructures/imstkNeighborSearch.h"
+%include "../../Source/DataStructures/imstkNeighborSearch.h"
 
 /*
  * Geometry
  */
-%include "../../Geometry/imstkGeometry.h";
-%include "../../Geometry/Mesh/imstkPointSet.h"
-%include "../../Geometry/Mesh/imstkImageData.h"
-%include "../../Geometry/Mesh/imstkAbstractCellMesh.h"
-%include "../../Geometry/Mesh/imstkCellMesh.h"
+%include "../../Source/Geometry/imstkGeometry.h";
+%include "../../Source/Geometry/Mesh/imstkPointSet.h"
+%include "../../Source/Geometry/Mesh/imstkImageData.h"
+%include "../../Source/Geometry/Mesh/imstkAbstractCellMesh.h"
+%include "../../Source/Geometry/Mesh/imstkCellMesh.h"
 %template(CellMesh2) imstk::CellMesh<2>;
 %template(CellMesh3) imstk::CellMesh<3>;
 %template(CellMesh4) imstk::CellMesh<4>;
 %template(CellMesh8) imstk::CellMesh<8>;
-%include "../../Geometry/Mesh/imstkLineMesh.h"
-%include "../../Geometry/Mesh/imstkSurfaceMesh.h"
-%include "../../Geometry/Mesh/imstkVolumetricMesh.h"
+%include "../../Source/Geometry/Mesh/imstkLineMesh.h"
+%include "../../Source/Geometry/Mesh/imstkSurfaceMesh.h"
+%include "../../Source/Geometry/Mesh/imstkVolumetricMesh.h"
 %template(VolumetricMesh4) imstk::VolumetricMesh<4>;
 %template(VolumetricMesh8) imstk::VolumetricMesh<8>;
-%include "../../Geometry/Mesh/imstkTetrahedralMesh.h"
-%include "../../Geometry/Mesh/imstkHexahedralMesh.h"
-%include "../../Geometry/Implicit/imstkImplicitGeometry.h"
-%include "../../Geometry/Implicit/imstkCompositeImplicitGeometry.h"
-%include "../../Geometry/Analytic/imstkAnalyticalGeometry.h"
-%include "../../Geometry/Analytic/imstkPlane.h"
-%include "../../Geometry/Analytic/imstkSphere.h"
-%include "../../Geometry/Analytic/imstkOrientedBox.h"
-%include "../../Geometry/Analytic/imstkCapsule.h"
-%include "../../Geometry/Analytic/imstkCylinder.h"
-%include "../../Geometry/imstkGeometryUtilities.h"
-%include "../../Geometry/Implicit/imstkSignedDistanceField.h"
-%include "../../Geometry/Implicit/imstkImplicitFunctionFiniteDifferenceFunctor.h"
+%include "../../Source/Geometry/Mesh/imstkTetrahedralMesh.h"
+%include "../../Source/Geometry/Mesh/imstkHexahedralMesh.h"
+%include "../../Source/Geometry/Implicit/imstkImplicitGeometry.h"
+%include "../../Source/Geometry/Implicit/imstkCompositeImplicitGeometry.h"
+%include "../../Source/Geometry/Analytic/imstkAnalyticalGeometry.h"
+%include "../../Source/Geometry/Analytic/imstkPlane.h"
+%include "../../Source/Geometry/Analytic/imstkSphere.h"
+%include "../../Source/Geometry/Analytic/imstkOrientedBox.h"
+%include "../../Source/Geometry/Analytic/imstkCapsule.h"
+%include "../../Source/Geometry/Analytic/imstkCylinder.h"
+%include "../../Source/Geometry/imstkGeometryUtilities.h"
+%include "../../Source/Geometry/Implicit/imstkSignedDistanceField.h"
+%include "../../Source/Geometry/Implicit/imstkImplicitFunctionFiniteDifferenceFunctor.h"
 
 /*
  * GeometryMap
  */
-%include "../../GeometryMappers/imstkGeometryMap.h"
-%include "../../GeometryMappers/imstkPointwiseMap.h"
-%include "../../GeometryMappers/imstkPointToTetMap.h"
+%include "../../Source/GeometryMappers/imstkGeometryMap.h"
+%include "../../Source/GeometryMappers/imstkPointwiseMap.h"
+%include "../../Source/GeometryMappers/imstkPointToTetMap.h"
 
 /*
  * FilteringCore
  */
-%include "../../FilteringCore/imstkGeometryAlgorithm.h"
+%include "../../Source/FilteringCore/imstkGeometryAlgorithm.h"
 
 /*
  * Filtering
  */
-%include "../../Filtering/imstkImplicitGeometryToImageData.h"
-%include "../../Filtering/imstkQuadricDecimate.h"
-%include "../../Filtering/imstkSelectEnclosedPoints.h"
-%include "../../Filtering/imstkSurfaceMeshFlyingEdges.h"
-%include "../../Filtering/imstkSurfaceMeshSmoothen.h"
-%include "../../Filtering/imstkSurfaceMeshSubdivide.h"
-%include "../../Filtering/imstkSurfaceMeshTextureProject.h"
+%include "../../Source/Filtering/imstkImplicitGeometryToImageData.h"
+%include "../../Source/Filtering/imstkQuadricDecimate.h"
+%include "../../Source/Filtering/imstkSelectEnclosedPoints.h"
+%include "../../Source/Filtering/imstkSurfaceMeshFlyingEdges.h"
+%include "../../Source/Filtering/imstkSurfaceMeshSmoothen.h"
+%include "../../Source/Filtering/imstkSurfaceMeshSubdivide.h"
+%include "../../Source/Filtering/imstkSurfaceMeshTextureProject.h"
 
 /*
  * MeshIO
  */
-%include "../../MeshIO/imstkMeshIO.h";
+%include "../../Source/MeshIO/imstkMeshIO.h";
 %template(readImageData) imstk::MeshIO::read<imstk::ImageData>;
 %template(readPointSet) imstk::MeshIO::read<imstk::PointSet>;
 %template(readSurfaceMesh) imstk::MeshIO::read<imstk::SurfaceMesh>;
@@ -362,90 +370,98 @@ namespace std
 /*
  * Constraint
  */
-%include "../../Constraint/PbdConstraints/imstkPbdBody.h"
-%include "../../Constraint/PbdConstraints/imstkPbdConstraint.h"
-%include "../../Constraint/PbdConstraints/imstkPbdCollisionConstraint.h"
-%include "../../Constraint/PbdConstraints/imstkPbdFemConstraint.h"
-%include "../../Constraint/RigidBodyConstraints/imstkRbdConstraint.h"
+%include "../../Source/Constraint/PbdConstraints/imstkPbdBody.h"
+%include "../../Source/Constraint/PbdConstraints/imstkPbdConstraint.h"
+%include "../../Source/Constraint/PbdConstraints/imstkPbdCollisionConstraint.h"
+%include "../../Source/Constraint/PbdConstraints/imstkPbdFemConstraint.h"
+%include "../../Source/Constraint/RigidBodyConstraints/imstkRbdConstraint.h"
 
 /*
- * DynamicalModel
+ * DynamicalModels
  */
-%include "../../DynamicalModels/ObjectStates/imstkVectorizedState.h"
-%include "../../DynamicalModels/ObjectModels/imstkAbstractDynamicalModel.h"
-%include "../../DynamicalModels/ObjectModels/imstkDynamicalModel.h"
-%include "../../DynamicalModels/ObjectModels/imstkPbdModelConfig.h"
-%include "../../DynamicalModels/ObjectModels/imstkPbdModel.h"
-%template(DynamicalModelFeDeformBodyState) imstk::DynamicalModel<imstk::FeDeformBodyState>;
-%include "../../DynamicalModels/InternalForceModel/imstkInternalForceModelTypes.h"
-%include "../../DynamicalModels/ObjectModels/imstkFemDeformableBodyModel.h"
-%include "../../DynamicalModels/ObjectModels/imstkSphBoundaryConditions.h"
-%include "../../DynamicalModels/TimeIntegrators/imstkTimeIntegrator.h"
-%include "../../DynamicalModels/TimeIntegrators/imstkBackwardEuler.h"
-%include "../../DynamicalModels/ObjectStates/imstkRigidBodyState2.h"
+%include "../../Source/DynamicalModels/ObjectModels/imstkAbstractDynamicalModel.h"
+%include "../../Source/DynamicalModels/ObjectModels/imstkDynamicalModel.h"
+%include "../../Source/DynamicalModels/ObjectModels/imstkPbdModelConfig.h"
+%include "../../Source/DynamicalModels/ObjectModels/imstkPbdModel.h"
+%include "../../Source/DynamicalModels/ObjectModels/imstkSphBoundaryConditions.h"
+%include "../../Source/DynamicalModels/ObjectStates/imstkRigidBodyState2.h"
 %template(DynamicalModelRigidBodyState2) imstk::DynamicalModel<imstk::RigidBodyState2>;
-%include "../../DynamicalModels/ObjectModels/imstkRigidBodyModel2.h"
-%include "../../DynamicalModels/ObjectStates/imstkSphState.h"
+%include "../../Source/DynamicalModels/ObjectModels/imstkRigidBodyModel2.h"
+%include "../../Source/DynamicalModels/ObjectStates/imstkSphState.h"
 %template(DynamicalModelSphState) imstk::DynamicalModel<imstk::SphState>;
-%include "../../DynamicalModels/ObjectModels/imstkSphModel.h"
+%include "../../Source/DynamicalModels/ObjectModels/imstkSphModel.h"
+
+/*
+ * DynamicalModelsVegaFEM
+ */
+#ifdef iMSTK_USE_VegaFEM
+%include "../../Source/DynamicalModelsVegaFEM/imstkVectorizedState.h"
+%template(DynamicalModelFeDeformBodyState) imstk::DynamicalModel<imstk::FeDeformBodyState>;
+%include "../../Source/DynamicalModelsVegaFEM/InternalForceModel/imstkInternalForceModelTypes.h"
+%include "../../Source/DynamicalModelsVegaFEM/imstkFemDeformableBodyModel.h"
+%include "../../Source/DynamicalModelsVegaFEM/TimeIntegrators/imstkTimeIntegrator.h"
+%include "../../Source/DynamicalModelsVegaFEM/TimeIntegrators/imstkBackwardEuler.h"
+#endif
 
 /* 
  * Rendering 
  */
-%include "../../Materials/imstkRenderMaterial.h";
-%include "../../Materials/imstkTexture.h";
+%include "../../Source/Materials/imstkRenderMaterial.h";
+%include "../../Source/Materials/imstkTexture.h";
 
 /*
  * ComponentModel
  */
-%include "../../ComponentModel/imstkEntity.h"
-%include "../../ComponentModel/imstkComponent.h"
+%include "../../Source/ComponentModel/imstkEntity.h"
+%include "../../Source/ComponentModel/imstkComponent.h"
 
 /*
  * SceneEntities
  */
-%include "../../SceneEntities/Components/imstkVisualModel.h";
-%include "../../SceneEntities/Objects/imstkSceneObject.h";
-%include "../../SceneEntities/Objects/imstkCollidingObject.h";
-%include "../../SceneEntities/Objects/imstkDynamicObject.h";
+%include "../../Source/SceneEntities/Components/imstkVisualModel.h";
+%include "../../Source/SceneEntities/Objects/imstkSceneObject.h";
+%include "../../Source/SceneEntities/Objects/imstkCollidingObject.h";
+%include "../../Source/SceneEntities/Objects/imstkDynamicObject.h";
 %include "../../SceneEntities/Objects/imstkPbdConnectiveTissueConstraintGenerator.h";
-%include "../../SceneEntities/Objects/imstkPbdObject.h";
-%include "../../SceneEntities/Objects/imstkFeDeformableObject.h";
-%include "../../SceneEntities/Objects/imstkRigidObject2.h";
-%include "../../SceneEntities/Objects/imstkSphObject.h";
-%include "../../SceneEntities/Camera/imstkCamera.h";
-%include "../../SceneEntities/Lights/imstkLight.h";
-%include "../../SceneEntities/Lights/imstkDirectionalLight.h";
+%include "../../Source/SceneEntities/Objects/imstkPbdObject.h";
+%include "../../Source/SceneEntities/Objects/imstkRigidObject2.h";
+%include "../../Source/SceneEntities/Objects/imstkSphObject.h";
+%include "../../Source/SceneEntities/Camera/imstkCamera.h";
+%include "../../Source/SceneEntities/Lights/imstkLight.h";
+%include "../../Source/SceneEntities/Lights/imstkDirectionalLight.h";
+#ifdef iMSTK_USE_VegaFEM
+%include "../../Source/SceneEntities/Objects/imstkFeDeformableObject.h";
+#endif
 
 /*
  * CollisionDetection
  */
-%include "../../CollisionDetection/imstkCollisionData.h"
-%include "../../CollisionDetection/imstkCollisionDetectionAlgorithm.h"
-%include "../../CollisionDetection/imstkCollisionUtils.h"
+%include "../../Source/CollisionDetection/imstkCollisionData.h"
+%include "../../Source/CollisionDetection/imstkCollisionDetectionAlgorithm.h"
+%include "../../Source/CollisionDetection/imstkCollisionUtils.h"
 
-%include "../../CollisionDetection/CollisionDetection/imstkBidirectionalPlaneToSphereCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkClosedSurfaceMeshToMeshCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkImplicitGeometryToPointSetCCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkImplicitGeometryToPointSetCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkPointSetToCapsuleCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkPointSetToOrientedBoxCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkPointSetToPlaneCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkPointSetToSphereCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkSphereToCylinderCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkSphereToSphereCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkSurfaceMeshToCapsuleCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkSurfaceMeshToSphereCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkSurfaceMeshToSurfaceMeshCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkTetraToLineMeshCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkTetraToPointSetCD.h"
-%include "../../CollisionDetection/CollisionDetection/imstkUnidirectionalPlaneToSphereCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkBidirectionalPlaneToSphereCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkClosedSurfaceMeshToMeshCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkImplicitGeometryToPointSetCCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkImplicitGeometryToPointSetCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkPointSetToCapsuleCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkPointSetToOrientedBoxCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkPointSetToPlaneCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkPointSetToSphereCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkSphereToCylinderCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkSphereToSphereCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkSurfaceMeshToCapsuleCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkSurfaceMeshToSphereCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkSurfaceMeshToSurfaceMeshCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkTetraToLineMeshCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkTetraToPointSetCD.h"
+%include "../../Source/CollisionDetection/CollisionDetection/imstkUnidirectionalPlaneToSphereCD.h"
 
 /*
  * CollisionHandling
  */ 
-%include "../../CollisionHandling/imstkCollisionHandling.h";
-%include "../../CollisionHandling/imstkRigidBodyCH.h";
+%include "../../Source/CollisionHandling/imstkCollisionHandling.h";
+%include "../../Source/CollisionHandling/imstkRigidBodyCH.h";
 
 /* 
  * Controllers
@@ -461,54 +477,54 @@ namespace std
 /*
  * Needle
  */
-%include "../../Needle/imstkPuncture.h"
-%include "../../Needle/imstkNeedle.h"
-%include "../../Needle/imstkStraightNeedle.h"
-%include "../../Needle/imstkArcNeedle.h"
-%include "../../Needle/imstkPuncturable.h"
+%include "../../Source/Needle/imstkPuncture.h"
+%include "../../Source/Needle/imstkNeedle.h"
+%include "../../Source/Needle/imstkStraightNeedle.h"
+%include "../../Source/Needle/imstkArcNeedle.h"
+%include "../../Source/Needle/imstkPuncturable.h"
 
 /* 
  * Scene
  */
-%include "../../Scene/imstkScene.h";
-%include "../../Scene/imstkCollisionInteraction.h"
-%include "../../Scene/imstkRigidObjectCollision.h"
-%include "../../Scene/imstkPbdObjectCutting.h"
-%include "../../Scene/imstkPbdObjectGrasping.h"
-%include "../../Scene/imstkPbdObjectCollision.h"
-%include "../../Scene/imstkPbdRigidObjectCollision.h"
-%include "../../Scene/imstkPbdRigidObjectGrasping.h"
-%include "../../Scene/imstkSphObjectCollision.h"
+%include "../../Source/Scene/imstkScene.h";
+%include "../../Source/Scene/imstkCollisionInteraction.h"
+%include "../../Source/Scene/imstkRigidObjectCollision.h"
+%include "../../Source/Scene/imstkPbdObjectCutting.h"
+%include "../../Source/Scene/imstkPbdObjectGrasping.h"
+%include "../../Source/Scene/imstkPbdObjectCollision.h"
+%include "../../Source/Scene/imstkPbdRigidObjectCollision.h"
+%include "../../Source/Scene/imstkPbdRigidObjectGrasping.h"
+%include "../../Source/Scene/imstkSphObjectCollision.h"
 
 /*
  * ViewerCore
  */
-%include "../../ViewerCore/imstkViewer.h";
+%include "../../Source/ViewerCore/imstkViewer.h";
 
 #ifdef iMSTK_USE_RENDERING_VTK
 /*
  * ViewerVTK
  */
-%include "../../ViewerVTK/imstkAbstractVTKViewer.h";
-%include "../../ViewerVTK/imstkVTKViewer.h";
+%include "../../Source/ViewerVTK/imstkAbstractVTKViewer.h";
+%include "../../Source/ViewerVTK/imstkVTKViewer.h";
 #endif
 
 /*
  * SimulationManager
  */
-%include "../../SimulationManager/imstkSceneManager.h"
-%include "../../SimulationManager/imstkSimulationManager.h"
-%include "../../SimulationManager/imstkMouseSceneControl.h"
-%include "../../SimulationManager/imstkKeyboardSceneControl.h"
+%include "../../Source/SimulationManager/imstkSceneManager.h"
+%include "../../Source/SimulationManager/imstkSimulationManager.h"
+%include "../../Source/SimulationManager/imstkMouseSceneControl.h"
+%include "../../Source/SimulationManager/imstkKeyboardSceneControl.h"
 
 /*
  * Devices
  */
-%include "../../Devices/imstkDeviceClient.h"
-%include "../../Devices/imstkKeyboardDeviceClient.h"
-%include "../../Devices/imstkMouseDeviceClient.h"
-%include "../../Devices/imstkDeviceManager.h"
-%include "../../Devices/imstkDeviceManagerFactory.h"
+%include "../../Source/Devices/imstkDeviceClient.h"
+%include "../../Source/Devices/imstkKeyboardDeviceClient.h"
+%include "../../Source/Devices/imstkMouseDeviceClient.h"
+%include "../../Source/Devices/imstkDeviceManager.h"
+%include "../../Source/Devices/imstkDeviceManagerFactory.h"
 
 /*
  * The Superclass static functions don't seem to get exposed, 
@@ -522,14 +538,14 @@ namespace std
 }
 
 #ifdef iMSTK_USE_HAPLY
-	%include "../../Devices/imstkHaplyDeviceManager.h"
-	%include "../../Devices/imstkHaplyDeviceClient.h"
+	%include "../../Source/Devices/imstkHaplyDeviceManager.h"
+	%include "../../Source/Devices/imstkHaplyDeviceClient.h"
 #endif
 
 #ifdef iMSTK_USE_OpenHaptics
 	#define HDCALLBACK
-	%include "../../Devices/imstkOpenHapticDeviceManager.h"
-	%include "../../Devices/imstkOpenHapticDeviceClient.h"
+	%include "../../Source/Devices/imstkOpenHapticDeviceManager.h"
+	%include "../../Source/Devices/imstkOpenHapticDeviceClient.h"
 #endif
 
 #ifdef iMSTK_USE_VRPN
@@ -545,6 +561,6 @@ namespace std
 	// mean no constructors are created
 	%feature("notabstract") imstk::VRPNDeviceManager;
 
-	%include "../../Devices/imstkVRPNDeviceManager.h"
-	%include "../../Devices/imstkVRPNDeviceClient.h"
+	%include "../../Source/Devices/imstkVRPNDeviceManager.h"
+	%include "../../Source/Devices/imstkVRPNDeviceClient.h"
 #endif

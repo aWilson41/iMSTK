@@ -32,11 +32,35 @@ include(GoogleTest)
 
 function(imstk_add_test_internal target kind)
 
+  set(oneValueArgs)
+  set(multiValueArgs H_FILES CPP_FILES)
+  include(CMakeParseArguments)
+  cmake_parse_arguments(target "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+
+  #-----------------------------------------------------------------------------
+  # Verbose (display arguments)
+  #-----------------------------------------------------------------------------
+  if(target_VERBOSE)
+    foreach(opt ${options} ${oneValueArgs} ${multiValueArgs})
+      message(STATUS "${opt}:${target_${opt}}")
+    endforeach()
+  endif()
+
+  set(test_files "")
+  list(APPEND test_files ${target_CPP_FILES})
+  list(APPEND test_files ${target_H_FILES})
+
+  # If not files provided explicitly, glob
+  set(FILE_COUNT 0)
+  list(LENGTH test_files FILE_COUNT)
+  if (${FILE_COUNT} EQUAL 0)
+    # Get all source files
+    file(GLOB test_glob_files "${CMAKE_CURRENT_SOURCE_DIR}/*Test.h"
+                              "${CMAKE_CURRENT_SOURCE_DIR}/*Test.cpp")
+    list(APPEND test_files ${test_glob_files})
+  endif()
+
   set(test_driver_executable "${target}${kind}")
-  
-  # Get all source files
-  file(GLOB test_files "${CMAKE_CURRENT_SOURCE_DIR}/*Test.h"
-                       "${CMAKE_CURRENT_SOURCE_DIR}/*Test.cpp")
 
   # Create test driver executable
   imstk_add_executable(${test_driver_executable} ${test_files})
@@ -74,12 +98,12 @@ endif()
 endfunction()
 
 function(imstk_add_test target)
-  imstk_add_test_internal(${target} Tests)
+  imstk_add_test_internal(${target} Tests ${ARGN})
 endfunction()
 
 function(imstk_add_visual_test target)
   if (iMSTK_USE_RENDERING_VTK AND iMSTK_BUILD_VISUAL_TESTING)
-    imstk_add_test_internal(${target} VisualTests)
+    imstk_add_test_internal(${target} VisualTests ${ARGN})
   endif()
 endfunction()
 

@@ -527,8 +527,12 @@ protected:
     uint32_t m_NumAllocatedNodes;                                ///< Count the total number of allocated nodes so far
     ParallelUtils::SpinLock m_PoolLock;                          ///< Atomic lock for multi-threading modification of the memory pool
 
+#ifdef iMSTK_USE_TBB
     /// Set of node blocks that are in use (node blocks that have been taken from memory pool)
     tbb::concurrent_unordered_set<OctreeNodeBlock*> m_sActiveTreeNodeBlocks;
+#else
+    std::unordered_set<OctreeNodeBlock*> m_sActiveTreeNodeBlocks;
+#endif
 
     /// During memory allocation for tree nodes, multiple node blocks are allocated at the same time from a big memory block
     /// This variable store the first address of such big memory block, used during memory pool deallocation

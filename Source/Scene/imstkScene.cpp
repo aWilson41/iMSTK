@@ -9,8 +9,12 @@
 #include "imstkDeviceControl.h"
 #include "imstkCameraController.h"
 #include "imstkCollisionDetectionAlgorithm.h"
+#ifdef iMSTK_USE_VegaFEM
 #include "imstkFeDeformableObject.h"
 #include "imstkFemDeformableBodyModel.h"
+#else
+#include "imstkDynamicObject.h"
+#endif
 #include "imstkLight.h"
 #include "imstkLogger.h"
 #include "imstkParallelUtils.h"
@@ -538,6 +542,7 @@ Scene::advance(const double dt)
         }
     }
 
+#ifdef iMSTK_USE_VegaFEM
     // Reset Contact forces to 0
     for (auto obj : this->getSceneObjects())
     {
@@ -546,6 +551,7 @@ Scene::advance(const double dt)
             defObj->getFEMModel()->getContactForce().setConstant(0.0);
         }
     }
+#endif
 
     // Process all behaviours before updating the scene.
     // This includes controls such as haptics, keyboard, mouse, etc.

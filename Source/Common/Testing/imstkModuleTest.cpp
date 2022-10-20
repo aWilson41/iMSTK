@@ -7,7 +7,6 @@
 #include "imstkModule.h"
 #include "imstkMacros.h"
 
-#include <g3log/g3log.hpp>
 #include <gtest/gtest.h>
 
 namespace imstk

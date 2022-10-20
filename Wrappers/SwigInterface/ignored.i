@@ -4,12 +4,7 @@
 ** See accompanying NOTICE for details. 
 */
 
-%ignore imstk::PbdCollisionConstraint;
 /* %ignore imstk::PbdFEMConstraint; */
-%ignore imstk::PbdModel::getIntegratePositionNode();
-%ignore imstk::PbdModel::getUpdateCollisionGeometryNode();
-%ignore imstk::PbdModel::getSolveNode();
-%ignore imstk::PbdModel::getUpdateVelocityNode();
 %ignore imstk::PbdModelConfig::addPbdConstraintFunctor(std::shared_ptr<PbdConstraintFunctor>);
 %ignore imstk::PbdModelConfig::addPbdConstraintFunctor(std::function<void(PbdConstraintContainer&)>);
 %ignore imstk::PbdModelConfig::getFunctors();
@@ -40,10 +35,14 @@
 %ignore imstk::LoggerG3::initialize();
 %ignore imstk::LoggerG3::destroy();
 %ignore imstk::Log;
+%ignore LEVELS;
+
 %rename("%s") imstk::Logger::startLogger();
 
+// Returns std map, unsupported
 %ignore imstk::PunctureMap;
 
+// Returns std map, unsupported
 %ignore imstk::Scene::getCameras() const;
 
 %ignore imstk::InteractionPair::getTaskNodeInputs();
@@ -55,9 +54,7 @@
 %ignore imstk::RbdConstraint;
 %ignore imstk::PbdConstraintContainer;
 %ignore imstk::PbdConstraintFunctor;
-%ignore imstk::CollisionHandling::getTaskNode();
 
-%ignore imstk::VTKTextStatusManager::getTextActor();
 %ignore imstk::AbstractVTKViewer::getVtkRenderWindow() const;
 
 %ignore imstk::GeometryUtils::coupleVtkDataArray;

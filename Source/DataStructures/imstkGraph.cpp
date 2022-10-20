@@ -8,6 +8,9 @@
 #include "imstkLogger.h"
 #include "imstkParallelUtils.h"
 
+#ifndef iMSTK_USE_TBB
+#include <algorithm>
+#endif
 #include <numeric>
 #include <iostream>
 
@@ -80,10 +83,17 @@ Graph::doColoringWelshPowell(bool print /*= false*/) const
     std::iota(coloringOrder.begin(), coloringOrder.end(), static_cast<size_t>(0));
 
     // Node with largest number of neighbors is processed first
+#ifdef iMSTK_USE_TBB
     tbb::parallel_sort(coloringOrder.begin(), coloringOrder.end(),
         [&](const size_t idx0, const size_t idx1) {
             return neighborCounts[idx0] > neighborCounts[idx1];
                        });
+#else
+    std::sort(coloringOrder.begin(), coloringOrder.end(),
+        [&](const size_t idx0, const size_t idx1) {
+            return neighborCounts[idx0] > neighborCounts[idx1];
+        });
+#endif
 
     ColorType color = 0;
     while (coloringOrder.size() > 0)
